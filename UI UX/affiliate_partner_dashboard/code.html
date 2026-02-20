@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Affiliate Partner Dashboard | Hajj &amp; Umrah Platform</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#c8a851",
+                        "background-light": "#f8f7f6",
+                        "background-dark": "#1e1b14",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #413b2a;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased min-h-screen">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-72 flex-shrink-0 flex flex-col bg-background-light dark:bg-background-dark border-r border-slate-200 dark:border-primary/20">
+<div class="p-6 flex items-center gap-3">
+<div class="size-10 bg-primary rounded-lg flex items-center justify-center text-background-dark">
+<span class="material-symbols-outlined font-bold">flight_takeoff</span>
+</div>
+<div>
+<h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Hajj Portal</h1>
+<p class="text-xs text-slate-500 dark:text-primary/70 font-medium">Affiliate Program</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 text-primary transition-all group" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-semibold text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 hover:text-primary transition-all group" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="font-medium text-sm">Downline Management</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 hover:text-primary transition-all group" href="#">
+<span class="material-symbols-outlined">campaign</span>
+<span class="font-medium text-sm">Marketing Assets</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 hover:text-primary transition-all group" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-medium text-sm">Payout History</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 hover:text-primary transition-all group" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-medium text-sm">Account Settings</span>
+</a>
+</nav>
+<div class="p-6">
+<div class="bg-primary/5 rounded-2xl p-4 border border-primary/10">
+<div class="flex items-center gap-3 mb-3">
+<div class="bg-primary/20 p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary text-sm">workspace_premium</span>
+</div>
+<span class="text-xs font-bold uppercase tracking-wider text-primary">Silver Partner</span>
+</div>
+<p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">Refer 5 more pilgrims to reach <span class="text-primary font-bold">Gold Tier</span> and 15% commission.</p>
+<div class="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full w-[65%]"></div>
+</div>
+</div>
+<div class="mt-6 flex items-center gap-3 pt-6 border-t border-slate-200 dark:border-primary/10">
+<div class="size-10 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="Close up of a professional profile photo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDujHbMbjbvOnNYlkHQ64uYv7D4TsNB-3nPF1hLMttXZLso1cl41b1kSqmraorj_m4RuW_08IBx5QDfQ55CSEU088p-uk6N_xgNwtTI-r3Co42gjVVWSt1OYoOTCVx80EYYt_EYxGy8IHvHehht2pRTwydm4HvGa0RViAmFn0NBJQpWmudTEruhISpvazbyu_1uOqSnWP-ElHCOSV5xWWgXhRMtCejlgbcp0vbMqItKU9wJo4tNW_K1mu9PwsZSzkhZEFzXvCafdHKU"/>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold truncate">Malik Ahmad</p>
+<p class="text-xs text-slate-500 truncate">malik.a@agency.com</p>
+</div>
+<button class="text-slate-400 hover:text-primary">
+<span class="material-symbols-outlined text-lg">logout</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto bg-slate-50 dark:bg-background-dark/50 custom-scrollbar">
+<!-- Top Header -->
+<header class="sticky top-0 z-10 flex items-center justify-between px-8 py-4 bg-background-light dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-primary/10">
+<div>
+<h2 class="text-xl font-bold tracking-tight">Affiliate Dashboard</h2>
+<p class="text-xs text-slate-500 font-medium">Welcome back, Malik. Here's your performance snapshot.</p>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined text-lg">download</span>
+                        Export Reports
+                    </button>
+<button class="flex items-center gap-2 px-5 py-2 text-sm font-bold rounded-lg bg-primary text-background-dark hover:brightness-110 transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-lg font-bold">payments</span>
+                        Request Payout
+                    </button>
+</div>
+</header>
+<div class="p-8 space-y-8 max-w-7xl mx-auto">
+<!-- KPI Performance Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="p-6 bg-background-light dark:bg-background-dark border border-slate-200 dark:border-primary/10 rounded-2xl shadow-sm hover:border-primary/40 transition-colors group">
+<div class="flex items-center justify-between mb-4">
+<div class="p-2 bg-blue-500/10 rounded-lg">
+<span class="material-symbols-outlined text-blue-500">ads_click</span>
+</div>
+<span class="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-md flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">trending_up</span>
+                                +12.5%
+                            </span>
+</div>
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Clicks</p>
+<h3 class="text-2xl font-black">12,450</h3>
+</div>
+<div class="p-6 bg-background-light dark:bg-background-dark border border-slate-200 dark:border-primary/10 rounded-2xl shadow-sm hover:border-primary/40 transition-colors group">
+<div class="flex items-center justify-between mb-4">
+<div class="p-2 bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-primary">person_add</span>
+</div>
+<span class="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-md flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">trending_up</span>
+                                +5.2%
+                            </span>
+</div>
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Registrations</p>
+<h3 class="text-2xl font-black">842</h3>
+</div>
+<div class="p-6 bg-background-light dark:bg-background-dark border border-slate-200 dark:border-primary/10 rounded-2xl shadow-sm hover:border-primary/40 transition-colors group">
+<div class="flex items-center justify-between mb-4">
+<div class="p-2 bg-emerald-500/10 rounded-lg">
+<span class="material-symbols-outlined text-emerald-500">payments</span>
+</div>
+<span class="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-md flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">trending_up</span>
+                                +18.4%
+                            </span>
+</div>
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Commissions</p>
+<h3 class="text-2xl font-black">$14,250.00</h3>
+</div>
+<div class="p-6 bg-background-light dark:bg-background-dark border border-slate-200 dark:border-primary/10 rounded-2xl shadow-sm hover:border-primary/40 transition-colors group">
+<div class="flex items-center justify-between mb-4">
+<div class="p-2 bg-rose-500/10 rounded-lg">
+<span class="material-symbols-outlined text-rose-500">query_stats</span>
+</div>
+<span class="text-xs font-bold text-rose-500 bg-rose-500/10 px-2 py-1 rounded-md flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">trending_down</span>
+                                -0.8%
+                            </span>
+</div>
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Conversion Rate</p>
+<h3 class="text-2xl font-black">6.7%</h3>
+</div>
+</div>
+<!-- Middle Section: Chart and Link Generator -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Commission Chart -->
+<div class="lg:col-span-2 p-6 bg-background-light dark:bg-background-dark border border-slate-200 dark:border-primary/10 rounded-2xl shadow-sm">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h4 class="text-lg font-bold">Commission Earnings</h4>
+<p class="text-xs text-slate-500">Monthly trend performance for current year</p>
+</div>
+<select class="text-xs font-bold bg-slate-100 dark:bg-slate-800 border-none rounded-lg focus:ring-primary/50 text-slate-600 dark:text-slate-300">
+<option>Last 6 Months</option>
+<option>Last Year</option>
+</select>
+</div>
+<div class="h-64 flex flex-col justify-end gap-6 relative">
+<div class="flex flex-1 items-end gap-2 px-2">
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-primary/20 rounded-t-lg group-hover:bg-primary/40 transition-colors" style="height: 40%"></div>
+<span class="text-[10px] font-bold text-slate-500">JAN</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-primary/20 rounded-t-lg group-hover:bg-primary/40 transition-colors" style="height: 55%"></div>
+<span class="text-[10px] font-bold text-slate-500">FEB</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-primary/20 rounded-t-lg group-hover:bg-primary/40 transition-colors" style="height: 85%"></div>
+<span class="text-[10px] font-bold text-slate-500">MAR</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-primary/40 rounded-t-lg ring-2 ring-primary group-hover:bg-primary transition-colors" style="height: 95%"></div>
+<span class="text-[10px] font-bold text-primary">APR</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-primary/20 rounded-t-lg group-hover:bg-primary/40 transition-colors" style="height: 70%"></div>
+<span class="text-[10px] font-bold text-slate-500">MAY</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-primary/20 rounded-t-lg group-hover:bg-primary/40 transition-colors" style="height: 60%"></div>
+<span class="text-[10px] font-bold text-slate-500">JUN</span>
+</div>
+</div>
+<!-- Subtle Grid Lines -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8">
+<div class="border-t border-slate-200 dark:border-primary/5 w-full"></div>
+<div class="border-t border-slate-200 dark:border-primary/5 w-full"></div>
+<div class="border-t border-slate-200 dark:border-primary/5 w-full"></div>
+<div class="border-t border-slate-200 dark:border-primary/5 w-full"></div>
+</div>
+</div>
+</div>
+<!-- Link Generator Card -->
+<div class="p-6 bg-background-light dark:bg-background-dark border border-slate-200 dark:border-primary/10 rounded-2xl shadow-sm flex flex-col">
+<h4 class="text-lg font-bold mb-1">Affiliate Link</h4>
+<p class="text-xs text-slate-500 mb-6">Create a custom referral link and QR code.</p>
+<div class="space-y-4 flex-1">
+<div class="space-y-1.5">
+<label class="text-[10px] font-black uppercase tracking-widest text-slate-500">Custom Slug</label>
+<div class="flex">
+<span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-slate-200 dark:border-primary/20 bg-slate-50 dark:bg-slate-800 text-slate-400 text-xs font-medium">hajjportal.com/ref/</span>
+<input class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-lg bg-background-light dark:bg-background-dark border border-slate-200 dark:border-primary/20 focus:ring-primary focus:border-primary sm:text-xs font-bold text-primary" type="text" value="malik-gold"/>
+</div>
+</div>
+<button class="w-full flex items-center justify-center gap-2 py-2.5 bg-primary/10 text-primary hover:bg-primary hover:text-background-dark transition-all rounded-lg font-bold text-sm">
+<span class="material-symbols-outlined text-lg">content_copy</span>
+                                Copy Referral Link
+                            </button>
+<div class="pt-4 border-t border-slate-200 dark:border-primary/10 text-center">
+<p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">Referral QR Code</p>
+<div class="mx-auto size-32 p-3 bg-white rounded-xl border border-slate-200 dark:border-primary/20 flex items-center justify-center relative overflow-hidden group">
+<!-- QR Code Placeholder Pattern -->
+<div class="w-full h-full bg-slate-900 rounded-lg relative" style="mask-image: url('https://www.svgrepo.com/show/512738/qr-code.svg'); -webkit-mask-image: url('https://www.svgrepo.com/show/512738/qr-code.svg'); mask-size: contain; mask-repeat: no-repeat;"></div>
+<div class="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<button class="bg-white text-slate-900 p-2 rounded-full shadow-lg">
+<span class="material-symbols-outlined">download</span>
+</button>
+</div>
+</div>
+<p class="mt-4 text-[11px] text-slate-400 italic">Scan to test your landing page</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Referred Pilgrims Table -->
+<div class="bg-background-light dark:bg-background-dark border border-slate-200 dark:border-primary/10 rounded-2xl shadow-sm overflow-hidden">
+<div class="p-6 border-b border-slate-200 dark:border-primary/10 flex items-center justify-between">
+<div>
+<h4 class="text-lg font-bold">Recent Referrals</h4>
+<p class="text-xs text-slate-500">Latest pilgrim registrations via your link</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+<input class="pl-10 pr-4 py-2 text-xs bg-slate-100 dark:bg-slate-800 border-none rounded-lg focus:ring-1 focus:ring-primary w-64" placeholder="Search pilgrim..." type="text"/>
+</div>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-primary/5">
+<th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Pilgrim Name</th>
+<th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Package Selected</th>
+<th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Date Registered</th>
+<th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Status</th>
+<th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500 text-right">Commission Earned</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-200 dark:divide-primary/5">
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 font-bold text-xs">HA</div>
+<div class="text-sm font-bold">Hassan Al-Fayed</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium">VIP Ramadan Umrah</td>
+<td class="px-6 py-4 text-sm text-slate-500">Oct 24, 2023</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 uppercase tracking-wide">
+<span class="size-1.5 rounded-full bg-emerald-500"></span>
+                                            Paid &amp; Confirmed
+                                        </span>
+</td>
+<td class="px-6 py-4 text-sm font-black text-right text-primary">$450.00</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center text-amber-600 font-bold text-xs">ZK</div>
+<div class="text-sm font-bold">Zoya Khan</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium">Standard Hajj Group A</td>
+<td class="px-6 py-4 text-sm text-slate-500">Oct 21, 2023</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 uppercase tracking-wide">
+<span class="size-1.5 rounded-full bg-amber-500"></span>
+                                            Deposit Paid
+                                        </span>
+</td>
+<td class="px-6 py-4 text-sm font-black text-right text-primary">$120.00</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 font-bold text-xs">OM</div>
+<div class="text-sm font-bold">Omar Mansoor</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium">Economy Umrah Plus</td>
+<td class="px-6 py-4 text-sm text-slate-500">Oct 19, 2023</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 uppercase tracking-wide">
+<span class="size-1.5 rounded-full bg-slate-400"></span>
+                                            Documentation
+                                        </span>
+</td>
+<td class="px-6 py-4 text-sm font-black text-right text-slate-400">$0.00</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">RI</div>
+<div class="text-sm font-bold">Rashed Islam</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium">Deluxe Family Hajj</td>
+<td class="px-6 py-4 text-sm text-slate-500">Oct 18, 2023</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 uppercase tracking-wide">
+<span class="size-1.5 rounded-full bg-emerald-500"></span>
+                                            Paid &amp; Confirmed
+                                        </span>
+</td>
+<td class="px-6 py-4 text-sm font-black text-right text-primary">$890.00</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-4 bg-slate-50 dark:bg-primary/5 flex items-center justify-between">
+<p class="text-[11px] text-slate-500">Showing 4 of 128 referrals</p>
+<div class="flex items-center gap-2">
+<button class="size-8 rounded border border-slate-200 dark:border-primary/10 flex items-center justify-center hover:bg-white dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="size-8 rounded border border-primary bg-primary text-background-dark text-xs font-bold">1</button>
+<button class="size-8 rounded border border-slate-200 dark:border-primary/10 text-xs font-bold hover:bg-white dark:hover:bg-slate-800 transition-colors">2</button>
+<button class="size-8 rounded border border-slate-200 dark:border-primary/10 text-xs font-bold hover:bg-white dark:hover:bg-slate-800 transition-colors">3</button>
+<button class="size-8 rounded border border-slate-200 dark:border-primary/10 flex items-center justify-center hover:bg-white dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

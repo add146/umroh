@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pilgrim Registration - Data Pribadi</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#c8a851",
+                        "background-light": "#f8f7f6",
+                        "background-dark": "#1e1b14",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .ocr-highlight {
+            background-color: rgba(200, 168, 81, 0.15) !important;
+            border-color: #c8a851 !important;
+        }
+        .timer-glow {
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen pb-20">
+<!-- Sticky Countdown Timer -->
+<div class="sticky top-0 z-50 bg-red-600 text-white py-2 text-center text-sm font-semibold tracking-wide timer-glow">
+<div class="container mx-auto flex items-center justify-center gap-2">
+<span class="material-icons text-sm">schedule</span>
+<span>Your seat is locked for 29:45</span>
+</div>
+</div>
+<!-- Main Navigation / Logo Area -->
+<nav class="border-b border-primary/10 bg-background-light dark:bg-background-dark/50 backdrop-blur-md">
+<div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-icons text-background-dark">flight_takeoff</span>
+</div>
+<span class="text-xl font-bold tracking-tight">HAJJ<span class="text-primary">FLOW</span></span>
+</div>
+<div class="text-sm text-slate-500 dark:text-slate-400">
+                Registration ID: <span class="text-primary font-mono">HJ-2024-8812</span>
+</div>
+</div>
+</nav>
+<main class="max-w-4xl mx-auto px-6 mt-8">
+<!-- Progress Stepper -->
+<div class="mb-12">
+<div class="flex items-center justify-between relative">
+<!-- Step 1: Complete -->
+<div class="flex flex-col items-center z-10">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-background-dark font-bold mb-2">
+<span class="material-icons">check</span>
+</div>
+<span class="text-xs font-medium text-slate-500">Paket</span>
+</div>
+<!-- Line -->
+<div class="absolute top-5 left-0 w-full h-0.5 bg-slate-200 dark:bg-slate-800 -z-0">
+<div class="w-1/3 h-full bg-primary"></div>
+</div>
+<!-- Step 2: Active -->
+<div class="flex flex-col items-center z-10">
+<div class="w-10 h-10 rounded-full bg-primary ring-4 ring-primary/20 flex items-center justify-center text-background-dark font-bold mb-2">
+                        2
+                    </div>
+<span class="text-xs font-bold text-primary">Data Pribadi</span>
+</div>
+<!-- Step 3: Pending -->
+<div class="flex flex-col items-center z-10">
+<div class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-bold mb-2">
+                        3
+                    </div>
+<span class="text-xs font-medium text-slate-500">Dokumen</span>
+</div>
+<!-- Step 4: Pending -->
+<div class="flex flex-col items-center z-10">
+<div class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-bold mb-2">
+                        4
+                    </div>
+<span class="text-xs font-medium text-slate-500">Pembayaran</span>
+</div>
+</div>
+</div>
+<!-- Header Section -->
+<div class="mb-8">
+<h1 class="text-3xl font-bold mb-2">Langkah 2: Data Pribadi</h1>
+<p class="text-slate-500 dark:text-slate-400">Silakan lengkapi data diri Anda sesuai dengan KTP yang berlaku.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Left Column: OCR Upload -->
+<div class="lg:col-span-1">
+<div class="bg-white dark:bg-slate-900/40 p-6 rounded-xl border border-slate-200 dark:border-primary/10">
+<label class="block text-sm font-semibold mb-4">Upload KTP untuk Isi Otomatis</label>
+<div class="relative group cursor-pointer border-2 border-dashed border-primary/30 hover:border-primary rounded-xl p-8 transition-all bg-primary/5">
+<input class="absolute inset-0 opacity-0 cursor-pointer" type="file"/>
+<div class="text-center">
+<div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+<span class="material-icons text-primary text-3xl">photo_camera</span>
+</div>
+<p class="text-sm font-medium mb-1">Ambil Foto atau Seret KTP</p>
+<p class="text-xs text-slate-500">Format: JPG, PNG (Maks 5MB)</p>
+</div>
+</div>
+<div class="mt-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg flex items-start gap-3">
+<span class="material-icons text-green-500 text-sm mt-0.5">verified</span>
+<div>
+<p class="text-xs font-bold text-green-500 uppercase tracking-wider">Sistem Aktif</p>
+<p class="text-[11px] text-slate-500 dark:text-slate-400">OCR AI akan membaca data Anda secara otomatis setelah upload.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Form Fields -->
+<div class="lg:col-span-2">
+<div class="space-y-6">
+<!-- Section: Identitas -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="block text-sm font-medium">Nomor Induk Kependudukan (NIK)</label>
+<div class="relative">
+<input class="w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg focus:ring-primary focus:border-primary ocr-highlight text-sm p-3" type="text" value="3275081203890001"/>
+<span class="absolute right-3 top-3 text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">OCR</span>
+</div>
+<p class="text-xs text-red-500 flex items-center gap-1">
+<span class="material-icons text-[14px]">error_outline</span> NIK harus terdiri dari 16 digit.
+                            </p>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-medium">Nama Lengkap (Sesuai KTP)</label>
+<div class="relative">
+<input class="w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg focus:ring-primary focus:border-primary ocr-highlight text-sm p-3" type="text" value="AHMAD SYARIFUDDIN"/>
+<span class="absolute right-3 top-3 text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">OCR</span>
+</div>
+</div>
+</div>
+<!-- Section: TTL & Gender -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="space-y-2">
+<label class="block text-sm font-medium">Tempat Lahir</label>
+<input class="w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg focus:ring-primary focus:border-primary text-sm p-3" placeholder="Contoh: Jakarta" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-medium">Tanggal Lahir</label>
+<input class="w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg focus:ring-primary focus:border-primary text-sm p-3" type="date"/>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-medium">Jenis Kelamin</label>
+<select class="w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg focus:ring-primary focus:border-primary text-sm p-3">
+<option>Laki-laki</option>
+<option>Perempuan</option>
+</select>
+</div>
+</div>
+<!-- Section: Contact -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-200 dark:border-slate-800">
+<div class="space-y-2">
+<label class="block text-sm font-medium">Nomor WhatsApp</label>
+<div class="flex">
+<span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-500 text-sm">+62</span>
+<input class="w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-r-lg focus:ring-primary focus:border-primary text-sm p-3" placeholder="8123456789" type="tel"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-medium">Alamat Email</label>
+<input class="w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg focus:ring-primary focus:border-primary text-sm p-3" placeholder="nama@email.com" type="email"/>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center justify-between pt-10">
+<button class="flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors font-semibold" type="button">
+<span class="material-icons text-sm">arrow_back</span>
+                            Kembali
+                        </button>
+<div class="flex items-center gap-4">
+<button class="px-6 py-3 rounded-lg border border-primary text-primary hover:bg-primary/5 transition-colors font-semibold" type="button">
+                                Simpan Draft
+                            </button>
+<button class="px-10 py-3 rounded-lg bg-primary text-background-dark hover:brightness-110 transition-all font-bold shadow-lg shadow-primary/20" type="button">
+                                Lanjutkan
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Sidebar Preview (Floating on right for desktop) -->
+<aside class="fixed right-8 bottom-8 hidden xl:block w-72">
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-2xl">
+<div class="bg-primary/10 p-4 border-b border-primary/20">
+<h3 class="font-bold text-sm flex items-center gap-2">
+<span class="material-icons text-primary text-lg">description</span>
+                    Preview KTP
+                </h3>
+</div>
+<div class="p-4">
+<div class="aspect-[1.58/1] rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden relative group">
+<img class="w-full h-full object-cover opacity-50 grayscale" data-alt="Official Indonesian Identity Card Sample" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaZzwVDqDyFd1m6grARZ5MTwourtBA8aIdUNkhPHQEnEBZdZ6SnaYERiS94X7eFJBGtNeAzeYW6F0A8ZMOePMUcD2TR-XbCZf_l-0hKzl97e_88-EiZkvt-K73Aa0iQfCOQidt1IIoWxkVRzBYcX7iXILnk6mqh1v5RFQCnru7zDGtumH5Zr78sAF6_OcItIs_HL_VppVyU7GlkasE4lCxLjvuX7Hh1Kzn9tZ8QOVsgIM8pUBjGW87-JFdsJvuYUJhQEPfbbQAh_na"/>
+<div class="absolute inset-0 flex items-center justify-center bg-black/40">
+<span class="text-[10px] font-bold text-white uppercase tracking-widest bg-primary px-2 py-1 rounded">Terverifikasi</span>
+</div>
+</div>
+<div class="mt-4 space-y-2">
+<div class="flex justify-between text-[11px]">
+<span class="text-slate-500">Quality Score:</span>
+<span class="text-green-500 font-bold">98%</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+<div class="bg-green-500 h-full w-[98%]"></div>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</body></html>

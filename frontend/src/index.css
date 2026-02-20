@@ -1,36 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
 :root {
-  /* Al Madinah Brand Colors */
-  --color-primary: #0a4d2b;
-  /* Deep Green */
-  --color-primary-light: #127a45;
-  --color-secondary: #c5a044;
-  /* Gold */
-  --color-secondary-light: #e0bc66;
-  --color-text: #1a1a1a;
-  --color-text-light: #666666;
-  --color-bg: #ffffff;
-  --color-bg-alt: #f8fafc;
-  --color-border: #e2e8f0;
+  /* ===== DARK MODE DESIGN SYSTEM ===== */
+  /* Backgrounds */
+  --color-bg: #0a0907;
+  --color-bg-alt: #131210;
+  --color-bg-card: rgba(255, 255, 255, 0.05);
+  --color-bg-hover: rgba(255, 255, 255, 0.08);
+
+  /* Gold Primary Accent */
+  --color-primary: #c8a851;
+  --color-primary-light: #d4b86a;
+  --color-primary-dark: #a88a36;
+  --color-primary-bg: rgba(200, 168, 81, 0.12);
+
+  /* Text */
+  --color-text: #f1f0ee;
+  --color-text-muted: #94928d;
+  --color-text-light: #64625e;
+
+  /* Borders */
+  --color-border: rgba(255, 255, 255, 0.10);
+  --color-border-gold: rgba(200, 168, 81, 0.30);
+
+  /* Status */
   --color-success: #22c55e;
   --color-error: #ef4444;
   --color-warning: #f59e0b;
 
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  /* Shadows */
+  --shadow-gold: 0 0 15px rgba(200, 168, 81, 0.30);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.40);
   --radius: 0.5rem;
 }
 
-* {
+/* ============ RESET ============ */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  color: var(--color-text);
   background-color: var(--color-bg);
+  color: var(--color-text);
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
@@ -45,39 +69,62 @@ button {
   font-family: inherit;
 }
 
+/* ============ LAYOUT ============ */
 .container {
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 1.5rem;
 }
 
-/* Base UI components can be added here or in components/ */
+/* ============ DARK GLASS COMPONENTS ============ */
+.glass-nav {
+  background: rgba(10, 9, 7, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.dark-card:hover {
+  border-color: var(--color-border-gold);
+}
+
+/* ============ BUTTONS ============ */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.625rem 1.25rem;
-  font-weight: 500;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  font-weight: 700;
   border-radius: var(--radius);
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
 }
 
 .btn-primary {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--color-bg);
+  font-weight: 800;
 }
 
 .btn-primary:hover {
   background-color: var(--color-primary-light);
+  box-shadow: var(--shadow-gold);
 }
 
-.btn-secondary {
-  background-color: var(--color-secondary);
-  color: white;
+.btn-outline {
+  border: 1px solid var(--color-border-gold);
+  color: var(--color-text);
 }
 
-.btn-secondary:hover {
-  background-color: var(--color-secondary-light);
+.btn-outline:hover {
+  background: var(--color-primary-bg);
 }
 
 /* ============ SKELETON LOADING ============ */
@@ -92,18 +139,77 @@ button {
 }
 
 .skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.10) 50%, rgba(255, 255, 255, 0.05) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 0.5rem;
 }
 
-/* ============ SMOOTH SCROLL ============ */
-html {
-  scroll-behavior: smooth;
+/* ============ MATERIAL SYMBOLS ============ */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
 }
 
-/* ============ RESPONSIVE UTILITIES ============ */
+/* ============ GOLD PROGRESS BAR ============ */
+.quota-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.10);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.quota-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 9999px;
+  box-shadow: 0 0 8px rgba(200, 168, 81, 0.50);
+}
+
+.quota-fill.critical {
+  background: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.50);
+}
+
+/* ============ SIDEBAR ============ */
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.sidebar-link:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text);
+}
+
+.sidebar-link.active {
+  background: rgba(200, 168, 81, 0.15);
+  color: var(--color-primary);
+}
+
+/* ============ RESPONSIVE ============ */
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
@@ -115,28 +221,26 @@ html {
   .sidebar.open {
     transform: translateX(0);
   }
-
-  .main-content {
-    margin-left: 0 !important;
-  }
 }
 
-/* ============ FOCUS STYLES (Accessibility) ============ */
+/* ============ FOCUS ACCESSIBILITY ============ */
 :focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-/* ============ PRINT STYLES ============ */
+/* ============ PRINT ============ */
 @media print {
 
   .sidebar,
   .no-print {
     display: none !important;
   }
+}
 
-  .main-content {
-    margin-left: 0 !important;
-  }
+/* ============ SELECTION ============ */
+::selection {
+  background: var(--color-primary);
+  color: var(--color-bg);
 }

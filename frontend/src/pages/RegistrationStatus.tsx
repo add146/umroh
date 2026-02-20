@@ -2,7 +2,14 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { apiFetch } from '../lib/api';
 import PaymentGateway from '../components/payment/PaymentGateway';
-import { Loader2, ClipboardCheck, User, Calendar, MapPin, ShieldCheck, ArrowRight } from 'lucide-react';
+
+const STATUS_STEPS = [
+    { key: 'booking', label: 'BOOKING', sub: 'Completed', icon: 'shopping_cart' },
+    { key: 'dp', label: 'DP', sub: 'Confirmed', icon: 'payments' },
+    { key: 'installment', label: 'CICILAN', sub: 'In Progress', icon: 'account_balance_wallet' },
+    { key: 'fully_paid', label: 'LUNAS', sub: 'Locked', icon: 'lock' },
+    { key: 'departed', label: 'BERANGKAT', sub: 'Scheduled', icon: 'flight_takeoff' },
+];
 
 export default function RegistrationStatusPage() {
     const { id } = useParams<{ id: string }>();
@@ -10,200 +17,265 @@ export default function RegistrationStatusPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchStatus();
+        apiFetch<any>(`/api/bookings/${id}/status`)
+            .then(data => setBooking(data))
+            .catch(console.error)
+            .finally(() => setLoading(false));
     }, [id]);
 
-    const fetchStatus = async () => {
-        try {
-            const data = await apiFetch<any>(`/api/bookings/${id}/status`);
-            setBooking(data);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     if (loading) return (
-        <div className="flex h-screen flex-col items-center justify-center bg-gray-50">
-            <Loader2 className="animate-spin text-primary w-12 h-12" />
-            <p className="mt-4 text-xs font-black uppercase tracking-[0.3em] text-gray-400">Memuat Data Keberangkatan...</p>
+        <div style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '48px', color: 'var(--color-primary)', animation: 'spin 1s linear infinite' }}>progress_activity</span>
+            <p style={{ marginTop: '1rem', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.3em', color: 'var(--color-text-muted)' }}>Memuat Data...</p>
         </div>
     );
 
     if (!booking) return (
-        <div className="flex h-screen items-center justify-center bg-gray-50">
-            <div className="text-center space-y-4">
-                <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto">
-                    <ShieldCheck className="w-10 h-10" />
+        <div style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ textAlign: 'center' }}>
+                <div style={{ width: '80px', height: '80px', borderRadius: '9999px', background: 'rgba(239,68,68,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '40px', color: '#ef4444', fontVariationSettings: "'FILL' 1" }}>shield_question</span>
                 </div>
-                <div>
-                    <h2 className="text-2xl font-black text-gray-900 tracking-tight uppercase">Akses Ditolak</h2>
-                    <p className="text-gray-500 font-medium">Data pendaftaran tidak ditemukan atau kadaluarsa.</p>
-                </div>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 900 }}>Akses Ditolak</h2>
+                <p style={{ color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>Data pendaftaran tidak ditemukan atau kadaluarsa.</p>
             </div>
         </div>
     );
 
+    // Determine current payment step (simplified)
+    const activeStep = booking.bookingStatus === 'confirmed' ? 4 : booking.invoices?.some((i: any) => i.status === 'paid') ? 2 : 1;
+
     return (
-        <div className="min-h-screen bg-[#FDFDFC] overflow-x-hidden selection:bg-secondary/30">
-            {/* Top Navigation / Brand */}
-            <div className="bg-white border-b border-gray-100/50 sticky top-0 z-50 backdrop-blur-md bg-white/80">
-                <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-primary/20">A</div>
-                        <h1 className="text-2xl font-black text-primary tracking-tighter italic">AL MADINAH</h1>
+        <div style={{ minHeight: '100vh', background: 'var(--color-bg)', color: 'var(--color-text)', fontFamily: 'Inter, sans-serif' }}>
+
+            {/* Header */}
+            <nav style={{ background: '#131210', borderBottom: '1px solid var(--color-border)', padding: '0 1.5rem', height: '72px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 30 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ width: '36px', height: '36px', background: 'var(--color-primary)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#0a0907', fontVariationSettings: "'FILL' 1" }}>mosque</span>
                     </div>
-                    <div className="hidden md:flex items-center gap-6">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Customer Portal</span>
-                        <div className="h-4 w-px bg-gray-200"></div>
-                        <span className="text-sm font-bold text-primary">ID: {id?.substring(0, 8).toUpperCase()}</span>
+                    <span style={{ fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.02em' }}>
+                        AL<span style={{ color: 'var(--color-primary)' }}>MADINAH</span>
+                    </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <span style={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-text-muted)' }}>Customer Portal</span>
+                    <div style={{ width: '1px', height: '16px', background: 'var(--color-border)' }} />
+                    <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--color-primary)' }}>
+                        ID: {id?.substring(0, 8).toUpperCase()}
+                    </span>
+                </div>
+            </nav>
+
+            <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '2.5rem 1.5rem' }}>
+
+                {/* Greeting */}
+                <div style={{ marginBottom: '2.5rem' }}>
+                    <h1 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.375rem' }}>
+                        Assalamu'alaikum, {booking.pilgrim?.name?.split(' ')[0]}!
+                    </h1>
+                    <p style={{ color: 'var(--color-text-muted)' }}>
+                        Perjalanan umroh Anda masih dalam proses. Berikut status terkini.
+                    </p>
+                </div>
+
+                {/* ===== JOURNEY TIMELINE ===== */}
+                <div className="dark-card" style={{ borderRadius: '1.25rem', padding: '2rem', marginBottom: '2rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative' }}>
+                        {/* Background line */}
+                        <div style={{ position: 'absolute', top: '19px', left: '32px', right: '32px', height: '2px', background: 'var(--color-border)' }} />
+                        <div style={{ position: 'absolute', top: '19px', left: '32px', height: '2px', background: 'var(--color-primary)', width: `${(activeStep / (STATUS_STEPS.length - 1)) * 100}%`, transition: 'width 0.6s ease' }} />
+
+                        {STATUS_STEPS.map((step, idx) => {
+                            const isDone = idx < activeStep;
+                            const isActive = idx === activeStep;
+                            return (
+                                <div key={step.key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', position: 'relative', zIndex: 2 }}>
+                                    <div style={{
+                                        width: '40px', height: '40px', borderRadius: '9999px',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s',
+                                        background: isDone ? 'var(--color-primary)' : isActive ? 'var(--color-primary-bg)' : '#131210',
+                                        border: `2px solid ${isDone ? 'var(--color-primary)' : isActive ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                                        boxShadow: isActive ? 'var(--shadow-gold)' : 'none'
+                                    }}>
+                                        {isDone
+                                            ? <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#0a0907', fontVariationSettings: "'FILL' 1" }}>check</span>
+                                            : <span className="material-symbols-outlined" style={{ fontSize: '18px', color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)', fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>{step.icon}</span>
+                                        }
+                                    </div>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <p style={{ fontSize: '0.6875rem', fontWeight: 900, letterSpacing: '0.05em', color: isActive ? 'var(--color-primary)' : isDone ? 'var(--color-text)' : 'var(--color-text-muted)' }}>{step.label}</p>
+                                        <p style={{ fontSize: '0.625rem', color: 'var(--color-text-light)' }}>{step.sub}</p>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
-            </div>
 
-            <div className="max-w-6xl mx-auto px-6 py-12">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                    {/* Sidebar: Information */}
-                    <div className="lg:col-span-4 space-y-8 animate-in slide-in-from-left-8 duration-700">
-                        <div className="bg-white rounded-[32px] p-8 border border-gray-100 shadow-xl shadow-gray-200/40 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-125 transition-transform duration-700">
-                                <User className="w-24 h-24" />
+                {/* ===== GRID: Payment + Documents ===== */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+
+                    {/* Payment Summary */}
+                    <div className="dark-card" style={{ borderRadius: '1.25rem', padding: '1.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--color-primary)', fontVariationSettings: "'FILL' 1" }}>account_balance_wallet</span>
+                                <h3 style={{ fontWeight: 800 }}>Ringkasan Pembayaran</h3>
                             </div>
-
-                            <h3 className="text-[10px] font-black uppercase text-secondary tracking-[0.3em] mb-8 flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-secondary"></div>
-                                Informasi Jamaah
-                            </h3>
-
-                            <div className="space-y-8 relative z-10">
-                                <div className="flex items-start gap-4">
-                                    <div className="p-3 bg-gray-50 rounded-2xl text-primary">
-                                        <User className="w-5 h-5" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Nama Lengkap</p>
-                                        <p className="text-lg font-black text-gray-900 leading-none">{booking.pilgrim.name}</p>
-                                        <p className="text-xs font-bold text-primary opacity-60 tracking-tight">{booking.pilgrim.phone}</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-4">
-                                    <div className="p-3 bg-gray-50 rounded-2xl text-primary">
-                                        <Calendar className="w-5 h-5" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Paket & Keberangkatan</p>
-                                        <p className="text-lg font-black text-gray-900 leading-tight">{booking.departure.package.name}</p>
-                                        <div className="flex items-center gap-2 mt-2">
-                                            <span className="text-[10px] bg-secondary/10 text-secondary px-3 py-1 rounded-full font-black uppercase tracking-widest">
-                                                {new Date(booking.departure.date).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-4">
-                                    <div className="p-3 bg-gray-50 rounded-2xl text-primary">
-                                        <MapPin className="w-5 h-5" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Status Reservasi</p>
-                                        <div className="flex items-center gap-2 pt-1">
-                                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${booking.bookingStatus === 'confirmed' ? 'bg-success text-white' : 'bg-amber-100 text-amber-700'
-                                                }`}>
-                                                {booking.bookingStatus}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <button style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 700 }}>Lihat History</button>
                         </div>
 
-                        {/* Branding Card */}
-                        <div className="bg-primary rounded-[32px] p-8 text-white relative overflow-hidden group shadow-2xl shadow-primary/30">
-                            <div className="absolute -bottom-8 -right-8 opacity-10 group-hover:scale-110 transition-transform duration-1000">
-                                <ShieldCheck className="w-48 h-48" />
-                            </div>
-                            <h4 className="text-sm font-black uppercase tracking-widest mb-4 flex items-center gap-2 text-secondary">
-                                <ShieldCheck className="w-4 h-4" /> Trusted Partner
-                            </h4>
-                            <p className="text-xl font-black leading-tight mb-4 tracking-tight">Kenyamanan & Keamanan Ibadah Anda Prioritas Kami.</p>
-                            <p className="text-xs text-white/60 font-medium">Layanan bantuan 24/7 tersedia bagi seluruh jamaah Al Madinah.</p>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                            {[
+                                { label: 'TOTAL PAKET', value: booking.departure?.package?.basePrice, style: {} },
+                                { label: 'TERBAYAR (33%)', value: Math.floor((booking.departure?.package?.basePrice || 0) * 0.33), style: { color: 'var(--color-primary)' } },
+                                { label: 'SISA TAGIHAN', value: Math.ceil((booking.departure?.package?.basePrice || 0) * 0.67), style: {} },
+                                { label: 'JATUH TEMPO', value: null, date: 'Oct 15, 2025', style: { color: 'var(--color-error)' } },
+                            ].map((item, i) => (
+                                <div key={i} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '0.75rem', padding: '1rem' }}>
+                                    <p style={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-text-muted)', marginBottom: '0.375rem' }}>{item.label}</p>
+                                    {item.value !== null && item.value !== undefined ? (
+                                        <p style={{ fontSize: '1.25rem', fontWeight: 900, ...item.style }}>
+                                            Rp {item.value?.toLocaleString('id-ID')}
+                                        </p>
+                                    ) : (
+                                        <p style={{ fontSize: '1.125rem', fontWeight: 900, ...item.style }}>{item.date}</p>
+                                    )}
+                                </div>
+                            ))}
                         </div>
+
+                        <button style={{
+                            width: '100%', padding: '0.875rem',
+                            background: 'var(--color-primary)', color: 'var(--color-bg)',
+                            borderRadius: '0.75rem', fontWeight: 900, fontSize: '0.9375rem',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                            boxShadow: 'var(--shadow-gold)', transition: 'all 0.2s'
+                        }}>
+                            Bayar Cicilan
+                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>arrow_forward</span>
+                        </button>
                     </div>
 
-                    {/* Main Content: Payment Flow */}
-                    <div className="lg:col-span-8 space-y-10 animate-in slide-in-from-right-8 duration-1000 delay-200">
-                        <div className="space-y-2">
-                            <h3 className="text-[10px] font-black uppercase text-gray-400 tracking-[0.4em] flex items-center gap-3">
-                                <div className="h-px bg-gray-200 flex-1"></div>
-                                Monitoring Rencana Pembayaran
-                                <div className="h-px bg-gray-200 flex-1"></div>
-                            </h3>
+                    {/* Documents */}
+                    <div className="dark-card" style={{ borderRadius: '1.25rem', padding: '1.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--color-primary)', fontVariationSettings: "'FILL' 1" }}>folder</span>
+                            <h3 style={{ fontWeight: 800 }}>Dokumen</h3>
                         </div>
-
-                        {booking.invoices.map((inv: any, idx: number) => (
-                            <div key={inv.id} className="relative">
-                                {idx > 0 && <div className="absolute -top-10 left-10 w-px h-10 bg-dashed border-l border-gray-200"></div>}
-
-                                {inv.status !== 'paid' ? (
-                                    <div className="transform transition-all duration-500 hover:scale-[1.01]">
-                                        <PaymentGateway
-                                            invoiceId={inv.id}
-                                            amount={inv.amount}
-                                            bookingCode={inv.invoiceCode}
-                                        />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                            {[
+                                { label: 'KTP / NIK', status: 'done' },
+                                { label: 'Paspor', status: 'done' },
+                                { label: 'Vaksin Meningitis', status: 'required' },
+                                { label: 'Foto 4x6 Background Putih', status: 'locked' },
+                            ].map(doc => (
+                                <div key={doc.label} style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                    padding: '0.875rem 1rem', borderRadius: '0.75rem',
+                                    background: doc.status === 'required' ? 'rgba(239,68,68,0.08)' : 'rgba(255,255,255,0.04)',
+                                    border: `1px solid ${doc.status === 'required' ? 'rgba(239,68,68,0.25)' : 'var(--color-border)'}`
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                                        <span className="material-symbols-outlined" style={{
+                                            fontSize: '18px', fontVariationSettings: "'FILL' 1",
+                                            color: doc.status === 'done' ? 'var(--color-success)' : doc.status === 'required' ? 'var(--color-error)' : 'var(--color-text-muted)'
+                                        }}>
+                                            {doc.status === 'done' ? 'check_circle' : doc.status === 'locked' ? 'lock' : 'error'}
+                                        </span>
+                                        <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{doc.label}</span>
                                     </div>
-                                ) : (
-                                    <div className="bg-white rounded-[32px] border-2 border-green-500/20 bg-gradient-to-br from-white to-green-50 shadow-xl p-8 relative overflow-hidden group">
-                                        <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none group-hover:scale-150 transition-transform duration-[2000ms]">
-                                            <ClipboardCheck className="w-32 h-32" />
-                                        </div>
+                                    {doc.status === 'done' ? (
+                                        <button style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 700 }}>Lihat</button>
+                                    ) : doc.status === 'required' ? (
+                                        <button style={{ fontSize: '0.6875rem', fontWeight: 800, padding: '0.375rem 0.75rem', borderRadius: '0.375rem', background: '#dc2626', color: 'white', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                            Upload
+                                        </button>
+                                    ) : (
+                                        <span style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Terkunci</span>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '1rem' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '14px', verticalAlign: 'middle', marginRight: '4px' }}>info</span>
+                            Dokumen final wajib dilengkapi sebelum Nov 1, 2025
+                        </p>
+                    </div>
+                </div>
 
-                                        <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
-                                            <div className="flex items-center gap-6">
-                                                <div className="w-16 h-16 bg-success rounded-2xl flex items-center justify-center text-white shadow-xl shadow-success/30 transform transition-transform group-hover:rotate-12">
-                                                    <ClipboardCheck className="w-8 h-8" />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <div className="flex items-center gap-3 transition-all">
-                                                        <h4 className="text-xl font-black text-gray-900 tracking-tight uppercase">Tagihan Terbayar</h4>
-                                                        <span className="bg-success text-white text-[8px] px-3 py-1 rounded-full font-black tracking-widest uppercase">Verified</span>
-                                                    </div>
-                                                    <p className="text-[11px] font-bold text-success/70 font-mono tracking-widest">{inv.invoiceCode}</p>
-                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Lunas: {new Date(inv.paidAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })}</p>
-                                                </div>
+                {/* ===== INVOICES ===== */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                    <h3 style={{ fontWeight: 800, marginBottom: '1rem', fontSize: '1rem' }}>Rencana Pembayaran</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {booking.invoices?.map((inv: any) => (
+                            <div key={inv.id}>
+                                {inv.status !== 'paid' ? (
+                                    <PaymentGateway invoiceId={inv.id} amount={inv.amount} bookingCode={inv.invoiceCode} />
+                                ) : (
+                                    <div className="dark-card" style={{
+                                        borderRadius: '1.25rem', padding: '1.5rem',
+                                        border: '1px solid rgba(34,197,94,0.25)', background: 'rgba(34,197,94,0.05)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                            <div style={{ width: '48px', height: '48px', borderRadius: '0.875rem', background: 'var(--color-success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <span className="material-symbols-outlined" style={{ fontSize: '24px', color: 'white', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                                             </div>
-                                            <div className="text-center md:text-right border-t md:border-t-0 md:border-l border-gray-100 pt-6 md:pt-0 md:pl-8 flex flex-col items-center md:items-end">
-                                                <p className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-1">Total Mutasi</p>
-                                                <p className="text-3xl font-black text-primary tracking-tighter">
-                                                    <span className="text-base mr-1 text-secondary">Rp</span>
-                                                    {inv.amount.toLocaleString('id-ID')}
-                                                </p>
-                                                <div className="mt-3 inline-flex items-center gap-2 text-[10px] font-black text-success uppercase tracking-wider">
-                                                    Transaksi Sukses <ArrowRight className="w-3 h-3" />
-                                                </div>
+                                            <div>
+                                                <p style={{ fontWeight: 900, fontSize: '1rem' }}>Tagihan Terbayar</p>
+                                                <p style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--color-success)', fontWeight: 700 }}>{inv.invoiceCode}</p>
                                             </div>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <p style={{ fontWeight: 900, fontSize: '1.5rem', color: 'var(--color-primary)' }}>
+                                                Rp {inv.amount?.toLocaleString('id-ID')}
+                                            </p>
+                                            <p style={{ fontSize: '0.75rem', color: 'var(--color-success)', fontWeight: 700 }}>
+                                                Lunas {new Date(inv.paidAt).toLocaleDateString('id-ID')}
+                                            </p>
                                         </div>
                                     </div>
                                 )}
                             </div>
                         ))}
+                    </div>
+                </div>
 
-                        {/* Extra trust footer */}
-                        <div className="bg-gray-50 rounded-[32px] p-8 border border-gray-100 flex flex-col md:flex-row items-center gap-8 justify-between opacity-80">
-                            <div className="flex gap-4">
-                                <div className="p-3 bg-white rounded-2xl border border-gray-100 shadow-sm"><ShieldCheck className="w-6 h-6 text-primary" /></div>
-                                <div>
-                                    <p className="text-xs font-black uppercase text-gray-900 tracking-widest">Enkripsi End-to-End</p>
-                                    <p className="text-[10px] text-gray-500 font-medium">Seluruh transaksi Anda dilindungi sistem keamanan berstandar tinggi.</p>
-                                </div>
-                            </div>
+                {/* ===== CTA HELP ===== */}
+                <div className="dark-card" style={{ borderRadius: '1.25rem', padding: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div style={{ width: '48px', height: '48px', borderRadius: '9999px', background: 'var(--color-primary-bg)', border: '1px solid var(--color-border-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '24px', color: 'var(--color-primary)' }}>headset_mic</span>
                         </div>
+                        <div>
+                            <p style={{ fontWeight: 700 }}>Butuh bantuan dengan perjalanan Anda?</p>
+                            <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>Agen kami siap 24/7 memandu ibadah Anda.</p>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        <a href="https://wa.me/" style={{
+                            display: 'flex', alignItems: 'center', gap: '0.5rem',
+                            padding: '0.625rem 1.25rem', borderRadius: '0.75rem', fontWeight: 700,
+                            fontSize: '0.875rem', background: '#25D366', color: 'white', textDecoration: 'none'
+                        }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>chat</span> WhatsApp
+                        </a>
+                        <button style={{
+                            display: 'flex', alignItems: 'center', gap: '0.5rem',
+                            padding: '0.625rem 1.25rem', borderRadius: '0.75rem', fontWeight: 700,
+                            fontSize: '0.875rem', border: '1px solid var(--color-border-gold)', color: 'var(--color-primary)'
+                        }}>
+                            Help Center
+                        </button>
                     </div>
                 </div>
             </div>
+
+            <style>{`
+                @keyframes spin { to { transform: rotate(360deg); } }
+            `}</style>
         </div>
     );
 }
