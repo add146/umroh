@@ -18,21 +18,20 @@ export const LoginPage: React.FC = () => {
         setError('');
 
         try {
-            const response = await apiFetch('/api/auth/login', {
+            // apiFetch already returns parsed JSON, no need to call .json() again
+            const data = await apiFetch<{ user: any; accessToken: string }>('/api/auth/login', {
                 method: 'POST',
                 body: JSON.stringify({ email, password }),
             });
 
-            const data = await response.json();
-
-            if (response.ok) {
+            if (data.accessToken) {
                 setAuth(data.user, data.accessToken);
                 navigate('/dashboard');
             } else {
-                setError(data.error || 'Login failed');
+                setError('Login gagal. Periksa email dan password Anda.');
             }
-        } catch (err) {
-            setError('Connection error. Please try again.');
+        } catch (err: any) {
+            setError(err.message || 'Connection error. Please try again.');
         } finally {
             setIsLoading(false);
         }
