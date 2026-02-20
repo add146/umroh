@@ -33,8 +33,22 @@ app.use(
     '/api/*',
     cors({
         origin: (origin, c) => {
-            const frontendUrl = c.env.FRONTEND_URL || 'http://localhost:5173';
-            return origin === frontendUrl ? origin : frontendUrl;
+            // Allow: localhost dev, all Cloudflare Pages subdomains, and custom FRONTEND_URL
+            const allowedOrigins = [
+                'http://localhost:5173',
+                'http://localhost:3000',
+                c.env.FRONTEND_URL,
+            ].filter(Boolean);
+
+            // Also allow any *.pages.dev subdomain (Cloudflare Pages previews)
+            if (origin && (
+                allowedOrigins.includes(origin) ||
+                /^https:\/\/[a-z0-9-]+\.pages\.dev$/.test(origin) ||
+                /^https:\/\/[a-z0-9-]+\.umroh-3vl\.pages\.dev$/.test(origin)
+            )) {
+                return origin;
+            }
+            return allowedOrigins[0] || 'http://localhost:5173';
         },
         credentials: true,
         allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
