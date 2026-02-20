@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1771583304014,
+      "tag": "0000_hesitant_mephisto",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1771584128567,
+      "tag": "0001_lush_falcon",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1771587112035,
+      "tag": "0002_faithful_proemial_gods",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1771587562068,
+      "tag": "0003_common_human_robot",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1771605581333,
+      "tag": "0004_affiliate_engine",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1771605614206,
+      "tag": "0005_operations_ocr",
+      "breakpoints": true
+    }
+  ]
+}

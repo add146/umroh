@@ -1,0 +1,40 @@
+name = "umroh-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "umroh-db"
+database_id = "6d376602-bcfc-45dd-b90f-c1c748f6c723"
+migrations_dir = "src/db/migrations"
+
+[[r2_buckets]]
+binding = "R2_DOCUMENTS"
+bucket_name = "umroh-documents"
+
+[vars]
+ENVIRONMENT = "development"
+FRONTEND_URL = "http://localhost:5173"
+JWT_SECRET = "super-secret-key-change-in-production"
+# MIDTRANS_CLIENT_KEY — set via: wrangler secret put MIDTRANS_CLIENT_KEY
+# MIDTRANS_SERVER_KEY — set via: wrangler secret put MIDTRANS_SERVER_KEY
+
+# ============================================================
+# PRODUCTION ENVIRONMENT
+# Secrets must be set via: wrangler secret put <SECRET_NAME>
+# ============================================================
+[env.production]
+name = "umroh-api-prod"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+FRONTEND_URL = "https://umroh.khibroh.com"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "umroh-db"
+database_id = "6d376602-bcfc-45dd-b90f-c1c748f6c723"
+
+[[env.production.r2_buckets]]
+binding = "R2_DOCUMENTS"
+bucket_name = "umroh-documents"
