@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,7 +26,7 @@ const registrationSchema = z.object({
         address: z.string().min(10, "Alamat minimal 10 karakter"),
         fatherName: z.string().min(3),
 
-        hasPassport: z.boolean().default(false),
+        hasPassport: z.boolean(),
         noPassport: z.string().optional(),
         passportFrom: z.string().optional(),
         passportReleaseDate: z.string().optional(),
@@ -54,7 +54,7 @@ const Registration: React.FC = () => {
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
-    const [lockKey, setLockKey] = useState<string | null>(null);
+    const [lockKey] = useState<string | null>(null);
 
     const methods = useForm<RegistrationData>({
         resolver: zodResolver(registrationSchema),

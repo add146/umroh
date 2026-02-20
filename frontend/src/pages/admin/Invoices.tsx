@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Check, X, Eye, Loader2, CreditCard, Landmark, Filter, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiFetch } from '../../lib/api';
@@ -128,11 +128,11 @@ export default function InvoicesPage() {
                                     </td>
                                     <td className="px-8 py-6 text-center">
                                         <span className={`inline-flex items-center gap-2 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.15em] ${inv.status === 'paid' ? 'bg-success/10 text-success' :
-                                                inv.status === 'pending' ? 'bg-amber-100 text-amber-600 animate-pulse' :
-                                                    inv.status === 'cancelled' ? 'bg-red-50 text-red-500' : 'bg-gray-100 text-gray-400'
+                                            inv.status === 'pending' ? 'bg-amber-100 text-amber-600 animate-pulse' :
+                                                inv.status === 'cancelled' ? 'bg-red-50 text-red-500' : 'bg-gray-100 text-gray-400'
                                             }`}>
                                             <div className={`w-1.5 h-1.5 rounded-full ${inv.status === 'paid' ? 'bg-success' :
-                                                    inv.status === 'pending' ? 'bg-amber-600' : 'bg-current'
+                                                inv.status === 'pending' ? 'bg-amber-600' : 'bg-current'
                                                 }`}></div>
                                             {inv.status}
                                         </span>
