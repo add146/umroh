@@ -42,7 +42,7 @@ const formatCurrency = (n: number) =>
 
 const StatCard: React.FC<{ label: string; value: string | number; color?: string; sub?: string }> = ({ label, value, color = '#1a1a2e', sub }) => (
     <div style={{
-        background: 'white',
+        background: 'var(--color-bg-card)',
         border: '1px solid var(--color-border)',
         borderRadius: '16px',
         padding: '1.5rem',
@@ -213,7 +213,7 @@ const AffiliateDashboard: React.FC = () => {
 
             {/* Referrals Table */}
             {activeTab === 'referrals' && (
-                <div style={{ background: 'white', borderRadius: '16px', border: '1px solid var(--color-border)', overflow: 'hidden' }}>
+                <div style={{ background: 'var(--color-bg-card)', borderRadius: '16px', border: '1px solid var(--color-border)', overflow: 'hidden' }}>
                     {referrals.length === 0 ? (
                         <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-light)' }}>
                             <p style={{ fontSize: '3rem', marginBottom: '1rem' }}>👥</p>
@@ -263,7 +263,7 @@ const AffiliateDashboard: React.FC = () => {
 
             {/* Commission History Table */}
             {activeTab === 'commissions' && (
-                <div style={{ background: 'white', borderRadius: '16px', border: '1px solid var(--color-border)', overflow: 'hidden' }}>
+                <div style={{ background: 'var(--color-bg-card)', borderRadius: '16px', border: '1px solid var(--color-border)', overflow: 'hidden' }}>
                     {history.length === 0 ? (
                         <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-light)' }}>
                             <p style={{ fontSize: '3rem', marginBottom: '1rem' }}>💰</p>

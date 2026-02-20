@@ -130,7 +130,7 @@ const CommissionManage: React.FC = () => {
                     { label: 'Total Dicairkan', value: formatCurrency(paidTotal), color: '#16a34a' },
                     { label: 'Aturan Komisi Aktif', value: rules.length, color: '#7c3aed' },
                 ].map(({ label, value, color }) => (
-                    <div key={label} style={{ flex: 1, minWidth: '220px', background: 'white', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                    <div key={label} style={{ flex: 1, minWidth: '220px', background: 'var(--color-bg-card)', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                         <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-light)', marginBottom: '0.5rem' }}>{label}</p>
                         <p style={{ fontSize: '1.5rem', fontWeight: 800, color }}>{value}</p>
                     </div>
@@ -165,7 +165,7 @@ const CommissionManage: React.FC = () => {
 
                     {showForm && (
                         <form onSubmit={handleCreateRule} style={{
-                            background: 'white', border: '1px solid var(--color-border)', borderRadius: '16px',
+                            background: 'var(--color-bg-card)', border: '1px solid var(--color-border)', borderRadius: '16px',
                             padding: '1.5rem', marginBottom: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem'
                         }}>
                             <div style={{ gridColumn: '1/-1' }}>
@@ -211,7 +211,7 @@ const CommissionManage: React.FC = () => {
                         </form>
                     )}
 
-                    <div style={{ background: 'white', borderRadius: '16px', border: '1px solid var(--color-border)', overflow: 'hidden' }}>
+                    <div style={{ background: 'var(--color-bg-card)', borderRadius: '16px', border: '1px solid var(--color-border)', overflow: 'hidden' }}>
                         {rules.length === 0 ? (
                             <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-light)' }}>
                                 <p>Belum ada aturan komisi. Klik "Tambah Aturan" untuk memulai.</p>
@@ -253,7 +253,7 @@ const CommissionManage: React.FC = () => {
 
             {/* LEDGER TAB */}
             {activeTab === 'ledger' && (
-                <div style={{ background: 'white', borderRadius: '16px', border: '1px solid var(--color-border)', overflow: 'hidden' }}>
+                <div style={{ background: 'var(--color-bg-card)', borderRadius: '16px', border: '1px solid var(--color-border)', overflow: 'hidden' }}>
                     {ledger.length === 0 ? (
                         <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-light)' }}>
                             <p>Belum ada entri ledger komisi</p>
