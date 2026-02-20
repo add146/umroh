@@ -107,11 +107,11 @@ const LogisticsChecklist: React.FC = () => {
         <div className="p-6 max-w-7xl mx-auto">
             <header className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-gray-900">📦 Logistik & Perlengkapan</h1>
+                    <h1 className="text-3xl font-extrabold text-white">📦 Logistik & Perlengkapan</h1>
                     <p className="text-gray-500">Pantau distribusi perlengkapan jamaah</p>
                 </div>
 
-                <div className="bg-white p-2 rounded-xl shadow-sm border flex items-center gap-3">
+                <div className="dark-card p-2 rounded-xl shadow-sm border flex items-center gap-3">
                     <span className="text-xs font-bold text-gray-400 uppercase ml-2">Keberangkatan</span>
                     <select
                         className="bg-transparent border-none text-brand-primary font-bold text-sm focus:ring-0"
@@ -126,20 +126,20 @@ const LogisticsChecklist: React.FC = () => {
             </header>
 
             {loading ? (
-                <div className="text-center py-20 bg-white rounded-2xl shadow-sm border">
-                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-primary mx-auto"></div>
+                <div className="text-center py-20 dark-card rounded-2xl shadow-sm border">
+                    <div className="animate-spin rounded-full h-10 w-10 border-b border-[var(--color-border)]-2 border-brand-primary mx-auto"></div>
                     <p className="mt-4 text-gray-400 font-medium">Sinkronisasi data logistik...</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {logisticsData.map((data) => (
-                        <div key={data.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+                        <div key={data.id} className="dark-card rounded-2xl shadow-sm border border-[var(--color-border)] p-5 hover:shadow-md transition-shadow">
                             <div className="flex justify-between items-start mb-4">
                                 <div>
-                                    <h3 className="font-bold text-gray-900">{data.pilgrim?.name}</h3>
+                                    <h3 className="font-bold text-white">{data.pilgrim?.name}</h3>
                                     <p className="text-xs text-gray-500 font-medium">{data.pilgrim?.phone}</p>
                                 </div>
-                                <div className="bg-gray-50 px-2 py-1 rounded text-[10px] font-mono text-gray-400">
+                                <div className="bg-[#131210] px-2 py-1 rounded text-[10px] font-mono text-gray-400">
                                     #{data.id.substring(0, 6)}
                                 </div>
                             </div>
@@ -151,7 +151,7 @@ const LogisticsChecklist: React.FC = () => {
                                         onClick={() => toggleStatus(data.id, item.id, item.status)}
                                         className={`flex items-center justify-between p-3 rounded-xl border-2 cursor-pointer transition-all ${item.status === 'received'
                                                 ? 'bg-green-50 border-green-200 text-green-700'
-                                                : 'bg-white border-gray-100 text-gray-600 hover:border-gray-200'
+                                                : 'dark-card border-[var(--color-border)] text-gray-600 hover:border-[var(--color-border)]'
                                             }`}
                                     >
                                         <div className="flex items-center gap-3">

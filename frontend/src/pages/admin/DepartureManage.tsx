@@ -42,7 +42,7 @@ const DepartureManage: React.FC = () => {
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tighter">Kelola Jadwal Keberangkatan</h1>
+                <h1 className="text-2xl font-black text-white uppercase tracking-tighter">Kelola Jadwal Keberangkatan</h1>
                 <button
                     onClick={handleCreate}
                     className="bg-brand-primary text-white px-4 py-2 rounded-lg font-bold shadow-lg shadow-brand-primary/20"
@@ -51,9 +51,9 @@ const DepartureManage: React.FC = () => {
                 </button>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="dark-card rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
                 <table className="w-full text-left">
-                    <thead className="bg-gray-50 border-b">
+                    <thead className="bg-[#131210] border-b border-[var(--color-border)]">
                         <tr>
                             <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase">Tgl Berangkat</th>
                             <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase">Bandara</th>
@@ -62,12 +62,12 @@ const DepartureManage: React.FC = () => {
                             <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase text-right">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody className="divide-y divide-white/10">
                         {loading ? (
                             <tr><td colSpan={4} className="p-10 text-center text-gray-400 animate-pulse">Memuat jadwal...</td></tr>
                         ) : departures.map(dep => (
                             <tr key={dep.id}>
-                                <td className="px-6 py-4 font-bold text-gray-900">
+                                <td className="px-6 py-4 font-bold text-white">
                                     {new Date(dep.departureDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                                 </td>
                                 <td className="px-6 py-4 text-sm font-black text-brand-primary">{dep.airport}</td>

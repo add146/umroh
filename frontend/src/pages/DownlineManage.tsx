@@ -74,7 +74,7 @@ export const DownlineManagePage: React.FC = () => {
                 </button>
             </div>
 
-            <div style={{ backgroundColor: 'white', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
+            <div style={{ backgroundColor: 'var(--color-bg-card)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead style={{ backgroundColor: '#f1f5f9' }}>
                         <tr>
@@ -117,7 +117,7 @@ export const DownlineManagePage: React.FC = () => {
                     position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
                     backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
                 }}>
-                    <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: 'var(--radius)', width: '400px' }}>
+                    <div style={{ backgroundColor: 'var(--color-bg-card)', border: '1px solid var(--color-border)', padding: '2rem', borderRadius: 'var(--radius)', width: '400px' }}>
                         <h3 style={{ marginBottom: '1.5rem' }}>Add New {downlineLabel}</h3>
                         <form onSubmit={handleCreateDownline}>
                             <div style={{ marginBottom: '1rem' }}>

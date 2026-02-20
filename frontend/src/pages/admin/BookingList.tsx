@@ -24,9 +24,9 @@ const BookingList: React.FC = () => {
     return (
         <div className="p-6">
             <h1 className="text-2xl font-bold mb-6">Daftar Booking Jam'ah</h1>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="dark-card rounded-xl shadow-sm border border-[var(--color-border)] overflow-hidden">
                 <table className="w-full text-left">
-                    <thead className="bg-gray-50 text-gray-400 text-xs uppercase font-bold">
+                    <thead className="bg-[#131210] text-gray-400 text-xs uppercase font-bold">
                         <tr>
                             <th className="px-6 py-4">Kode Booking</th>
                             <th className="px-6 py-4">Jamaah</th>
@@ -36,12 +36,12 @@ const BookingList: React.FC = () => {
                             <th className="px-6 py-4">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-white/10">
                         {bookings.map((booking) => (
-                            <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
+                            <tr key={booking.id} className="hover:bg-[#131210] transition-colors">
                                 <td className="px-6 py-4 font-mono text-xs">{booking.id.substring(0, 8).toUpperCase()}</td>
                                 <td className="px-6 py-4">
-                                    <p className="font-bold text-gray-900">{booking.pilgrim?.name}</p>
+                                    <p className="font-bold text-white">{booking.pilgrim?.name}</p>
                                     <p className="text-xs text-gray-500">{booking.pilgrim?.phone}</p>
                                 </td>
                                 <td className="px-6 py-4 text-sm">

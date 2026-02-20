@@ -38,9 +38,9 @@ export default function InvoicesPage() {
 
     return (
         <div className="p-8 space-y-8 animate-in fade-in duration-700">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-gray-100 pb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-[var(--color-border)] pb-8">
                 <div className="space-y-1">
-                    <h1 className="text-4xl font-black text-gray-900 tracking-tight flex items-center gap-4">
+                    <h1 className="text-4xl font-black text-white tracking-tight flex items-center gap-4">
                         Verifikasi Pembayaran
                         <span className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full">{invoices.filter(i => i.status === 'pending').length} Menunggu</span>
                     </h1>
@@ -50,18 +50,18 @@ export default function InvoicesPage() {
                 <div className="flex gap-4 w-full md:w-auto">
                     <div className="relative flex-1 md:w-64">
                         <Search className="absolute left-4 top-3.5 w-4 h-4 text-gray-400" />
-                        <input className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-4 focus:ring-primary/5 transition-all outline-none font-bold" placeholder="Cari Kode Invoice / Nama..." />
+                        <input className="w-full pl-11 pr-4 py-3 bg-[#131210] border-none rounded-xl text-sm focus:ring-4 focus:ring-primary/5 transition-all outline-none font-bold" placeholder="Cari Kode Invoice / Nama..." />
                     </div>
-                    <button className="p-3 bg-gray-50 text-gray-600 rounded-xl hover:bg-gray-100 transition-all">
+                    <button className="p-3 bg-[#131210] text-gray-600 rounded-xl hover:bg-white/5 transition-all">
                         <Filter className="w-5 h-5" />
                     </button>
                 </div>
             </div>
 
-            <div className="bg-white rounded-[32px] border border-gray-100 shadow-2xl shadow-gray-200/50 overflow-hidden overflow-x-auto">
+            <div className="dark-card rounded-[32px] border border-[var(--color-border)] shadow-2xl shadow-gray-200/50 overflow-hidden overflow-x-auto">
                 <table className="w-full text-left">
                     <thead>
-                        <tr className="bg-gray-50/50 divide-x divide-gray-100">
+                        <tr className="bg-[#131210]/50 divide-x divide-white/10">
                             <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Data Invoice</th>
                             <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Identitas Jamaah</th>
                             <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Nominal & Mode</th>
@@ -69,7 +69,7 @@ export default function InvoicesPage() {
                             <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] text-right">Manajemen</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody className="divide-y divide-white/10">
                         {loading ? (
                             <tr>
                                 <td colSpan={5} className="px-8 py-24 text-center">
@@ -80,7 +80,7 @@ export default function InvoicesPage() {
                         ) : invoices.length === 0 ? (
                             <tr>
                                 <td colSpan={5} className="px-8 py-24 text-center">
-                                    <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <div className="bg-[#131210] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <CreditCard className="text-gray-200 w-10 h-10" />
                                     </div>
                                     <p className="text-gray-400 font-bold italic tracking-tight">Tidak ada histori tagihan yang tersedia.</p>
@@ -91,7 +91,7 @@ export default function InvoicesPage() {
                                 <tr key={inv.id} className="hover:bg-primary/[0.01] transition-colors group">
                                     <td className="px-8 py-6">
                                         <div className="space-y-1">
-                                            <p className="font-mono text-sm font-black text-gray-900 tracking-tighter">{inv.invoiceCode}</p>
+                                            <p className="font-mono text-sm font-black text-white tracking-tighter">{inv.invoiceCode}</p>
                                             <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
                                                 Dibuat: {new Date(inv.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                                             </p>
@@ -103,7 +103,7 @@ export default function InvoicesPage() {
                                                 {inv.booking?.pilgrim?.name?.charAt(0)}
                                             </div>
                                             <div>
-                                                <p className="font-black text-gray-900 tracking-tight">{inv.booking?.pilgrim?.name || 'N/A'}</p>
+                                                <p className="font-black text-white tracking-tight">{inv.booking?.pilgrim?.name || 'N/A'}</p>
                                                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{inv.booking?.pilgrim?.phone}</p>
                                             </div>
                                         </div>
@@ -129,7 +129,7 @@ export default function InvoicesPage() {
                                     <td className="px-8 py-6 text-center">
                                         <span className={`inline-flex items-center gap-2 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.15em] ${inv.status === 'paid' ? 'bg-success/10 text-success' :
                                             inv.status === 'pending' ? 'bg-amber-100 text-amber-600 animate-pulse' :
-                                                inv.status === 'cancelled' ? 'bg-red-50 text-red-500' : 'bg-gray-100 text-gray-400'
+                                                inv.status === 'cancelled' ? 'bg-red-50 text-red-500' : 'bg-white/5 text-gray-400'
                                             }`}>
                                             <div className={`w-1.5 h-1.5 rounded-full ${inv.status === 'paid' ? 'bg-success' :
                                                 inv.status === 'pending' ? 'bg-amber-600' : 'bg-current'
@@ -142,7 +142,7 @@ export default function InvoicesPage() {
                                             {inv.transferProofKey && (
                                                 <button
                                                     onClick={() => setSelectedProof(inv.transferProofKey)}
-                                                    className="p-3 bg-white border border-gray-100 shadow-sm text-secondary rounded-xl hover:shadow-md hover:border-secondary transition-all"
+                                                    className="p-3 dark-card border border-[var(--color-border)] shadow-sm text-secondary rounded-xl hover:shadow-md hover:border-secondary transition-all"
                                                     title="Lihat Bukti Transfer"
                                                 >
                                                     <Eye className="w-5 h-5" />
@@ -177,32 +177,32 @@ export default function InvoicesPage() {
 
             {selectedProof && (
                 <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center p-6 z-[60] animate-in fade-in duration-300">
-                    <div className="max-w-4xl w-full bg-white rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                    <div className="max-w-4xl w-full dark-card rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
                         <div className="bg-primary px-10 py-6 flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="p-2 bg-white/10 rounded-xl text-secondary">
+                                <div className="p-2 dark-card/10 rounded-xl text-secondary">
                                     <Eye className="w-6 h-6" />
                                 </div>
                                 <h3 className="text-xl font-bold text-white uppercase tracking-wider">Dokumen Bukti Transfer</h3>
                             </div>
                             <button
                                 onClick={() => setSelectedProof(null)}
-                                className="p-3 bg-white/10 text-white rounded-2xl hover:bg-white/20 transition-all"
+                                className="p-3 dark-card/10 text-white rounded-2xl hover:dark-card/20 transition-all"
                             >
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
-                        <div className="p-10 bg-gray-50 flex justify-center max-h-[70vh] overflow-auto">
+                        <div className="p-10 bg-[#131210] flex justify-center max-h-[70vh] overflow-auto">
                             <img
                                 src={`${import.meta.env.VITE_API_URL}/api/payments/proof/${selectedProof.replace('proofs/', '')}`}
                                 alt="Bukti Transfer"
                                 className="w-auto h-auto rounded-3xl shadow-2xl border-8 border-white"
                             />
                         </div>
-                        <div className="p-8 bg-white border-t border-gray-100 flex justify-end gap-4">
+                        <div className="p-8 dark-card border-t border-[var(--color-border)] flex justify-end gap-4">
                             <button
                                 onClick={() => setSelectedProof(null)}
-                                className="px-8 py-3 bg-gray-100 text-gray-500 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-gray-200 transition-all"
+                                className="px-8 py-3 bg-white/5 text-gray-500 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-gray-200 transition-all"
                             >
                                 Tutup Preview
                             </button>

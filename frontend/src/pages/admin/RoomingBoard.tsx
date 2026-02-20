@@ -86,12 +86,12 @@ const RoomingBoard: React.FC = () => {
         <div className="p-6 max-w-6xl mx-auto">
             <header className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-gray-900">🏢 Rooming Board</h1>
+                    <h1 className="text-3xl font-extrabold text-white">🏢 Rooming Board</h1>
                     <p className="text-gray-500">Kelola penempatan kamar jamaah per keberangkatan</p>
                 </div>
 
-                <div className="flex items-center gap-3 bg-white p-2 rounded-lg border shadow-sm">
-                    <span className="text-sm font-semibold text-gray-700 ml-2">Pilih Keberangkatan:</span>
+                <div className="flex items-center gap-3 dark-card p-2 rounded-lg border shadow-sm">
+                    <span className="text-sm font-semibold text-gray-300 ml-2">Pilih Keberangkatan:</span>
                     <select
                         className="p-2 border-none focus:ring-0 bg-transparent text-sm font-bold text-brand-primary"
                         value={selectedDepartureId}
@@ -108,13 +108,13 @@ const RoomingBoard: React.FC = () => {
 
             {loading ? (
                 <div className="text-center py-20">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary mx-auto"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b border-[var(--color-border)]-2 border-brand-primary mx-auto"></div>
                     <p className="mt-4 text-gray-500 font-medium">Memuat data jamaah...</p>
                 </div>
             ) : (
-                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                <div className="dark-card rounded-2xl shadow-xl border border-[var(--color-border)] overflow-hidden">
                     <table className="w-full text-left">
-                        <thead className="bg-gray-50 border-b border-gray-100">
+                        <thead className="bg-[#131210] border-b border-[var(--color-border)]">
                             <tr>
                                 <th className="px-6 py-5 text-xs uppercase font-black text-gray-400 tracking-wider">Jamaah</th>
                                 <th className="px-6 py-5 text-xs uppercase font-black text-gray-400 tracking-wider">Tipe Kamar</th>
@@ -122,7 +122,7 @@ const RoomingBoard: React.FC = () => {
                                 <th className="px-6 py-5 text-xs uppercase font-black text-gray-400 tracking-wider">Status</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-white/10">
                             {bookings.length === 0 ? (
                                 <tr>
                                     <td colSpan={4} className="px-6 py-10 text-center text-gray-500 italic">
@@ -137,7 +137,7 @@ const RoomingBoard: React.FC = () => {
                                                 {booking.pilgrim?.name.charAt(0)}
                                             </div>
                                             <div>
-                                                <p className="font-bold text-gray-900">{booking.pilgrim?.name}</p>
+                                                <p className="font-bold text-white">{booking.pilgrim?.name}</p>
                                                 <p className="text-xs text-gray-500">{booking.pilgrim?.phone}</p>
                                             </div>
                                         </div>
@@ -152,7 +152,7 @@ const RoomingBoard: React.FC = () => {
                                             <input
                                                 type="text"
                                                 placeholder="Contoh: 101, 102"
-                                                className={`w-36 p-2 text-sm border-2 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all ${booking.roomAssignment?.roomNumber ? 'border-green-200 bg-green-50/30' : 'border-gray-200'
+                                                className={`w-36 p-2 text-sm border-2 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all ${booking.roomAssignment?.roomNumber ? 'border-green-200 bg-green-50/30' : 'border-[var(--color-border)]'
                                                     }`}
                                                 defaultValue={booking.roomAssignment?.roomNumber || ''}
                                                 onBlur={(e) => {

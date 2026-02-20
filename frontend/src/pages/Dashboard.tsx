@@ -25,7 +25,7 @@ export const DashboardPage: React.FC = () => {
                 {stats.map((stat) => (
                     <div key={stat.label} style={{
                         padding: '1.5rem',
-                        backgroundColor: 'white',
+                        backgroundColor: 'var(--color-bg-card)', border: '1px solid var(--color-border)',
                         borderRadius: 'var(--radius)',
                         boxShadow: 'var(--shadow-sm)'
                     }}>
@@ -39,7 +39,7 @@ export const DashboardPage: React.FC = () => {
                 ))}
             </div>
 
-            <div style={{ marginTop: '2rem', padding: '2rem', backgroundColor: 'white', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ marginTop: '2rem', padding: '2rem', backgroundColor: 'var(--color-bg-card)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-sm)' }}>
                 <h3 style={{ marginBottom: '1rem', color: 'var(--color-primary)' }}>Recent Activity</h3>
                 <p style={{ color: 'var(--color-text-light)', fontStyle: 'italic' }}>
                     No recent activity to display.

@@ -62,18 +62,18 @@ const DocumentScanner: React.FC = () => {
 
     return (
         <div className="p-6 max-w-5xl mx-auto">
-            <h1 className="text-3xl font-extrabold text-gray-900 mb-2">📸 OCR Document Scanner</h1>
+            <h1 className="text-3xl font-extrabold text-white mb-2">📸 OCR Document Scanner</h1>
             <p className="text-gray-500 mb-8">Unggah KTP atau Paspor untuk ekstraksi data otomatis</p>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Side: Upload Form */}
                 <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <label className="block text-sm font-bold text-gray-700 mb-2">1. Cari Jamaah</label>
+                    <div className="dark-card p-6 rounded-2xl shadow-sm border border-[var(--color-border)]">
+                        <label className="block text-sm font-bold text-gray-300 mb-2">1. Cari Jamaah</label>
                         <div className="flex gap-2 mb-4">
                             <input
                                 type="text"
-                                className="flex-1 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none"
+                                className="flex-1 p-3 bg-[#131210] border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-brand-primary outline-none"
                                 placeholder="Nama atau No. KTP..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -94,7 +94,7 @@ const DocumentScanner: React.FC = () => {
                                         onClick={() => setSelectedPilgrim(p)}
                                         className="p-3 hover:bg-brand-primary/10 rounded-lg cursor-pointer flex justify-between items-center"
                                     >
-                                        <span className="font-bold text-gray-800">{p.name}</span>
+                                        <span className="font-bold text-gray-200">{p.name}</span>
                                         <span className="text-xs text-gray-400 font-mono">{p.noKtp}</span>
                                     </div>
                                 ))}
@@ -105,15 +105,15 @@ const DocumentScanner: React.FC = () => {
                             <div className="bg-brand-primary/5 p-4 rounded-xl border border-brand-primary/20 flex justify-between items-center mb-4">
                                 <div>
                                     <p className="text-xs font-bold text-brand-primary uppercase">Jamaah Terpilih</p>
-                                    <p className="font-bold text-gray-900">{selectedPilgrim.name}</p>
+                                    <p className="font-bold text-white">{selectedPilgrim.name}</p>
                                 </div>
                                 <button onClick={() => setSelectedPilgrim(null)} className="text-xs text-red-500 font-bold hover:underline">Ganti</button>
                             </div>
                         )}
 
-                        <label className="block text-sm font-bold text-gray-700 mb-2">2. Tipe Dokumen</label>
+                        <label className="block text-sm font-bold text-gray-300 mb-2">2. Tipe Dokumen</label>
                         <select
-                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl mb-4"
+                            className="w-full p-3 bg-[#131210] border border-[var(--color-border)] rounded-xl mb-4"
                             value={docType}
                             onChange={(e: any) => setDocType(e.target.value)}
                         >
@@ -123,8 +123,8 @@ const DocumentScanner: React.FC = () => {
                             <option value="other">Lainnya</option>
                         </select>
 
-                        <label className="block text-sm font-bold text-gray-700 mb-2">3. Pilih File</label>
-                        <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center hover:border-brand-primary transition-colors cursor-pointer relative">
+                        <label className="block text-sm font-bold text-gray-300 mb-2">3. Pilih File</label>
+                        <div className="border-2 border-dashed border-[var(--color-border)] rounded-2xl p-8 text-center hover:border-brand-primary transition-colors cursor-pointer relative">
                             <input
                                 type="file"
                                 className="absolute inset-0 opacity-0 cursor-pointer"
@@ -163,21 +163,21 @@ const DocumentScanner: React.FC = () => {
                 {/* Right Side: OCR Result View */}
                 <div className="space-y-6">
                     {ocrResult ? (
-                        <div className="bg-white p-6 rounded-2xl shadow-xl border-2 border-brand-primary animate-in fade-in slide-in-from-right-4 duration-500">
+                        <div className="dark-card p-6 rounded-2xl shadow-xl border-2 border-brand-primary animate-in fade-in slide-in-from-right-4 duration-500">
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="p-2 bg-green-100 text-green-600 rounded-lg">
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
                                     </svg>
                                 </div>
-                                <h2 className="text-xl font-black text-gray-900">Hasil Ekstraksi OCR</h2>
+                                <h2 className="text-xl font-black text-white">Hasil Ekstraksi OCR</h2>
                             </div>
 
                             <div className="space-y-4">
                                 {Object.entries(ocrResult).map(([key, value]) => (
-                                    <div key={key} className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                    <div key={key} className="p-4 bg-[#131210] rounded-xl border border-[var(--color-border)]">
                                         <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest mb-1">{key}</p>
-                                        <p className="font-bold text-gray-900">{value as string}</p>
+                                        <p className="font-bold text-white">{value as string}</p>
                                     </div>
                                 ))}
                             </div>
@@ -189,7 +189,7 @@ const DocumentScanner: React.FC = () => {
                             </div>
                         </div>
                     ) : (
-                        <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center h-full flex flex-col justify-center">
+                        <div className="bg-[#131210] border-2 border-dashed border-[var(--color-border)] rounded-2xl p-12 text-center h-full flex flex-col justify-center">
                             <div className="opacity-30">
                                 <svg className="w-20 h-20 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
