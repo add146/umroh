@@ -70,7 +70,7 @@ const DocumentScanner: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Side: Upload Form */}
                 <div className="space-y-6">
-                    <div className="dark-card p-6 rounded-2xl shadow-sm border border-[var(--color-border)]">
+                    <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }}>
                         <label className="block text-sm font-bold text-gray-300 mb-2">1. Cari Jamaah</label>
                         <div className="flex gap-2 mb-4">
                             <input

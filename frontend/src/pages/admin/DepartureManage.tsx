@@ -65,7 +65,7 @@ const DepartureManage: React.FC = () => {
             {/* Summary Metrics */}
             {summary && (
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="dark-card p-6 rounded-2xl border border-[var(--color-border)] flex items-center gap-4">
+                    <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }} className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-[#3b82f6]/10 flex items-center justify-center text-blue-500">
                             <Calendar className="w-6 h-6" />
                         </div>
@@ -74,7 +74,7 @@ const DepartureManage: React.FC = () => {
                             <p className="text-2xl font-black text-white">{summary.totalDepartures}</p>
                         </div>
                     </div>
-                    <div className="dark-card p-6 rounded-2xl border border-[var(--color-border)] flex items-center gap-4">
+                    <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }} className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-[var(--color-primary-bg)] flex items-center justify-center text-primary">
                             <Users className="w-6 h-6" />
                         </div>
@@ -83,7 +83,7 @@ const DepartureManage: React.FC = () => {
                             <p className="text-2xl font-black text-white">{summary.bookedSeats} <span className="text-sm text-gray-500">/ {summary.totalSeats}</span></p>
                         </div>
                     </div>
-                    <div className="dark-card p-6 rounded-2xl border border-[var(--color-border)] flex items-center gap-4">
+                    <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }} className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-[#22c55e]/10 flex items-center justify-center text-green-500">
                             <CheckCircle className="w-6 h-6" />
                         </div>
@@ -92,7 +92,7 @@ const DepartureManage: React.FC = () => {
                             <p className="text-2xl font-black text-white">{summary.siskopatuh?.synced || 0}</p>
                         </div>
                     </div>
-                    <div className="dark-card p-6 rounded-2xl border border-[var(--color-border)] flex items-center gap-4">
+                    <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }} className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-[#eab308]/10 flex items-center justify-center text-yellow-500">
                             <Clock className="w-6 h-6" />
                         </div>
@@ -111,7 +111,7 @@ const DepartureManage: React.FC = () => {
                     <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                 </div>
             ) : departures.length === 0 ? (
-                <div className="dark-card p-16 text-center rounded-3xl border border-[var(--color-border)] shadow-xl flex flex-col items-center justify-center">
+                <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }} className="p-16 text-center flex flex-col items-center justify-center">
                     <div className="bg-[var(--color-primary-bg)] w-24 h-24 rounded-full flex items-center justify-center mb-6">
                         <Backpack className="w-12 h-12 text-primary opacity-80" />
                     </div>
@@ -123,7 +123,7 @@ const DepartureManage: React.FC = () => {
                     {departures.map(dep => {
                         const progress = dep.totalSeats > 0 ? (dep.bookedSeats / dep.totalSeats) * 100 : 0;
                         return (
-                            <div key={dep.id} className="dark-card rounded-2xl border border-[var(--color-border)] overflow-hidden flex flex-col hover:border-white/20 transition-all">
+                            <div key={dep.id} style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }} className="flex flex-col hover:border-white/20 transition-all">
                                 {/* Card Header */}
                                 <div className="p-6 border-b border-white/5 flex justify-between items-start gap-4">
                                     <div>
