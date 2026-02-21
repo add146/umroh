@@ -106,7 +106,7 @@ export const MasterDataPage: React.FC<{ type: 'hotels' | 'airlines' | 'airports'
                             <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--color-text-light)' }}>
                                 {type === 'airlines' ? 'Nama Maskapai' : type === 'hotels' ? 'Nama Hotel' : 'Nama Bandara'}
                             </label>
-                            <input className="w-full px-4 py-2 bg-black/20 border border-white/10 rounded-lg text-white" placeholder="Misal: Saudia Airlines" value={name} onChange={(e: any) => setName(e.target.value)} required />
+                            <input className="admin-input" placeholder="Misal: Saudia Airlines" value={name} onChange={(e: any) => setName(e.target.value)} style={{ width: '100%', padding: '0.875rem', background: '#0a0907', border: '1px solid #333', color: 'white', borderRadius: '0.5rem', outline: 'none' }} required />
                         </div>
 
                         {(type === 'hotels' || type === 'airports') && (
@@ -114,7 +114,7 @@ export const MasterDataPage: React.FC<{ type: 'hotels' | 'airlines' | 'airports'
                                 <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--color-text-light)' }}>
                                     Kota Lokasi
                                 </label>
-                                <input className="w-full px-4 py-2 bg-black/20 border border-white/10 rounded-lg text-white" placeholder="Misal: Makkah" value={city} onChange={(e: any) => setCity(e.target.value)} required />
+                                <input className="admin-input" placeholder="Misal: Makkah" value={city} onChange={(e: any) => setCity(e.target.value)} style={{ width: '100%', padding: '0.875rem', background: '#0a0907', border: '1px solid #333', color: 'white', borderRadius: '0.5rem', outline: 'none' }} required />
                             </div>
                         )}
 
@@ -123,7 +123,7 @@ export const MasterDataPage: React.FC<{ type: 'hotels' | 'airlines' | 'airports'
                                 <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--color-text-light)' }}>
                                     Kode / Singkatan
                                 </label>
-                                <input className="w-full px-4 py-2 bg-black/20 border border-white/10 rounded-lg text-white" placeholder="Misal: SV / CGK" value={code} onChange={(e: any) => setCode(e.target.value)} required />
+                                <input className="admin-input" placeholder="Misal: SV / CGK" value={code} onChange={(e: any) => setCode(e.target.value)} style={{ width: '100%', padding: '0.875rem', background: '#0a0907', border: '1px solid #333', color: 'white', borderRadius: '0.5rem', outline: 'none' }} required />
                             </div>
                         )}
 
@@ -136,8 +136,8 @@ export const MasterDataPage: React.FC<{ type: 'hotels' | 'airlines' | 'airports'
                                     <select
                                         value={starRating} onChange={e => setStarRating(e.target.value)}
                                         style={{
-                                            width: '100%', padding: '0.75rem', borderRadius: '0.5rem',
-                                            background: '#0a0907', border: '1px solid var(--color-border)', color: '#fff'
+                                            width: '100%', padding: '0.875rem', borderRadius: '0.5rem',
+                                            background: '#0a0907', border: '1px solid #333', color: 'white', outline: 'none'
                                         }}
                                     >
                                         <option value="3">3 Bintang (***)</option>
@@ -149,12 +149,12 @@ export const MasterDataPage: React.FC<{ type: 'hotels' | 'airlines' | 'airports'
                                     <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--color-text-light)' }}>
                                         Jarak ke Haram/Nabawi
                                     </label>
-                                    <input className="w-full px-4 py-2 bg-black/20 border border-white/10 rounded-lg text-white" placeholder="Misal: 150m" value={distance} onChange={(e: any) => setDistance(e.target.value)} />
+                                    <input className="admin-input" placeholder="Misal: 150m" value={distance} onChange={(e: any) => setDistance(e.target.value)} style={{ width: '100%', padding: '0.875rem', background: '#0a0907', border: '1px solid #333', color: 'white', borderRadius: '0.5rem', outline: 'none' }} />
                                 </div>
                             </>
                         )}
 
-                        <button className="w-full px-4 py-2 bg-[#b6894c] text-white font-bold rounded-lg" type="submit" disabled={submitting} style={{ marginTop: '0.5rem' }}>
+                        <button type="submit" disabled={submitting} style={{ width: '100%', marginTop: '0.5rem', padding: '1rem', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>
                             {submitting ? 'Menyimpan...' : 'Simpan Data'}
                         </button>
                     </form>
