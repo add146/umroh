@@ -104,11 +104,13 @@ const LogisticsChecklist: React.FC = () => {
     };
 
     return (
-        <div className="p-6 max-w-7xl mx-auto">
-            <header className="flex justify-between items-center mb-8">
-                <div>
-                    <h1 className="text-3xl font-extrabold text-white">📦 Logistik & Perlengkapan</h1>
-                    <p className="text-gray-500">Pantau distribusi perlengkapan jamaah</p>
+        <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 md:space-y-10 animate-in fade-in duration-700">
+            <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 border-b border-[var(--color-border)] pb-8">
+                <div className="space-y-3">
+                    <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight flex flex-wrap items-center gap-4">
+                        📦 Logistik & Perlengkapan
+                    </h1>
+                    <p className="text-gray-400 font-medium">Pantau distribusi perlengkapan jamaah</p>
                 </div>
 
                 <div className="bg-[#131210] p-2 rounded-2xl border border-[var(--color-border)] shadow-sm flex items-center gap-3">

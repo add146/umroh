@@ -66,11 +66,13 @@ export default function BankAccountsPage() {
     };
 
     return (
-        <div className="p-8 max-w-6xl mx-auto space-y-10 animate-in fade-in duration-500">
-            <div className="flex justify-between items-end border-b border-[var(--color-border)] pb-8">
-                <div className="space-y-1">
-                    <h1 className="text-4xl font-black text-white tracking-tight">Setelan Rekening</h1>
-                    <p className="text-gray-500 font-medium">Kelola rekening bank untuk tujuan transfer manual jamaah.</p>
+        <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 md:space-y-10 animate-in fade-in duration-700">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 border-b border-[var(--color-border)] pb-8">
+                <div className="space-y-3">
+                    <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight flex flex-wrap items-center gap-4">
+                        Setelan Rekening
+                    </h1>
+                    <p className="text-gray-400 font-medium">Kelola rekening bank untuk tujuan transfer manual jamaah.</p>
                 </div>
                 <button
                     onClick={() => setIsAdding(!isAdding)}

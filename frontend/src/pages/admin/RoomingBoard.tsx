@@ -83,15 +83,17 @@ const RoomingBoard: React.FC = () => {
     };
 
     return (
-        <div className="p-6 max-w-6xl mx-auto">
-            <header className="flex justify-between items-center mb-8">
-                <div>
-                    <h1 className="text-3xl font-extrabold text-white">🏢 Rooming Board</h1>
-                    <p className="text-gray-500">Kelola penempatan kamar jamaah per keberangkatan</p>
+        <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 md:space-y-10 animate-in fade-in duration-700">
+            <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 border-b border-[var(--color-border)] pb-8">
+                <div className="space-y-3">
+                    <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight flex flex-wrap items-center gap-4">
+                        🏢 Rooming Board
+                    </h1>
+                    <p className="text-gray-400 font-medium">Kelola penempatan kamar jamaah per keberangkatan</p>
                 </div>
 
-                <div className="flex items-center gap-3 dark-card p-2 rounded-lg border shadow-sm">
-                    <span className="text-sm font-semibold text-gray-300 ml-2">Pilih Keberangkatan:</span>
+                <div className="bg-[#131210] p-2 rounded-2xl border border-[var(--color-border)] shadow-sm flex items-center gap-3">
+                    <span className="text-xs font-bold text-gray-400 uppercase ml-2">Pilih Keberangkatan:</span>
                     <select
                         className="p-2 border-none focus:ring-0 bg-transparent text-sm font-bold text-primary cursor-pointer outline-none"
                         value={selectedDepartureId}

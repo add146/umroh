@@ -37,22 +37,22 @@ export default function InvoicesPage() {
     };
 
     return (
-        <div className="p-8 space-y-8 animate-in fade-in duration-700">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-[var(--color-border)] pb-8">
-                <div className="space-y-1">
-                    <h1 className="text-4xl font-black text-white tracking-tight flex items-center gap-4">
+        <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 md:space-y-10 animate-in fade-in duration-700">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 border-b border-[var(--color-border)] pb-8">
+                <div className="space-y-3">
+                    <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight flex flex-wrap items-center gap-4">
                         Verifikasi Pembayaran
-                        <span className="text-xs bg-[var(--color-primary-bg)] text-primary px-3 py-1 rounded-full">{invoices.filter(i => i.status === 'pending').length} Menunggu</span>
+                        <span className="text-xs bg-[var(--color-primary-bg)] text-primary px-4 py-1.5 rounded-full ring-1 ring-primary/20 mt-1 lg:mt-0">{invoices.filter(i => i.status === 'pending').length} Menunggu</span>
                     </h1>
-                    <p className="text-gray-500 font-medium">Monitoring arus pembayaran jamaah dan verifikasi bukti transfer.</p>
+                    <p className="text-gray-400 font-medium">Monitoring arus pembayaran jamaah dan verifikasi bukti transfer.</p>
                 </div>
 
-                <div className="flex gap-4 w-full md:w-auto">
-                    <div className="relative flex-1 md:w-64">
-                        <Search className="absolute left-4 top-3.5 w-4 h-4 text-gray-400" />
-                        <input className="w-full pl-11 pr-4 py-3 bg-[#131210] text-white border-none rounded-xl text-sm focus:ring-4 focus:ring-primary/20 transition-all outline-none font-bold" placeholder="Cari Kode Invoice / Nama..." />
+                <div className="flex gap-4 w-full lg:w-auto mt-4 lg:mt-0">
+                    <div className="relative flex-1 lg:w-72">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                        <input className="w-full pl-11 pr-4 py-3 bg-[#131210] text-white border border-[var(--color-border)] rounded-xl text-sm focus:ring-2 focus:ring-primary/50 transition-all outline-none font-bold" placeholder="Cari Kode Invoice / Nama..." />
                     </div>
-                    <button className="p-3 bg-[#131210] text-white rounded-xl hover:bg-white/10 transition-all">
+                    <button className="px-4 py-3 bg-[#131210] border border-[var(--color-border)] text-gray-300 rounded-xl hover:text-white hover:bg-white/5 transition-all flex items-center justify-center">
                         <Filter className="w-5 h-5" />
                     </button>
                 </div>
