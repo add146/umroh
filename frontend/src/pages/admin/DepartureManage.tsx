@@ -46,16 +46,16 @@ const DepartureManage: React.FC = () => {
     };
 
     return (
-        <div className="space-y-10 animate-in fade-in duration-700">
+        <div className="animate-in fade-in duration-700">
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pb-6 border-b border-[var(--color-border)]">
-                <div className="space-y-3">
-                    <h1 className="text-3xl font-black text-white tracking-tight">Jadwal Keberangkatan</h1>
-                    <p className="text-gray-400 font-medium text-sm">Pantau seluruh jadwal keberangkatan, status kuota, dan sinkronisasi SISKOPATUH.</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <div>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Jadwal Keberangkatan</h1>
+                    <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Pantau seluruh jadwal keberangkatan, status kuota, dan sinkronisasi SISKOPATUH.</p>
                 </div>
                 <button
                     onClick={fetchDepartures}
-                    className="flex items-center gap-2 px-4 py-2.5 border border-[var(--color-border)] rounded-xl text-gray-300 hover:bg-white/5 transition-all text-sm font-bold"
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: '#131210', border: '1px solid var(--color-border)', borderRadius: '0.625rem', color: 'var(--color-text-muted)', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600 }}
                 >
                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                     Segarkan Data

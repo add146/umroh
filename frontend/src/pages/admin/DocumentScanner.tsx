@@ -61,12 +61,10 @@ const DocumentScanner: React.FC = () => {
     };
 
     return (
-        <div className="space-y-10 animate-in fade-in duration-700">
-            <div className="space-y-3 pb-6 border-b border-[var(--color-border)]">
-                <h1 className="text-3xl font-black text-white tracking-tight">
-                    📸 OCR Document Scanner
-                </h1>
-                <p className="text-gray-400 font-medium text-sm">Unggah KTP atau Paspor untuk ekstraksi data otomatis.</p>
+        <div className="animate-in fade-in duration-700">
+            <div style={{ marginBottom: '2rem' }}>
+                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>OCR Document Scanner</h1>
+                <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Unggah KTP atau Paspor untuk ekstraksi data otomatis.</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

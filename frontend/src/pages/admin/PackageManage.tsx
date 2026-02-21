@@ -35,14 +35,12 @@ export default function PackageManage() {
     };
 
     return (
-        <div className="space-y-10 animate-in fade-in duration-700">
+        <div className="animate-in fade-in duration-700">
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-[var(--color-border)] pb-8">
-                <div className="space-y-1">
-                    <h1 className="text-4xl font-black text-white tracking-tight flex items-center gap-4">
-                        Kelola Paket Umroh
-                    </h1>
-                    <p className="text-gray-500 font-medium">Atur daftar pilihan paket umroh dan harga pokok penjualannya.</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <div>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Paket Umroh</h1>
+                    <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Kelola dan konfigurasi seluruh paket perjalanan umroh Anda.</p>
                 </div>
 
                 <Link

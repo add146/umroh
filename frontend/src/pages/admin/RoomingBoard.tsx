@@ -83,17 +83,15 @@ const RoomingBoard: React.FC = () => {
     };
 
     return (
-        <div className="space-y-10 animate-in fade-in duration-700">
-            <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 pb-6 border-b border-[var(--color-border)]">
-                <div className="space-y-3">
-                    <h1 className="text-3xl font-black text-white tracking-tight">
-                        🏢 Rooming Board
-                    </h1>
-                    <p className="text-gray-400 font-medium text-sm">Kelola penempatan kamar jamaah per keberangkatan</p>
+        <div className="animate-in fade-in duration-700">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <div>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Rooming Board</h1>
+                    <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Kelola penempatan kamar jamaah per keberangkatan</p>
                 </div>
 
-                <div className="bg-[#131210] p-2.5 rounded-xl border border-[var(--color-border)] shadow-sm flex items-center gap-3">
-                    <span className="text-xs font-bold text-gray-400 uppercase ml-2">Keberangkatan:</span>
+                <div style={{ background: '#131210', padding: '0.5rem 0.75rem', borderRadius: '0.625rem', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Keberangkatan:</span>
                     <select
                         className="p-2 border-none focus:ring-0 bg-transparent text-sm font-bold text-primary cursor-pointer outline-none"
                         value={selectedDepartureId}
@@ -106,7 +104,7 @@ const RoomingBoard: React.FC = () => {
                         ))}
                     </select>
                 </div>
-            </header>
+            </div>
 
             {loading ? (
                 <div className="text-center py-20">

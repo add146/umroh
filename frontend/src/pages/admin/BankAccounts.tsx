@@ -66,13 +66,11 @@ export default function BankAccountsPage() {
     };
 
     return (
-        <div className="space-y-10 animate-in fade-in duration-700">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 pb-6 border-b border-[var(--color-border)]">
-                <div className="space-y-3">
-                    <h1 className="text-3xl font-black text-white tracking-tight">
-                        Setelan Rekening
-                    </h1>
-                    <p className="text-gray-400 font-medium text-sm">Kelola rekening bank untuk tujuan transfer manual jamaah.</p>
+        <div className="animate-in fade-in duration-700">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <div>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Setelan Rekening</h1>
+                    <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Kelola rekening bank untuk tujuan transfer manual jamaah.</p>
                 </div>
                 <button
                     onClick={() => setIsAdding(!isAdding)}

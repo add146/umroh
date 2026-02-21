@@ -37,31 +37,29 @@ export default function InvoicesPage() {
     };
 
     return (
-        <div className="space-y-10 animate-in fade-in duration-700">
-            {/* Page Header */}
-            <div className="space-y-4 pb-6 border-b border-[var(--color-border)]">
-                <div className="flex flex-wrap items-center gap-3">
-                    <h1 className="text-3xl font-black text-white tracking-tight">
-                        Verifikasi Pembayaran
-                    </h1>
-                    <span className="text-xs bg-[var(--color-primary-bg)] text-primary px-4 py-1.5 rounded-full ring-1 ring-primary/20 font-bold">{invoices.filter(i => i.status === 'pending').length} Menunggu</span>
+        <div className="animate-in fade-in duration-700">
+            {/* Header */}
+            <div style={{ marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>Verifikasi Pembayaran</h1>
+                    <span className="text-xs bg-[var(--color-primary-bg)] text-primary px-3 py-1 rounded-full ring-1 ring-primary/20 font-bold">{invoices.filter(i => i.status === 'pending').length} Menunggu</span>
                 </div>
-                <p className="text-gray-400 font-medium text-sm">Monitoring arus pembayaran jamaah dan verifikasi bukti transfer.</p>
+                <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Monitoring arus pembayaran jamaah dan verifikasi bukti transfer.</p>
             </div>
 
-            {/* Search & Filter Bar */}
-            <div className="flex gap-4">
-                <div className="relative flex-1 max-w-md">
+            {/* Search & Filter */}
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                <div className="relative" style={{ flex: 1, maxWidth: '400px' }}>
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                    <input className="w-full pl-11 pr-4 py-3.5 bg-[#131210] text-white border border-[var(--color-border)] rounded-xl text-sm focus:ring-2 focus:ring-primary/50 transition-all outline-none font-medium placeholder:text-gray-600" placeholder="Cari Kode Invoice / Nama..." />
+                    <input style={{ width: '100%', paddingLeft: '2.75rem', paddingRight: '1rem', paddingTop: '0.75rem', paddingBottom: '0.75rem', background: '#0a0907', border: '1px solid var(--color-border)', color: 'white', borderRadius: '0.625rem', outline: 'none', fontSize: '0.875rem' }} placeholder="Cari Kode Invoice / Nama..." />
                 </div>
-                <button className="px-4 py-3.5 bg-[#131210] border border-[var(--color-border)] text-gray-400 rounded-xl hover:text-white hover:bg-white/5 transition-all flex items-center justify-center">
+                <button style={{ padding: '0.75rem', background: '#131210', border: '1px solid var(--color-border)', color: 'var(--color-text-muted)', borderRadius: '0.625rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Filter className="w-5 h-5" />
                 </button>
             </div>
 
             {/* Table */}
-            <div className="dark-card rounded-2xl border border-[var(--color-border)] shadow-lg overflow-hidden overflow-x-auto">
+            <div style={{ background: '#131210', border: '1px solid var(--color-border)', borderRadius: '1rem', overflow: 'hidden' }}>
                 <table className="w-full text-left">
                     <thead>
                         <tr className="bg-[#131210] border-b border-[var(--color-border)]">
