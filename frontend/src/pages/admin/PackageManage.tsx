@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Plus, Package, Edit, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiFetch } from '../../lib/api';
@@ -120,16 +121,13 @@ export default function PackageManage() {
                                     </td>
                                     <td className="px-8 py-6 text-right">
                                         <div className="flex justify-end gap-3 opacity-50 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={() => {
-                                                    setForm({ id: pkg.id, name: pkg.name, basePrice: pkg.basePrice });
-                                                    setIsFormOpen(true);
-                                                }}
-                                                className="p-3 dark-card border border-[var(--color-border)] shadow-sm text-secondary rounded-xl hover:shadow-md hover:border-secondary hover:text-white transition-all"
-                                                title="Edit Paket"
+                                            <Link
+                                                to={`/admin/packages/${pkg.id}`}
+                                                className="p-3 dark-card border border-[var(--color-border)] shadow-sm text-secondary rounded-xl hover:shadow-md hover:border-secondary hover:text-white transition-all flex items-center gap-2"
+                                                title="Detail & Master Data"
                                             >
-                                                <Edit className="w-5 h-5" />
-                                            </button>
+                                                <Edit className="w-4 h-4" /> <span className="text-xs font-black uppercase tracking-widest hidden md:inline">Kelola Produk</span>
+                                            </Link>
                                         </div>
                                     </td>
                                 </tr>

@@ -9,6 +9,7 @@ import { DownlineManagePage } from './pages/DownlineManage';
 import Registration from './pages/Registration';
 import Landing from './pages/Landing';
 import PackageManage from './pages/admin/PackageManage';
+import PackageDetail from './pages/admin/PackageDetail';
 import DepartureManage from './pages/admin/DepartureManage';
 
 import BookingList from './pages/admin/BookingList';
@@ -51,6 +52,14 @@ function App() {
             <ProtectedRoute allowedRoles={['pusat']}>
               <DashboardLayout>
                 <PackageManage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/packages/:id" element={
+            <ProtectedRoute allowedRoles={['pusat']}>
+              <DashboardLayout>
+                <PackageDetail />
               </DashboardLayout>
             </ProtectedRoute>
           } />
