@@ -58,10 +58,10 @@ export default function InvoicesPage() {
                 </div>
             </div>
 
-            <div className="dark-card rounded-[32px] border border-[var(--color-border)] shadow-2xl shadow-gray-200/50 overflow-hidden overflow-x-auto">
+            <div className="dark-card rounded-3xl border border-[var(--color-border)] shadow-xl overflow-hidden overflow-x-auto">
                 <table className="w-full text-left">
                     <thead>
-                        <tr className="bg-[#131210]/50 divide-x divide-white/10">
+                        <tr className="bg-[#131210] border-b border-[var(--color-border)]">
                             <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Data Invoice</th>
                             <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Identitas Jamaah</th>
                             <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Nominal & Mode</th>
@@ -69,7 +69,7 @@ export default function InvoicesPage() {
                             <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] text-right">Manajemen</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/10">
+                    <tbody className="divide-y divide-[var(--color-border)]">
                         {loading ? (
                             <tr>
                                 <td colSpan={5} className="px-8 py-24 text-center">
@@ -79,16 +79,13 @@ export default function InvoicesPage() {
                             </tr>
                         ) : invoices.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="px-8 py-24 text-center">
-                                    <div className="bg-[#131210] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <CreditCard className="text-gray-200 w-10 h-10" />
-                                    </div>
-                                    <p className="text-gray-400 font-bold italic tracking-tight">Tidak ada histori tagihan yang tersedia.</p>
+                                <td colSpan={5} className="px-8 py-16 text-center text-gray-500 font-medium italic">
+                                    Data invoice tidak ditemukan.
                                 </td>
                             </tr>
                         ) : (
                             invoices.map((inv) => (
-                                <tr key={inv.id} className="hover:bg-primary/[0.01] transition-colors group">
+                                <tr key={inv.id} className="hover:bg-[var(--color-bg-hover)] transition-colors group">
                                     <td className="px-8 py-6">
                                         <div className="space-y-1">
                                             <p className="font-mono text-sm font-black text-white tracking-tighter">{inv.invoiceCode}</p>
@@ -127,14 +124,11 @@ export default function InvoicesPage() {
                                         </div>
                                     </td>
                                     <td className="px-8 py-6 text-center">
-                                        <span className={`inline-flex items-center gap-2 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.15em] ${inv.status === 'paid' ? 'bg-[#22c55e]/10 text-success' :
+                                        <span className={`inline-flex flex-col items-center justify-center min-w-[80px] px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] ${inv.status === 'paid' ? 'bg-[#22c55e]/10 text-success' :
                                             inv.status === 'pending' ? 'bg-amber-500/10 text-amber-500 animate-pulse' :
                                                 inv.status === 'cancelled' ? 'bg-red-500/10 text-red-500' : 'bg-white/10 text-gray-400'
                                             }`}>
-                                            <div className={`w-1.5 h-1.5 rounded-full ${inv.status === 'paid' ? 'bg-success' :
-                                                inv.status === 'pending' ? 'bg-amber-600' : 'bg-current'
-                                                }`}></div>
-                                            {inv.status}
+                                            <span className="mt-1">{inv.status}</span>
                                         </span>
                                     </td>
                                     <td className="px-8 py-6 text-right">

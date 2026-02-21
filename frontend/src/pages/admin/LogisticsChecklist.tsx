@@ -111,7 +111,7 @@ const LogisticsChecklist: React.FC = () => {
                     <p className="text-gray-500">Pantau distribusi perlengkapan jamaah</p>
                 </div>
 
-                <div className="dark-card p-2 rounded-xl shadow-sm border flex items-center gap-3">
+                <div className="bg-[#131210] p-2 rounded-2xl border border-[var(--color-border)] shadow-sm flex items-center gap-3">
                     <span className="text-xs font-bold text-gray-400 uppercase ml-2">Keberangkatan</span>
                     <select
                         className="bg-transparent border-none text-primary font-bold text-sm focus:ring-0 outline-none cursor-pointer"
@@ -126,14 +126,14 @@ const LogisticsChecklist: React.FC = () => {
             </header>
 
             {loading ? (
-                <div className="text-center py-20 dark-card rounded-2xl shadow-sm border">
-                    <div className="animate-spin rounded-full h-10 w-10 border-b border-[var(--color-border)]-2 border-brand-primary mx-auto"></div>
-                    <p className="mt-4 text-gray-400 font-medium">Sinkronisasi data logistik...</p>
+                <div className="text-center py-20 dark-card rounded-3xl shadow-xl border border-[var(--color-border)]">
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-4 text-gray-500 font-medium">Sinkronisasi data logistik...</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {logisticsData.map((data) => (
-                        <div key={data.id} className="dark-card rounded-2xl shadow-sm border border-[var(--color-border)] p-5 hover:shadow-md transition-shadow">
+                        <div key={data.id} className="dark-card rounded-3xl shadow-xl border border-[var(--color-border)] p-5 hover:border-primary/30 transition-all hover:-translate-y-1">
                             <div className="flex justify-between items-start mb-4">
                                 <div>
                                     <h3 className="font-bold text-white">{data.pilgrim?.name}</h3>
@@ -156,7 +156,7 @@ const LogisticsChecklist: React.FC = () => {
                                     >
                                         <div className="flex items-center gap-3">
                                             {updating === `${data.id}-${item.id}` ? (
-                                                <div className="animate-spin h-5 w-5 border-2 border-brand-primary border-t-transparent rounded-full"></div>
+                                                <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"></div>
                                             ) : (
                                                 <div className={`w-5 h-5 rounded-md flex items-center justify-center border-2 transition-colors ${item.status === 'received' ? 'bg-success border-success text-white' : 'border-[var(--color-border)]'
                                                     }`}>

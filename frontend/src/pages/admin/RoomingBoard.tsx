@@ -112,17 +112,17 @@ const RoomingBoard: React.FC = () => {
                     <p className="mt-4 text-gray-500 font-medium">Memuat data jamaah...</p>
                 </div>
             ) : (
-                <div className="dark-card rounded-2xl shadow-xl border border-[var(--color-border)] overflow-hidden">
+                <div className="dark-card rounded-3xl border border-[var(--color-border)] shadow-xl overflow-hidden overflow-x-auto">
                     <table className="w-full text-left">
-                        <thead className="bg-[#131210] border-b border-[var(--color-border)]">
-                            <tr>
-                                <th className="px-6 py-5 text-xs uppercase font-black text-gray-400 tracking-wider">Jamaah</th>
-                                <th className="px-6 py-5 text-xs uppercase font-black text-gray-400 tracking-wider">Tipe Kamar</th>
-                                <th className="px-6 py-5 text-xs uppercase font-black text-gray-400 tracking-wider">No. Kamar</th>
-                                <th className="px-6 py-5 text-xs uppercase font-black text-gray-400 tracking-wider">Status</th>
+                        <thead>
+                            <tr className="bg-[#131210] border-b border-[var(--color-border)] text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">
+                                <th className="px-6 py-5">Jamaah</th>
+                                <th className="px-6 py-5">Tipe Kamar</th>
+                                <th className="px-6 py-5">No. Kamar</th>
+                                <th className="px-6 py-5">Status</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/10">
+                        <tbody className="divide-y divide-[var(--color-border)]">
                             {bookings.length === 0 ? (
                                 <tr>
                                     <td colSpan={4} className="px-6 py-10 text-center text-gray-500 italic">
@@ -130,7 +130,7 @@ const RoomingBoard: React.FC = () => {
                                     </td>
                                 </tr>
                             ) : bookings.map((booking) => (
-                                <tr key={booking.id} className="hover:bg-[var(--color-primary-bg)] transition-colors group">
+                                <tr key={booking.id} className="hover:bg-[var(--color-bg-hover)] transition-colors group">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center">
                                             <div className="w-10 h-10 rounded-full bg-[var(--color-primary-bg)] flex items-center justify-center text-primary font-bold mr-3">

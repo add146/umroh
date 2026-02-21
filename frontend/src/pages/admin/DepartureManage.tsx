@@ -111,10 +111,12 @@ const DepartureManage: React.FC = () => {
                     <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                 </div>
             ) : departures.length === 0 ? (
-                <div className="dark-card p-16 text-center rounded-3xl border border-[var(--color-border)]">
-                    <Backpack className="w-16 h-16 mx-auto text-gray-600 mb-4" />
-                    <h3 className="text-xl font-bold text-white mb-2">Belum ada Jadwal</h3>
-                    <p className="text-gray-400">Jadwal keberangkatan ditambahkan melalui halaman detail masing-masing paket.</p>
+                <div className="dark-card p-16 text-center rounded-3xl border border-[var(--color-border)] shadow-xl flex flex-col items-center justify-center">
+                    <div className="bg-[var(--color-primary-bg)] w-24 h-24 rounded-full flex items-center justify-center mb-6">
+                        <Backpack className="w-12 h-12 text-primary opacity-80" />
+                    </div>
+                    <h3 className="text-xl font-black text-white mb-3 tracking-wide">Belum Ada Jadwal</h3>
+                    <p className="text-sm text-gray-400 font-medium max-w-md mx-auto leading-relaxed">Jadwal keberangkatan ditambahkan melalui tab <span className="text-white font-bold">Keberangkatan</span> pada halaman kelola detail masing-masing paket.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
