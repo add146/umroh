@@ -176,7 +176,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                 </header>
 
                 {/* Page */}
-                <div style={{ flex: 1, padding: '2rem', background: 'var(--color-bg)' }}>
+                <div style={{ flex: 1, padding: '1.5rem 2rem 3rem', background: 'var(--color-bg)', overflowX: 'hidden' }}>
                     {children}
                 </div>
             </main>

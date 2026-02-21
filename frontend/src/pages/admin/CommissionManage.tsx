@@ -113,7 +113,7 @@ const CommissionManage: React.FC = () => {
     );
 
     return (
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700">
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
                 <div>

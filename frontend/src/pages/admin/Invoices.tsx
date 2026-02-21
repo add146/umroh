@@ -37,7 +37,7 @@ export default function InvoicesPage() {
     };
 
     return (
-        <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 md:space-y-10 animate-in fade-in duration-700">
+        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 border-b border-[var(--color-border)] pb-8">
                 <div className="space-y-3">
                     <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight flex flex-wrap items-center gap-4">

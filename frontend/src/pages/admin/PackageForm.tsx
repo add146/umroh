@@ -116,7 +116,7 @@ export default function PackageForm() {
     }
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700">
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
                 <button onClick={() => navigate('/admin/packages')} style={{ padding: '0.5rem', background: '#222', border: '1px solid #333', borderRadius: '0.5rem', color: '#fff', cursor: 'pointer', display: 'flex' }}>
                     <ArrowLeft size={20} />

@@ -85,7 +85,7 @@ export const MasterDataPage: React.FC<{ type: 'hotels' | 'airlines' | 'airports'
     };
 
     return (
-        <div style={{ maxWidth: '1000px' }}>
+        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <div>
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Master {title}</h1>
