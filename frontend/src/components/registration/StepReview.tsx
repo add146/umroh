@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { apiFetch } from '../../lib/api';
 
 interface StepReviewProps {
     isLoading: boolean;
@@ -8,11 +9,38 @@ interface StepReviewProps {
 const StepReview: React.FC<StepReviewProps> = ({ isLoading }) => {
     const { watch } = useFormContext();
     const data = watch();
+    const [priceDetails, setPriceDetails] = useState<{ basePrice: number, roomAdjustment: number, total: number, packageName: string, roomName: string } | null>(null);
+
+    useEffect(() => {
+        const fetchDetails = async () => {
+            if (!data.departureId || !data.roomTypeId) return;
+            try {
+                const response = await apiFetch(`/api/departures/${data.departureId}`);
+                if (response.departure && response.departure.package) {
+                    const room = (response.departure.roomTypes || response.roomTypes || []).find((r: any) => r.id === data.roomTypeId);
+                    if (room) {
+                        const basePrice = response.departure.package.basePrice || 0;
+                        const adjustment = room.priceAdjustment || 0;
+                        setPriceDetails({
+                            basePrice,
+                            roomAdjustment: adjustment,
+                            total: basePrice + adjustment,
+                            packageName: response.departure.package.name,
+                            roomName: room.name
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch price details:", error);
+            }
+        };
+        fetchDetails();
+    }, [data.departureId, data.roomTypeId]);
 
     const SummaryItem = ({ label, value }: { label: string; value: string | boolean | undefined }) => (
         <div className="flex justify-between py-2 border-b border-gray-50 last:border-0">
             <span className="text-xs text-gray-400 uppercase font-bold">{label}</span>
-            <span className="text-sm font-bold text-gray-900">{value?.toString() || '-'}</span>
+            <span className="text-sm font-bold text-gray-900 text-right">{value?.toString() || '-'}</span>
         </div>
     );
 
@@ -44,15 +72,33 @@ const StepReview: React.FC<StepReviewProps> = ({ isLoading }) => {
                 <div className="space-y-6">
                     <div className="bg-gray-50 p-6 rounded-2xl border-2 border-brand-secondary/30">
                         <h3 className="text-sm font-black text-brand-primary mb-4 border-b pb-2 uppercase tracking-tighter">RINCIAN PAKET</h3>
-                        <SummaryItem label="ID Keberangkatan" value={data.departureId?.split('-')[0] + '...'} />
+                        <SummaryItem label="Paket" value={priceDetails?.packageName || 'Memuat...'} />
+                        <SummaryItem label="Pilihan Kamar" value={priceDetails?.roomName || 'Memuat...'} />
                         <SummaryItem label="Status Paspor" value={data.pilgrim?.hasPassport ? 'Sudah Ada' : 'Belum Ada'} />
                     </div>
 
                     <div className="p-6 rounded-2xl bg-brand-primary text-white shadow-xl shadow-brand-primary/20">
-                        <p className="text-[10px] font-bold text-white/60 uppercase mb-1">Total yang harus dibayar akan muncul di halaman berikutnya</p>
-                        <div className="flex justify-between items-center">
-                            <span className="text-lg font-bold">Lanjutkan Pendaftaran</span>
-                            <span className="text-2xl text-brand-secondary">➔</span>
+                        {priceDetails ? (
+                            <div className="space-y-3 mb-4">
+                                <div className="flex justify-between text-white/80 text-sm">
+                                    <span>Harga Dasar</span>
+                                    <span>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(priceDetails.basePrice)}</span>
+                                </div>
+                                <div className="flex justify-between text-white/80 text-sm border-b border-white/20 pb-3">
+                                    <span>Penyesuaian Kamar</span>
+                                    <span>{priceDetails.roomAdjustment >= 0 ? '+' : '-'}{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Math.abs(priceDetails.roomAdjustment))}</span>
+                                </div>
+                                <div className="flex justify-between items-end font-bold text-lg pt-1">
+                                    <span>Total Tagihan</span>
+                                    <span className="text-2xl text-brand-secondary">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(priceDetails.total)}</span>
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="text-[10px] font-bold text-white/60 uppercase mb-4">Memuat rincian harga...</p>
+                        )}
+                        <div className="flex justify-between items-center text-sm font-medium opacity-90 border-t border-white/20 pt-4 mt-2">
+                            <span>Lanjutkan Pembayaran di Tahap Berikutnya</span>
+                            <span>➔</span>
                         </div>
                     </div>
 

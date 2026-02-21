@@ -8,7 +8,10 @@ interface Package {
     description: string;
     basePrice: number;
     image?: string;
-    category?: string;
+    packageType?: string;
+    makkahHotel?: any;
+    madinahHotel?: any;
+    facilities?: string;
 }
 
 const Landing = () => {
@@ -218,9 +221,10 @@ const Landing = () => {
                                         <div>
                                             <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '0.25rem' }}>{pkg.name}</h3>
                                             <div style={{ display: 'flex', gap: '2px', color: 'var(--color-primary)' }}>
-                                                {[1, 2, 3, 4, 5].map(s => (
-                                                    <span key={s} className="material-symbols-outlined" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>star</span>
+                                                {[...Array(pkg.makkahHotel?.starRating || 4)].map((_, i) => (
+                                                    <span key={i} className="material-symbols-outlined" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>star</span>
                                                 ))}
+                                                <span style={{ fontSize: '0.625rem', color: '#888', marginLeft: '6px', alignSelf: 'center' }}>({pkg.packageType || 'Reguler'})</span>
                                             </div>
                                         </div>
                                         <div style={{ textAlign: 'right' }}>
@@ -231,8 +235,14 @@ const Landing = () => {
                                         </div>
                                     </div>
 
+                                    {/* Hotel Info Snippet */}
+                                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '0.6875rem', color: '#aaa', alignItems: 'center' }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>location_city</span>
+                                        <span className="truncate">{pkg.makkahHotel?.name || 'Hotel Makkah'} &amp; {pkg.madinahHotel?.name || 'Hotel Madinah'}</span>
+                                    </div>
+
                                     <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', lineHeight: 1.6, marginBottom: '1.25rem', flex: 1 }}>
-                                        {pkg.description?.slice(0, 120) || 'Paket perjalanan umroh yang lengkap dengan layanan profesional.'}
+                                        {pkg.description?.slice(0, 100) || 'Dapatkan pengalaman beribadah yang nyaman di tanah suci bersama Al Madinah Tour & Travel.'}...
                                     </p>
 
                                     {/* Quota bar */}
@@ -268,10 +278,10 @@ const Landing = () => {
                         ))}
                     </div>
                 </div>
-            </section>
+            </section >
 
             {/* ===== TRUST MARKERS ===== */}
-            <section style={{ background: 'rgba(255,255,255,0.03)', borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)', padding: '3rem 0' }}>
+            < section style={{ background: 'rgba(255,255,255,0.03)', borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)', padding: '3rem 0' }}>
                 <div className="container">
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2rem', opacity: 0.7 }}>
                         {[
@@ -287,10 +297,10 @@ const Landing = () => {
                         ))}
                     </div>
                 </div>
-            </section>
+            </section >
 
             {/* ===== FOOTER ===== */}
-            <footer style={{ padding: '4rem 0 2rem', background: 'var(--color-bg)' }}>
+            < footer style={{ padding: '4rem 0 2rem', background: 'var(--color-bg)' }}>
                 <div className="container">
                     <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '3rem', marginBottom: '3rem' }}>
                         <div>
@@ -330,10 +340,10 @@ const Landing = () => {
                         </div>
                     </div>
                 </div>
-            </footer>
+            </footer >
 
             {/* WhatsApp Floating */}
-            <a href="https://wa.me/" style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 100 }}>
+            < a href="https://wa.me/" style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 100 }}>
                 <div style={{ position: 'relative' }}>
                     <div style={{
                         position: 'absolute', inset: 0, borderRadius: '9999px',
@@ -349,14 +359,14 @@ const Landing = () => {
                         </svg>
                     </div>
                 </div>
-            </a>
+            </a >
 
             <style>{`
                 @keyframes ping {
                     75%, 100% { transform: scale(2); opacity: 0; }
                 }
             `}</style>
-        </div>
+        </div >
     );
 };
 

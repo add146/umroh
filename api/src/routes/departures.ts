@@ -13,9 +13,15 @@ const api = new Hono<{ Bindings: Env }>();
 const departureSchema = z.object({
     packageId: z.string().uuid(),
     departureDate: z.string(), // YYYY-MM-DD
-    airport: z.string().length(3),
+    tripName: z.string().optional(),
+    departureAirlineId: z.string().optional(),
+    returnAirlineId: z.string().optional(),
+    departureAirportId: z.string().optional(),
+    arrivalAirportId: z.string().optional(),
+    airport: z.string().default('CGK'), // Legacy
     totalSeats: z.number().int().positive(),
     status: z.enum(['available', 'last_call', 'full', 'departed']).default('available'),
+    siskopatuhStatus: z.enum(['synced', 'pending', 'error']).default('pending')
 });
 
 const roomTypeSchema = z.object({
@@ -29,12 +35,55 @@ api.get('/', async (c) => {
     const db = getDb(c.env.DB);
 
     if (packageId) {
-        const data = await db.select().from(departures).where(eq(departures.packageId, packageId));
-        return c.json({ departures: data });
+        const data = await db.query.departures.findMany({
+            where: eq(departures.packageId, packageId),
+            with: {
+                package: true,
+                departureAirline: true,
+                returnAirline: true,
+                departureAirport: true,
+                arrivalAirport: true,
+                roomTypes: true,
+            }
+        });
+
+        const summary = {
+            totalDepartures: data.length,
+            totalSeats: data.reduce((acc, d) => acc + d.totalSeats, 0),
+            bookedSeats: data.reduce((acc, d) => acc + d.bookedSeats, 0),
+            siskopatuh: {
+                synced: data.filter(d => d.siskopatuhStatus === 'synced').length,
+                pending: data.filter(d => d.siskopatuhStatus === 'pending').length,
+                error: data.filter(d => d.siskopatuhStatus === 'error').length,
+            }
+        };
+
+        return c.json({ summary, departures: data });
     }
 
-    const data = await db.select().from(departures);
-    return c.json({ departures: data });
+    const data = await db.query.departures.findMany({
+        with: {
+            package: true,
+            departureAirline: true,
+            returnAirline: true,
+            departureAirport: true,
+            arrivalAirport: true,
+            roomTypes: true,
+        }
+    });
+
+    const summary = {
+        totalDepartures: data.length,
+        totalSeats: data.reduce((acc, d) => acc + d.totalSeats, 0),
+        bookedSeats: data.reduce((acc, d) => acc + d.bookedSeats, 0),
+        siskopatuh: {
+            synced: data.filter(d => d.siskopatuhStatus === 'synced').length,
+            pending: data.filter(d => d.siskopatuhStatus === 'pending').length,
+            error: data.filter(d => d.siskopatuhStatus === 'error').length,
+        }
+    };
+
+    return c.json({ summary, departures: data });
 });
 
 api.get('/:id', async (c) => {
@@ -44,15 +93,18 @@ api.get('/:id', async (c) => {
     const dep = await db.query.departures.findFirst({
         where: eq(departures.id, id),
         with: {
-            // Note: we need to handle roomTypes separately if not using relational queries correctly
+            package: true,
+            departureAirline: true,
+            returnAirline: true,
+            departureAirport: true,
+            arrivalAirport: true,
+            roomTypes: true
         }
     });
 
     if (!dep) return c.json({ error: 'Departure not found' }, 404);
 
-    const rooms = await db.select().from(roomTypes).where(eq(roomTypes.departureId, id));
-
-    return c.json({ departure: { ...dep, roomTypes: rooms } });
+    return c.json({ departure: dep });
 });
 
 const departureCreateSchema = departureSchema.extend({
@@ -86,6 +138,33 @@ api.post('/:id/rooms', authMiddleware, requireRole('pusat'), zValidator('json', 
     const values = body.map(r => ({ ...r, departureId: id }));
     const result = await db.insert(roomTypes).values(values).returning();
     return c.json({ roomTypes: result });
+});
+
+api.delete('/:id', authMiddleware, requireRole('pusat'), async (c) => {
+    const id = c.req.param('id');
+    const db = getDb(c.env.DB);
+
+    try {
+        // Hapus child (roomTypes) terlebih dahulu
+        await db.delete(roomTypes).where(eq(roomTypes.departureId, id));
+        // Hapus parent
+        await db.delete(departures).where(eq(departures.id, id));
+        return c.json({ message: 'Departure deleted' });
+    } catch (error: any) {
+        return c.json({ error: 'Failed to delete departure. It may have existing bookings.' }, 400);
+    }
+});
+
+api.delete('/rooms/:roomId', authMiddleware, requireRole('pusat'), async (c) => {
+    const roomId = c.req.param('roomId');
+    const db = getDb(c.env.DB);
+
+    try {
+        await db.delete(roomTypes).where(eq(roomTypes.id, roomId));
+        return c.json({ message: 'Room type deleted' });
+    } catch (error: any) {
+        return c.json({ error: 'Failed to delete room type. It may have existing bookings.' }, 400);
+    }
 });
 
 export default api;

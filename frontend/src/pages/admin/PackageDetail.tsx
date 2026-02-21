@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Calendar, MapPin, Users, BedDouble, X, Loader2 } from 'lucide-react';
+import { ArrowLeft, Plus, Calendar, MapPin, Users, BedDouble, X, Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiFetch } from '../../lib/api';
 
@@ -93,6 +93,28 @@ export default function PackageDetail() {
         }
     };
 
+    const handleDeleteDeparture = async (id: string) => {
+        if (!confirm('Hapus jadwal keberangkatan ini? Seluruh data tipe kamar juga akan terhapus.')) return;
+        try {
+            await apiFetch(`/api/departures/${id}`, { method: 'DELETE' });
+            toast.success('Jadwal keberangkatan dihapus');
+            fetchPackageDetail();
+        } catch (error) {
+            toast.error('Gagal menghapus jadwal keberangkatan. Pastikan tidak ada jamaah yang terdaftar.');
+        }
+    };
+
+    const handleDeleteRoom = async (id: string) => {
+        if (!confirm('Hapus pilihan tipe kamar ini?')) return;
+        try {
+            await apiFetch(`/api/departures/rooms/${id}`, { method: 'DELETE' });
+            toast.success('Tipe kamar dihapus');
+            fetchPackageDetail();
+        } catch (error) {
+            toast.error('Gagal menghapus tipe kamar.');
+        }
+    };
+
     const openRoomModal = (departureId: string) => {
         setActiveDepartureId(departureId);
         setRoomForm({ name: '', capacity: 4, priceAdjustment: 0 });
@@ -142,6 +164,92 @@ export default function PackageDetail() {
                 </button>
             </div>
 
+            {/* Package Details (Master Data Recap) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div className="space-y-6">
+                    <div className="dark-card p-6 rounded-2xl border border-[var(--color-border)]">
+                        <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">Informasi Paket</h3>
+                        <p className="text-sm text-gray-400 mb-4">{pkg.description}</p>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <span className="block text-xs uppercase tracking-widest text-gray-500 mb-1">Tipe Paket</span>
+                                <span className="font-bold text-white">{pkg.packageType || '-'}</span>
+                            </div>
+                            <div>
+                                <span className="block text-xs uppercase tracking-widest text-gray-500 mb-1">Promo</span>
+                                <span className="font-bold text-white">{pkg.isPromo ? 'Ya (Potongan Aktif)' : 'Tidak'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="dark-card p-6 rounded-2xl border border-[var(--color-border)]">
+                        <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">Akomodasi Hotel</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <span className="block text-xs uppercase tracking-widest text-gray-500 mb-1">Makkah</span>
+                                <p className="font-bold text-white">{pkg.makkahHotel?.name || 'Belum diset'}</p>
+                                {pkg.makkahHotel && <p className="text-xs text-gray-400 mt-1">Bintang {pkg.makkahHotel.starRating} • Jarak {pkg.makkahHotel.distance}m</p>}
+                            </div>
+                            <div>
+                                <span className="block text-xs uppercase tracking-widest text-gray-500 mb-1">Madinah</span>
+                                <p className="font-bold text-white">{pkg.madinahHotel?.name || 'Belum diset'}</p>
+                                {pkg.madinahHotel && <p className="text-xs text-gray-400 mt-1">Bintang {pkg.madinahHotel.starRating} • Jarak {pkg.madinahHotel.distance}m</p>}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <div className="dark-card p-6 rounded-2xl border border-[var(--color-border)]">
+                        <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">Fasilitas Termasuk</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {(() => {
+                                try {
+                                    const facs = JSON.parse(pkg.facilities || '[]');
+                                    if (facs.length === 0) return <span className="text-gray-500 italic text-sm">Belum ada data fasilitas</span>;
+                                    return facs.map((fac: any, idx: number) => (
+                                        <div key={idx} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-lg border border-white/10 text-sm">
+                                            <span className="material-symbols-outlined text-[16px] text-primary">{fac.icon || 'check_circle'}</span>
+                                            <span className="text-gray-300">{fac.name}</span>
+                                        </div>
+                                    ));
+                                } catch (e) {
+                                    return <span className="text-red-400 text-sm">Format fasilitas error</span>;
+                                }
+                            })()}
+                        </div>
+                    </div>
+
+                    <div className="dark-card p-6 rounded-2xl border border-[var(--color-border)]">
+                        <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">Itinerary (Singkat)</h3>
+                        <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                            {(() => {
+                                try {
+                                    const itins = JSON.parse(pkg.itinerary || '[]');
+                                    if (itins.length === 0) return <span className="text-gray-500 italic text-sm">Belum ada data itinerary</span>;
+                                    return itins.map((it: any, idx: number) => (
+                                        <div key={idx} className="flex gap-4">
+                                            <div className="flex flex-col items-center">
+                                                <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold leading-none shrink-0 border border-primary/30">
+                                                    {it.day}
+                                                </div>
+                                                {idx < itins.length - 1 && <div className="w-px h-full bg-white/10 my-1"></div>}
+                                            </div>
+                                            <div className="pb-3">
+                                                <p className="font-bold text-white text-sm leading-tight">{it.title || 'Agenda Baru'}</p>
+                                                <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">{it.desc}</p>
+                                            </div>
+                                        </div>
+                                    ));
+                                } catch (e) {
+                                    return <span className="text-red-400 text-sm">Format itinerary error</span>;
+                                }
+                            })()}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Departures List */}
             <div className="space-y-6">
                 <h2 className="text-2xl font-black text-white tracking-tight">Jadwal Keberangkatan & Opsi Kamar</h2>
@@ -181,13 +289,22 @@ export default function PackageDetail() {
                                         </div>
                                     </div>
 
-                                    <button
-                                        onClick={() => openRoomModal(dep.id)}
-                                        className="w-full md:w-auto px-6 py-3 bg-white/5 text-white rounded-xl font-bold hover:bg-white/10 transition-all flex items-center justify-center gap-2 group whitespace-nowrap"
-                                    >
-                                        <BedDouble className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
-                                        <span>+ Tipe Kamar</span>
-                                    </button>
+                                    <div className="flex gap-2 w-full md:w-auto mt-4 md:mt-0">
+                                        <button
+                                            onClick={() => handleDeleteDeparture(dep.id)}
+                                            className="px-4 py-3 border border-red-900/50 text-red-400 rounded-xl hover:bg-red-950/50 hover:text-red-300 transition-all flex items-center justify-center"
+                                            title="Hapus Keberangkatan"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => openRoomModal(dep.id)}
+                                            className="flex-1 md:w-auto px-6 py-3 bg-white/5 text-white rounded-xl font-bold hover:bg-white/10 transition-all flex items-center justify-center gap-2 group whitespace-nowrap"
+                                        >
+                                            <BedDouble className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
+                                            <span>+ Tipe Kamar</span>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* Room Types List */}
@@ -202,9 +319,18 @@ export default function PackageDetail() {
                                                 <div key={room.id} className="p-5 rounded-2xl border border-white/10 bg-[#131210] hover:border-primary/50 transition-colors group">
                                                     <div className="flex justify-between items-start mb-3">
                                                         <h4 className="font-bold text-white text-lg tracking-tight">{room.name}</h4>
-                                                        <span className="px-2.5 py-1 bg-white/5 rounded-md text-[10px] font-black uppercase tracking-widest text-gray-400">
-                                                            {room.capacity} Orang
-                                                        </span>
+                                                        <div className="flex gap-2">
+                                                            <span className="px-2.5 py-1 bg-white/5 rounded-md text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center">
+                                                                {room.capacity} Orang
+                                                            </span>
+                                                            <button
+                                                                onClick={() => handleDeleteRoom(room.id)}
+                                                                className="p-1.5 rounded-md text-red-500/50 hover:bg-red-500/10 hover:text-red-400 transition-colors"
+                                                                title="Hapus Tipe Kamar"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
                                                     </div>
 
                                                     <div className="flex items-end justify-between mt-4">

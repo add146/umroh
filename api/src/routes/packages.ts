@@ -17,6 +17,21 @@ const packageSchema = z.object({
     description: z.string().optional(),
     basePrice: z.number().positive(),
     image: z.string().url().optional(),
+
+    packageType: z.string().optional(),
+    starRating: z.number().optional(),
+    images: z.string().optional(), // JSON
+    isPromo: z.boolean().optional(),
+    promoText: z.string().optional(),
+
+    makkahHotelId: z.string().optional(),
+    madinahHotelId: z.string().optional(),
+
+    itinerary: z.string().optional(), // JSON
+    facilities: z.string().optional(), // JSON
+    termsConditions: z.string().optional(),
+    requirements: z.string().optional(),
+
     isActive: z.boolean().default(true),
 });
 
@@ -24,7 +39,13 @@ const packageSchema = z.object({
 // Admin only: CRUD packages
 api.get('/', async (c) => {
     const db = getDb(c.env.DB);
-    const data = await db.select().from(packages).where(eq(packages.isActive, true));
+    const data = await db.query.packages.findMany({
+        where: eq(packages.isActive, true),
+        with: {
+            makkahHotel: true,
+            madinahHotel: true,
+        }
+    });
     return c.json({ packages: data });
 });
 
@@ -34,9 +55,15 @@ api.get('/:id', async (c) => {
     const pkg = await db.query.packages.findFirst({
         where: or(eq(packages.id, id), eq(packages.slug, id)),
         with: {
+            makkahHotel: true,
+            madinahHotel: true,
             departures: {
                 with: {
-                    roomTypes: true
+                    roomTypes: true,
+                    departureAirline: true,
+                    returnAirline: true,
+                    departureAirport: true,
+                    arrivalAirport: true,
                 }
             }
         }

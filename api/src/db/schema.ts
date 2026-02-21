@@ -60,26 +60,85 @@ export const affiliateClicks = sqliteTable('affiliate_clicks', {
 
 // --- FASE 2: KATALOG & BOOKING ---
 
-export const packages = sqliteTable('packages', {
+// --- MASTER DATA ---
+export const hotels = sqliteTable('hotels', {
     id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-    name: text('name').notNull(), // e.g. "Umroh Reguler Bintang 5"
-    slug: text('slug').unique().notNull(),
-    description: text('description'),
-    basePrice: integer('base_price').notNull(),
+    name: text('name').notNull(),
+    city: text('city').notNull(), // e.g. Makkah, Madinah
+    starRating: integer('star_rating').notNull().default(3),
+    distanceToHaram: text('distance_to_haram'), // e.g. "50m to Haram"
     image: text('image'),
     isActive: integer('is_active', { mode: 'boolean' }).default(true),
     createdAt: text('created_at').default(sql`(datetime('now'))`),
 });
 
+export const airlines = sqliteTable('airlines', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    name: text('name').notNull(), // e.g. "Saudi Airlines"
+    code: text('code').notNull(), // e.g. "SV"
+    icon: text('icon'), // URL logo/icon
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    createdAt: text('created_at').default(sql`(datetime('now'))`),
+});
+
+export const airports = sqliteTable('airports', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    name: text('name').notNull(), // e.g. "Soekarno-Hatta"
+    code: text('code').notNull(), // e.g. "CGK"
+    city: text('city').notNull(), // e.g. "Jakarta"
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    createdAt: text('created_at').default(sql`(datetime('now'))`),
+});
+
+
+export const packages = sqliteTable('packages', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    name: text('name').notNull(), // e.g. "Premium Umrah 12 Days"
+    slug: text('slug').unique().notNull(),
+    description: text('description'),
+    basePrice: integer('base_price').notNull(),
+    image: text('image'), // Foto utama
+
+    // -- Kolom Spesifik UI --
+    packageType: text('package_type'), // e.g. "Premium", "Economy"
+    starRating: integer('star_rating').default(3), // overall rating
+    images: text('images'), // JSON array of gallery URLs
+    isPromo: integer('is_promo', { mode: 'boolean' }).default(false),
+    promoText: text('promo_text'), // e.g. "Limited Promo! Book before Sept 30"
+
+    // Relasi Hotel
+    makkahHotelId: text('makkah_hotel_id').references(() => hotels.id),
+    madinahHotelId: text('madinah_hotel_id').references(() => hotels.id),
+
+    // Komponen Terstruktur JSON
+    itinerary: text('itinerary'),
+    facilities: text('facilities'),
+    termsConditions: text('terms_conditions'),
+    requirements: text('requirements'),
+
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    createdAt: text('created_at').default(sql`(datetime('now'))`),
+});
 
 export const departures = sqliteTable('departures', {
     id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
     packageId: text('package_id').notNull().references(() => packages.id),
+    tripName: text('trip_name'), // e.g. "Umrah Plus Turkey - Oct Group A"
     departureDate: text('departure_date').notNull(),
+
+    // Transportasi aktual
+    departureAirlineId: text('departure_airline_id').references(() => airlines.id),
+    returnAirlineId: text('return_airline_id').references(() => airlines.id),
+    departureAirportId: text('departure_airport_id').references(() => airports.id),
+    arrivalAirportId: text('arrival_airport_id').references(() => airports.id),
+
+    // backward comp / temp string prop
     airport: text('airport').notNull(), // e.g. "CGK", "SUB"
+
     totalSeats: integer('total_seats').notNull(),
     bookedSeats: integer('booked_seats').notNull().default(0),
     status: text('status', { enum: ['available', 'last_call', 'full', 'departed'] }).default('available'),
+    siskopatuhStatus: text('siskopatuh_status', { enum: ['synced', 'pending', 'error'] }).default('pending'),
     createdAt: text('created_at').default(sql`(datetime('now'))`),
 });
 
@@ -253,8 +312,16 @@ export const usersRelations = relations(users, ({ many, one }) => ({
     receivedEquipment: many(equipmentChecklist),
 }));
 
-export const packagesRelations = relations(packages, ({ many }) => ({
+export const packagesRelations = relations(packages, ({ many, one }) => ({
     departures: many(departures),
+    makkahHotel: one(hotels, {
+        fields: [packages.makkahHotelId],
+        references: [hotels.id],
+    }),
+    madinahHotel: one(hotels, {
+        fields: [packages.madinahHotelId],
+        references: [hotels.id],
+    }),
 }));
 
 export const departuresRelations = relations(departures, ({ one, many }) => ({
@@ -265,6 +332,22 @@ export const departuresRelations = relations(departures, ({ one, many }) => ({
     roomTypes: many(roomTypes),
     bookings: many(bookings),
     seatLocks: many(seatLocks),
+    departureAirline: one(airlines, {
+        fields: [departures.departureAirlineId],
+        references: [airlines.id],
+    }),
+    returnAirline: one(airlines, {
+        fields: [departures.returnAirlineId],
+        references: [airlines.id],
+    }),
+    departureAirport: one(airports, {
+        fields: [departures.departureAirportId],
+        references: [airports.id],
+    }),
+    arrivalAirport: one(airports, {
+        fields: [departures.arrivalAirportId],
+        references: [airports.id],
+    }),
 }));
 
 

@@ -10,6 +10,7 @@ import Registration from './pages/Registration';
 import Landing from './pages/Landing';
 import PackageManage from './pages/admin/PackageManage';
 import PackageDetail from './pages/admin/PackageDetail';
+import PackageForm from './pages/admin/PackageForm';
 import DepartureManage from './pages/admin/DepartureManage';
 
 import BookingList from './pages/admin/BookingList';
@@ -21,6 +22,7 @@ import CommissionManage from './pages/admin/CommissionManage';
 import RoomingBoard from './pages/admin/RoomingBoard';
 import LogisticsChecklist from './pages/admin/LogisticsChecklist';
 import DocumentScanner from './pages/admin/DocumentScanner';
+import { MasterDataPage } from './pages/admin/masters/MasterDataPage';
 
 
 function App() {
@@ -52,6 +54,14 @@ function App() {
             <ProtectedRoute allowedRoles={['pusat']}>
               <DashboardLayout>
                 <PackageManage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/packages/create" element={
+            <ProtectedRoute allowedRoles={['pusat']}>
+              <DashboardLayout>
+                <PackageForm />
               </DashboardLayout>
             </ProtectedRoute>
           } />
@@ -134,6 +144,31 @@ function App() {
             <ProtectedRoute allowedRoles={['pusat']}>
               <DashboardLayout>
                 <DocumentScanner />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          {/* Master Data Routes */}
+          <Route path="/admin/masters/hotels" element={
+            <ProtectedRoute allowedRoles={['pusat']}>
+              <DashboardLayout>
+                <MasterDataPage type="hotels" />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/masters/airlines" element={
+            <ProtectedRoute allowedRoles={['pusat']}>
+              <DashboardLayout>
+                <MasterDataPage type="airlines" />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/masters/airports" element={
+            <ProtectedRoute allowedRoles={['pusat']}>
+              <DashboardLayout>
+                <MasterDataPage type="airports" />
               </DashboardLayout>
             </ProtectedRoute>
           } />

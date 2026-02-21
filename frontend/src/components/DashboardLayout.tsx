@@ -25,6 +25,14 @@ const menuGroups = [
         ]
     },
     {
+        label: 'Master Data',
+        items: [
+            { name: 'Data Hotel', path: '/admin/masters/hotels', icon: 'apartment', roles: ['pusat'] },
+            { name: 'Data Pesawat', path: '/admin/masters/airlines', icon: 'airlines', roles: ['pusat'] },
+            { name: 'Data Bandara', path: '/admin/masters/airports', icon: 'connecting_airports', roles: ['pusat'] },
+        ]
+    },
+    {
         label: 'Finance',
         items: [
             { name: 'Paket Umroh', path: '/admin/packages', icon: 'package_2', roles: ['pusat'] },

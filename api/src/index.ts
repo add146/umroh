@@ -33,22 +33,26 @@ app.use(
     '/api/*',
     cors({
         origin: (origin, c) => {
-            // Allow: localhost dev, all Cloudflare Pages subdomains, and custom FRONTEND_URL
+            // Jika request tidak memiliki origin (misal dari server to server atau curl testing backend), kembalikan default.
+            if (!origin) return c.env.FRONTEND_URL || 'http://localhost:5173';
+
             const allowedOrigins = [
                 'http://localhost:5173',
                 'http://localhost:3000',
                 c.env.FRONTEND_URL,
             ].filter(Boolean);
 
-            // Also allow any *.pages.dev subdomain (Cloudflare Pages previews)
-            if (origin && (
+            // Jika origin cocok dgn yg di whitelist, izinkan. Termasuk domain preview pages.dev.
+            if (
                 allowedOrigins.includes(origin) ||
                 /^https:\/\/[a-z0-9-]+\.pages\.dev$/.test(origin) ||
                 /^https:\/\/[a-z0-9-]+\.umroh-3vl\.pages\.dev$/.test(origin)
-            )) {
+            ) {
                 return origin;
             }
-            return allowedOrigins[0] || 'http://localhost:5173';
+
+            // Jika tidak cocok, tolak dan fallback ke url production. Ini mungkin menyebabkan CORS error tapi aman dari sniffing.
+            return c.env.FRONTEND_URL || 'https://umroh.khibroh.com';
         },
         credentials: true,
         allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -108,11 +112,13 @@ import documentRoutes from './routes/documents.js';
 import operationRoutes from './routes/operations.js';
 import communicationRoutes from './routes/communication.js';
 import exportRoutes from './routes/export.js';
+import mastersRoutes from './routes/masters.js';
 
 app.route('/api/auth', authRoutes);
 app.route('/api/users', userRoutes);
 app.route('/api/packages', packageRoutes);
 app.route('/api/departures', departureRoutes);
+app.route('/api/masters', mastersRoutes);
 app.route('/api/bookings', bookingRoutes);
 app.route('/api/seats', seatRoutes);
 app.route('/api/payments', paymentRoutes);
