@@ -131,7 +131,7 @@ const RoomingBoard: React.FC = () => {
                                 </tr>
                             ) : bookings.map((booking) => (
                                 <tr key={booking.id} className="hover:bg-[var(--color-bg-hover)] transition-colors group">
-                                    <td className="px-6 py-4">
+                                    <td className="px-8 py-5">
                                         <div className="flex items-center">
                                             <div className="w-10 h-10 rounded-full bg-[var(--color-primary-bg)] flex items-center justify-center text-primary font-bold mr-3">
                                                 {booking.pilgrim?.name.charAt(0)}
@@ -142,12 +142,12 @@ const RoomingBoard: React.FC = () => {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-8 py-5">
                                         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-[#8b5cf6]/10 text-purple-400">
                                             {booking.roomType?.name || 'Double'}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-8 py-5">
                                         <div className="relative">
                                             <input
                                                 type="text"
@@ -168,7 +168,7 @@ const RoomingBoard: React.FC = () => {
                                             )}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-8 py-5">
                                         {booking.roomAssignment?.roomNumber ? (
                                             <span className="text-success flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest">
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

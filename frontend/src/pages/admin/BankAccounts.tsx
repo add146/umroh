@@ -131,29 +131,29 @@ export default function BankAccountsPage() {
                 <table className="w-full text-left">
                     <thead>
                         <tr className="bg-[#131210]/50">
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-widest">Institusi Bank</th>
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-widest">Informasi Akun</th>
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Status</th>
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-widest text-right">Manajemen</th>
+                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-widest">Institusi Bank</th>
+                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-widest">Informasi Akun</th>
+                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Status</th>
+                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-widest text-right">Manajemen</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-white/10">
                         {loading ? (
                             <tr>
-                                <td colSpan={4} className="px-8 py-16 text-center">
+                                <td colSpan={4} className="px-10 py-16 text-center">
                                     <Loader2 className="animate-spin text-primary w-10 h-10 mx-auto" />
                                 </td>
                             </tr>
                         ) : banks.length === 0 ? (
                             <tr>
-                                <td colSpan={4} className="px-8 py-16 text-center text-gray-400 font-medium italic">
+                                <td colSpan={4} className="px-10 py-16 text-center text-gray-400 font-medium italic">
                                     Belum ada rekening aktif yang terdaftar.
                                 </td>
                             </tr>
                         ) : (
                             banks.map((bank) => (
                                 <tr key={bank.id} className="hover:bg-[var(--color-primary-bg)] transition-colors group">
-                                    <td className="px-8 py-6">
+                                    <td className="px-10 py-6">
                                         <div className="flex items-center gap-4">
                                             <div className={`p-3 rounded-2xl transition-all duration-300 ${bank.isActive ? 'bg-primary text-white shadow-lg' : 'bg-white/5 text-gray-400'}`}>
                                                 <Landmark className="w-5 h-5" />
@@ -161,7 +161,7 @@ export default function BankAccountsPage() {
                                             <span className="text-xl font-black text-white tracking-tight">{bank.bankName}</span>
                                         </div>
                                     </td>
-                                    <td className="px-8 py-6">
+                                    <td className="px-10 py-6">
                                         <p className="text-lg font-black font-mono tracking-wider text-white">{bank.accountNumber}</p>
                                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">A/N {bank.accountHolder}</p>
                                     </td>

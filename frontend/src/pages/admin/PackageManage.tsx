@@ -58,23 +58,23 @@ export default function PackageManage() {
                 <table className="w-full text-left">
                     <thead>
                         <tr className="bg-[#131210]/50 divide-x divide-white/10">
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] w-24">ID</th>
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Nama Paket</th>
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Harga Base</th>
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] text-right">Aksi</th>
+                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] w-24">ID</th>
+                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Nama Paket</th>
+                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Harga Base</th>
+                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-white/10">
                         {loading ? (
                             <tr>
-                                <td colSpan={4} className="px-8 py-24 text-center">
+                                <td colSpan={4} className="px-10 py-24 text-center">
                                     <Loader2 className="animate-spin text-primary w-12 h-12 mx-auto" />
                                     <p className="mt-4 text-xs font-black uppercase tracking-widest text-gray-300">Memuat data paket...</p>
                                 </td>
                             </tr>
                         ) : packages.length === 0 ? (
                             <tr>
-                                <td colSpan={4} className="px-8 py-24 text-center">
+                                <td colSpan={4} className="px-10 py-24 text-center">
                                     <div className="bg-[#131210] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <Package className="text-gray-200 w-10 h-10" />
                                     </div>
@@ -84,15 +84,15 @@ export default function PackageManage() {
                         ) : (
                             packages.map((pkg) => (
                                 <tr key={pkg.id} className="hover:bg-primary/[0.01] transition-colors group">
-                                    <td className="px-8 py-6">
+                                    <td className="px-10 py-6">
                                         <span className="px-3 py-1 bg-white/5 rounded-md font-mono text-xs text-gray-400">
                                             {pkg.id.split('-')[0]}
                                         </span>
                                     </td>
-                                    <td className="px-8 py-6">
+                                    <td className="px-10 py-6">
                                         <p className="font-bold text-white text-lg tracking-tight">{pkg.name}</p>
                                     </td>
-                                    <td className="px-8 py-6">
+                                    <td className="px-10 py-6">
                                         <p className="text-xl font-black text-primary tracking-tight">
                                             <span className="text-sm mr-1.5 text-secondary">Rp</span>
                                             {pkg.basePrice.toLocaleString('id-ID')}

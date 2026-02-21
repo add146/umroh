@@ -32,35 +32,35 @@ const BookingList: React.FC = () => {
                 <table className="w-full text-left">
                     <thead>
                         <tr className="bg-[#131210] border-b border-[var(--color-border)] text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">
-                            <th className="px-6 py-4">Kode Booking</th>
-                            <th className="px-6 py-4">Jamaah</th>
-                            <th className="px-6 py-4">Paket</th>
-                            <th className="px-6 py-4">Total Harga</th>
-                            <th className="px-6 py-4">Status</th>
-                            <th className="px-6 py-4">Aksi</th>
+                            <th className="px-8 py-5">Kode Booking</th>
+                            <th className="px-8 py-5">Jamaah</th>
+                            <th className="px-8 py-5">Paket</th>
+                            <th className="px-8 py-5">Total Harga</th>
+                            <th className="px-8 py-5">Status</th>
+                            <th className="px-8 py-5">Aksi</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[var(--color-border)]">
                         {bookings.map((booking) => (
                             <tr key={booking.id} className="hover:bg-[var(--color-bg-hover)] transition-colors group">
-                                <td className="px-6 py-4 font-mono text-xs text-gray-300">{booking.id.substring(0, 8).toUpperCase()}</td>
-                                <td className="px-6 py-4">
+                                <td className="px-8 py-5 font-mono text-xs text-gray-300">{booking.id.substring(0, 8).toUpperCase()}</td>
+                                <td className="px-8 py-5">
                                     <p className="font-bold text-white tracking-tight">{booking.pilgrim?.name}</p>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{booking.pilgrim?.phone}</p>
                                 </td>
-                                <td className="px-6 py-4 text-sm font-bold text-white">
+                                <td className="px-8 py-5 text-sm font-bold text-white">
                                     {booking.departure?.package?.name}
                                 </td>
-                                <td className="px-6 py-4 text-sm font-black text-primary tracking-tight">
+                                <td className="px-8 py-5 text-sm font-black text-primary tracking-tight">
                                     Rp {(booking.totalPrice || 0).toLocaleString('id-ID')}
                                 </td>
-                                <td className="px-6 py-4">
+                                <td className="px-8 py-5">
                                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${booking.paymentStatus === 'paid' ? 'bg-[#22c55e]/10 text-success' : 'bg-[#f59e0b]/10 text-warning'
                                         }`}>
                                         {booking.paymentStatus}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4">
+                                <td className="px-8 py-5">
                                     <button className="text-primary text-xs font-bold hover:underline">Detail</button>
                                 </td>
                             </tr>

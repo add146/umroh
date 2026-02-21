@@ -63,31 +63,31 @@ export default function InvoicesPage() {
                 <table className="w-full text-left">
                     <thead>
                         <tr className="bg-[#131210] border-b border-[var(--color-border)]">
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Data Invoice</th>
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Identitas Jamaah</th>
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Nominal & Mode</th>
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] text-center">Status</th>
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] text-right">Manajemen</th>
+                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Data Invoice</th>
+                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Identitas Jamaah</th>
+                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Nominal & Mode</th>
+                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] text-center">Status</th>
+                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] text-right">Manajemen</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[var(--color-border)]">
                         {loading ? (
                             <tr>
-                                <td colSpan={5} className="px-8 py-24 text-center">
+                                <td colSpan={5} className="px-10 py-24 text-center">
                                     <Loader2 className="animate-spin text-primary w-12 h-12 mx-auto" />
                                     <p className="mt-4 text-xs font-black uppercase tracking-widest text-gray-300">Mensinkronisasi Data...</p>
                                 </td>
                             </tr>
                         ) : invoices.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="px-8 py-16 text-center text-gray-500 font-medium italic">
+                                <td colSpan={5} className="px-10 py-16 text-center text-gray-500 font-medium italic">
                                     Data invoice tidak ditemukan.
                                 </td>
                             </tr>
                         ) : (
                             invoices.map((inv) => (
                                 <tr key={inv.id} className="hover:bg-[var(--color-bg-hover)] transition-colors group">
-                                    <td className="px-8 py-6">
+                                    <td className="px-10 py-6">
                                         <div className="space-y-1">
                                             <p className="font-mono text-sm font-black text-white tracking-tighter">{inv.invoiceCode}</p>
                                             <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
@@ -95,7 +95,7 @@ export default function InvoicesPage() {
                                             </p>
                                         </div>
                                     </td>
-                                    <td className="px-8 py-6">
+                                    <td className="px-10 py-6">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary font-black text-sm">
                                                 {inv.booking?.pilgrim?.name?.charAt(0)}
@@ -106,7 +106,7 @@ export default function InvoicesPage() {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-8 py-6">
+                                    <td className="px-10 py-6">
                                         <div className="space-y-1">
                                             <p className="text-lg font-black text-primary tracking-tight">
                                                 <span className="text-xs mr-0.5 text-secondary">Rp</span>
