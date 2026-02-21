@@ -73,26 +73,26 @@ const DocumentScanner: React.FC = () => {
                         <div className="flex gap-2 mb-4">
                             <input
                                 type="text"
-                                className="flex-1 p-3 bg-[#131210] border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-brand-primary outline-none"
+                                className="flex-1 p-3 bg-[#131210] border border-[var(--color-border)] rounded-xl text-white focus:ring-2 focus:ring-primary outline-none"
                                 placeholder="Nama atau No. KTP..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                             <button
                                 onClick={handleSearch}
-                                className="px-4 py-2 bg-brand-primary text-white font-bold rounded-xl hover:bg-brand-dark transition-colors"
+                                className="px-4 py-2 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors"
                             >
                                 Cari
                             </button>
                         </div>
 
                         {pilgrims.length > 0 && !selectedPilgrim && (
-                            <div className="space-y-2 max-h-40 overflow-y-auto mb-4 border rounded-xl p-2">
+                            <div className="space-y-2 max-h-40 overflow-y-auto mb-4 border border-[var(--color-border)] rounded-xl p-2">
                                 {pilgrims.map(p => (
                                     <div
                                         key={p.id}
                                         onClick={() => setSelectedPilgrim(p)}
-                                        className="p-3 hover:bg-brand-primary/10 rounded-lg cursor-pointer flex justify-between items-center"
+                                        className="p-3 hover:bg-[var(--color-primary-bg)] rounded-lg cursor-pointer flex justify-between items-center"
                                     >
                                         <span className="font-bold text-gray-200">{p.name}</span>
                                         <span className="text-xs text-gray-400 font-mono">{p.noKtp}</span>
@@ -102,9 +102,9 @@ const DocumentScanner: React.FC = () => {
                         )}
 
                         {selectedPilgrim && (
-                            <div className="bg-brand-primary/5 p-4 rounded-xl border border-brand-primary/20 flex justify-between items-center mb-4">
+                            <div className="bg-[var(--color-primary-bg)] p-4 rounded-xl border border-[var(--color-border-gold)] flex justify-between items-center mb-4">
                                 <div>
-                                    <p className="text-xs font-bold text-brand-primary uppercase">Jamaah Terpilih</p>
+                                    <p className="text-xs font-bold text-primary uppercase">Jamaah Terpilih</p>
                                     <p className="font-bold text-white">{selectedPilgrim.name}</p>
                                 </div>
                                 <button onClick={() => setSelectedPilgrim(null)} className="text-xs text-red-500 font-bold hover:underline">Ganti</button>
@@ -113,7 +113,7 @@ const DocumentScanner: React.FC = () => {
 
                         <label className="block text-sm font-bold text-gray-300 mb-2">2. Tipe Dokumen</label>
                         <select
-                            className="w-full p-3 bg-[#131210] border border-[var(--color-border)] rounded-xl mb-4"
+                            className="w-full p-3 bg-[#131210] text-white border border-[var(--color-border)] rounded-xl mb-4 focus:ring-2 focus:ring-primary outline-none"
                             value={docType}
                             onChange={(e: any) => setDocType(e.target.value)}
                         >
@@ -124,14 +124,14 @@ const DocumentScanner: React.FC = () => {
                         </select>
 
                         <label className="block text-sm font-bold text-gray-300 mb-2">3. Pilih File</label>
-                        <div className="border-2 border-dashed border-[var(--color-border)] rounded-2xl p-8 text-center hover:border-brand-primary transition-colors cursor-pointer relative">
+                        <div className="border-2 border-dashed border-[var(--color-border)] rounded-2xl p-8 text-center hover:border-primary transition-colors cursor-pointer relative">
                             <input
                                 type="file"
                                 className="absolute inset-0 opacity-0 cursor-pointer"
                                 onChange={(e) => setFile(e.target.files?.[0] || null)}
                             />
                             {file ? (
-                                <div className="text-brand-primary">
+                                <div className="text-primary">
                                     <svg className="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h2a2 2 0 002-2V4a2 2 0 00-2-2H9zM11 3a1 1 0 110 2 1 1 0 010-2z" />
                                     </svg>
@@ -152,7 +152,7 @@ const DocumentScanner: React.FC = () => {
                         <button
                             disabled={!file || !selectedPilgrim || uploading}
                             onClick={handleUpload}
-                            className={`w-full mt-6 py-4 rounded-xl font-black uppercase tracking-widest text-white transition-all ${!file || !selectedPilgrim || uploading ? 'bg-gray-300 cursor-not-allowed' : 'bg-brand-primary hover:bg-brand-dark shadow-lg'
+                            className={`w-full mt-6 py-4 rounded-xl font-black uppercase tracking-widest text-white transition-all ${!file || !selectedPilgrim || uploading ? 'bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-primary hover:bg-primary-dark shadow-lg'
                                 }`}
                         >
                             {uploading ? 'Memproses OCR...' : 'Mulai Scan & Upload'}
@@ -163,7 +163,7 @@ const DocumentScanner: React.FC = () => {
                 {/* Right Side: OCR Result View */}
                 <div className="space-y-6">
                     {ocrResult ? (
-                        <div className="dark-card p-6 rounded-2xl shadow-xl border-2 border-brand-primary animate-in fade-in slide-in-from-right-4 duration-500">
+                        <div className="dark-card p-6 rounded-2xl shadow-xl border-2 border-[var(--color-border-gold)] animate-in fade-in slide-in-from-right-4 duration-500">
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="p-2 bg-green-100 text-green-600 rounded-lg">
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,7 +176,7 @@ const DocumentScanner: React.FC = () => {
                             <div className="space-y-4">
                                 {Object.entries(ocrResult).map(([key, value]) => (
                                     <div key={key} className="p-4 bg-[#131210] rounded-xl border border-[var(--color-border)]">
-                                        <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest mb-1">{key}</p>
+                                        <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">{key}</p>
                                         <p className="font-bold text-white">{value as string}</p>
                                     </div>
                                 ))}

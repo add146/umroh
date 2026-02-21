@@ -42,7 +42,7 @@ export default function InvoicesPage() {
                 <div className="space-y-1">
                     <h1 className="text-4xl font-black text-white tracking-tight flex items-center gap-4">
                         Verifikasi Pembayaran
-                        <span className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full">{invoices.filter(i => i.status === 'pending').length} Menunggu</span>
+                        <span className="text-xs bg-[var(--color-primary-bg)] text-primary px-3 py-1 rounded-full">{invoices.filter(i => i.status === 'pending').length} Menunggu</span>
                     </h1>
                     <p className="text-gray-500 font-medium">Monitoring arus pembayaran jamaah dan verifikasi bukti transfer.</p>
                 </div>
@@ -50,9 +50,9 @@ export default function InvoicesPage() {
                 <div className="flex gap-4 w-full md:w-auto">
                     <div className="relative flex-1 md:w-64">
                         <Search className="absolute left-4 top-3.5 w-4 h-4 text-gray-400" />
-                        <input className="w-full pl-11 pr-4 py-3 bg-[#131210] border-none rounded-xl text-sm focus:ring-4 focus:ring-primary/5 transition-all outline-none font-bold" placeholder="Cari Kode Invoice / Nama..." />
+                        <input className="w-full pl-11 pr-4 py-3 bg-[#131210] text-white border-none rounded-xl text-sm focus:ring-4 focus:ring-primary/20 transition-all outline-none font-bold" placeholder="Cari Kode Invoice / Nama..." />
                     </div>
-                    <button className="p-3 bg-[#131210] text-gray-600 rounded-xl hover:bg-white/5 transition-all">
+                    <button className="p-3 bg-[#131210] text-white rounded-xl hover:bg-white/10 transition-all">
                         <Filter className="w-5 h-5" />
                     </button>
                 </div>
@@ -127,9 +127,9 @@ export default function InvoicesPage() {
                                         </div>
                                     </td>
                                     <td className="px-8 py-6 text-center">
-                                        <span className={`inline-flex items-center gap-2 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.15em] ${inv.status === 'paid' ? 'bg-success/10 text-success' :
-                                            inv.status === 'pending' ? 'bg-amber-100 text-amber-600 animate-pulse' :
-                                                inv.status === 'cancelled' ? 'bg-red-50 text-red-500' : 'bg-white/5 text-gray-400'
+                                        <span className={`inline-flex items-center gap-2 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.15em] ${inv.status === 'paid' ? 'bg-[#22c55e]/10 text-success' :
+                                            inv.status === 'pending' ? 'bg-amber-500/10 text-amber-500 animate-pulse' :
+                                                inv.status === 'cancelled' ? 'bg-red-500/10 text-red-500' : 'bg-white/10 text-gray-400'
                                             }`}>
                                             <div className={`w-1.5 h-1.5 rounded-full ${inv.status === 'paid' ? 'bg-success' :
                                                 inv.status === 'pending' ? 'bg-amber-600' : 'bg-current'
@@ -152,14 +152,14 @@ export default function InvoicesPage() {
                                                 <>
                                                     <button
                                                         onClick={() => handleVerifySpace(inv.id, 'paid')}
-                                                        className="p-3 bg-success text-white rounded-xl shadow-lg shadow-success/20 hover:scale-110 active:scale-95 transition-all"
+                                                        className="p-3 bg-success text-white rounded-xl shadow-lg hover:scale-110 active:scale-95 transition-all"
                                                         title="Setujui Pembayaran"
                                                     >
                                                         <Check className="w-5 h-5" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleVerifySpace(inv.id, 'cancelled')}
-                                                        className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all"
+                                                        className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all"
                                                         title="Tolak Pembayaran"
                                                     >
                                                         <X className="w-5 h-5" />

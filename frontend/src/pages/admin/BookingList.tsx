@@ -39,25 +39,25 @@ const BookingList: React.FC = () => {
                     <tbody className="divide-y divide-white/10">
                         {bookings.map((booking) => (
                             <tr key={booking.id} className="hover:bg-[#131210] transition-colors">
-                                <td className="px-6 py-4 font-mono text-xs">{booking.id.substring(0, 8).toUpperCase()}</td>
+                                <td className="px-6 py-4 font-mono text-xs text-gray-300">{booking.id.substring(0, 8).toUpperCase()}</td>
                                 <td className="px-6 py-4">
                                     <p className="font-bold text-white">{booking.pilgrim?.name}</p>
                                     <p className="text-xs text-gray-500">{booking.pilgrim?.phone}</p>
                                 </td>
-                                <td className="px-6 py-4 text-sm">
+                                <td className="px-6 py-4 text-sm text-gray-200">
                                     {booking.departure?.package?.name}
                                 </td>
-                                <td className="px-6 py-4 text-sm">
+                                <td className="px-6 py-4 text-sm text-gray-200">
                                     Rp {(booking.totalPrice || 0).toLocaleString('id-ID')}
                                 </td>
                                 <td className="px-6 py-4">
-                                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${booking.paymentStatus === 'paid' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'
+                                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${booking.paymentStatus === 'paid' ? 'bg-[#22c55e]/10 text-success' : 'bg-[#f59e0b]/10 text-warning'
                                         }`}>
                                         {booking.paymentStatus}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <button className="text-brand-primary text-xs font-bold hover:underline">Detail</button>
+                                    <button className="text-primary text-xs font-bold hover:underline">Detail</button>
                                 </td>
                             </tr>
                         ))}
