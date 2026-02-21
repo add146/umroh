@@ -74,7 +74,7 @@ export default function BankAccountsPage() {
                 </div>
                 <button
                     onClick={() => setIsAdding(!isAdding)}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all duration-300 ${isAdding ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-primary text-white hover:bg-primary-light shadow-lg shadow-primary/20 hover:shadow-xl'
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all duration-300 ${isAdding ? 'bg-[#ef4444]/10 text-red-500 hover:bg-[#ef4444]/20' : 'bg-primary text-white hover:bg-primary-light shadow-lg hover:shadow-xl'
                         }`}
                 >
                     {isAdding ? <XCircle className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
@@ -85,7 +85,7 @@ export default function BankAccountsPage() {
             {isAdding && (
                 <div className="dark-card p-8 rounded-3xl border border-primary/20 shadow-2xl animate-in slide-in-from-top-4 duration-300">
                     <div className="flex items-center gap-3 mb-8">
-                        <div className="p-2 bg-primary/5 rounded-lg text-primary">
+                        <div className="p-2 bg-[var(--color-primary-bg)] rounded-lg text-primary">
                             <Landmark className="w-6 h-6" />
                         </div>
                         <h2 className="text-xl font-black text-white">Rekening Baru</h2>
@@ -95,7 +95,7 @@ export default function BankAccountsPage() {
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Nama Bank</label>
                             <input
-                                className="w-full bg-[#131210] border border-[var(--color-border)] rounded-xl px-4 py-3 font-bold focus:dark-card focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none"
+                                className="w-full bg-[#131210] border border-[var(--color-border)] rounded-xl px-4 py-3 font-bold text-white focus:dark-card focus:ring-2 focus:ring-primary outline-none transition-all"
                                 value={newBank.bankName}
                                 onChange={(e) => setNewBank({ ...newBank, bankName: e.target.value })}
                                 placeholder="Contoh: BANK BCA"
@@ -104,7 +104,7 @@ export default function BankAccountsPage() {
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Nomor Rekening</label>
                             <input
-                                className="w-full bg-[#131210] border border-[var(--color-border)] rounded-xl px-4 py-3 font-mono font-bold focus:dark-card focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none"
+                                className="w-full bg-[#131210] border border-[var(--color-border)] rounded-xl px-4 py-3 font-mono font-bold text-white focus:dark-card focus:ring-2 focus:ring-primary outline-none transition-all"
                                 value={newBank.accountNumber}
                                 onChange={(e) => setNewBank({ ...newBank, accountNumber: e.target.value })}
                                 placeholder="Contoh: 1234567890"
@@ -113,7 +113,7 @@ export default function BankAccountsPage() {
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Atas Nama</label>
                             <input
-                                className="w-full bg-[#131210] border border-[var(--color-border)] rounded-xl px-4 py-3 font-bold focus:dark-card focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none"
+                                className="w-full bg-[#131210] border border-[var(--color-border)] rounded-xl px-4 py-3 font-bold text-white focus:dark-card focus:ring-2 focus:ring-primary outline-none transition-all"
                                 value={newBank.accountHolder}
                                 onChange={(e) => setNewBank({ ...newBank, accountHolder: e.target.value })}
                                 placeholder="Nama Pemilik Rekening"
@@ -121,7 +121,7 @@ export default function BankAccountsPage() {
                         </div>
                     </div>
 
-                    <button onClick={handleAdd} className="mt-8 flex items-center gap-2 bg-secondary text-white px-8 py-3 rounded-xl font-black uppercase text-sm tracking-widest hover:bg-secondary-light shadow-lg shadow-secondary/20 transition-all active:scale-95">
+                    <button onClick={handleAdd} className="mt-8 flex items-center gap-2 bg-secondary text-white px-8 py-3 rounded-xl font-black uppercase text-sm tracking-widest hover:bg-secondary-light transition-all active:scale-95">
                         <Save className="w-5 h-5" /> Simpan Konfigurasi
                     </button>
                 </div>
@@ -152,7 +152,7 @@ export default function BankAccountsPage() {
                             </tr>
                         ) : (
                             banks.map((bank) => (
-                                <tr key={bank.id} className="hover:bg-primary/[0.02] transition-colors group">
+                                <tr key={bank.id} className="hover:bg-[var(--color-primary-bg)] transition-colors group">
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-4">
                                             <div className={`p-3 rounded-2xl transition-all duration-300 ${bank.isActive ? 'bg-primary text-white shadow-lg' : 'bg-white/5 text-gray-400'}`}>
@@ -166,7 +166,7 @@ export default function BankAccountsPage() {
                                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">A/N {bank.accountHolder}</p>
                                     </td>
                                     <td className="px-8 py-6 text-center">
-                                        <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${bank.isActive ? 'bg-green-50 text-green-600' : 'bg-white/5 text-gray-400'
+                                        <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${bank.isActive ? 'bg-[#22c55e]/10 text-success' : 'bg-white/5 text-gray-400'
                                             }`}>
                                             <div className={`w-1.5 h-1.5 rounded-full ${bank.isActive ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                                             {bank.isActive ? 'Aktif' : 'Non-Aktif'}
@@ -176,14 +176,14 @@ export default function BankAccountsPage() {
                                         <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button
                                                 onClick={() => toggleStatus(bank.id, bank.isActive)}
-                                                className={`p-3 rounded-xl transition-all duration-300 ${bank.isActive ? 'bg-amber-50 text-amber-600 hover:bg-amber-100' : 'bg-green-50 text-green-600 hover:bg-green-100'
+                                                className={`p-3 rounded-xl transition-all duration-300 ${bank.isActive ? 'bg-[#f59e0b]/10 text-amber-500 hover:bg-[#f59e0b]/20' : 'bg-[#22c55e]/10 text-success hover:bg-[#22c55e]/20'
                                                     }`}
                                                 title={bank.isActive ? 'Nonaktifkan' : 'Aktifkan'}
                                             >
                                                 {bank.isActive ? <XCircle className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
                                             </button>
                                             <button
-                                                className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all opacity-40 hover:opacity-100"
+                                                className="p-3 bg-[#ef4444]/10 text-red-500 rounded-xl hover:bg-[#ef4444]/20 transition-all opacity-40 hover:opacity-100"
                                                 title="Hapus Permanen"
                                             >
                                                 <Trash2 className="w-5 h-5" />

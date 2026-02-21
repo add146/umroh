@@ -202,7 +202,7 @@ export default function InvoicesPage() {
                         <div className="p-8 dark-card border-t border-[var(--color-border)] flex justify-end gap-4">
                             <button
                                 onClick={() => setSelectedProof(null)}
-                                className="px-8 py-3 bg-white/5 text-gray-500 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-gray-200 transition-all"
+                                className="px-8 py-3 bg-white/5 text-gray-500 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-white/10 hover:text-white transition-all"
                             >
                                 Tutup Preview
                             </button>

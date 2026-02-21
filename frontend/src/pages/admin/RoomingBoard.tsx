@@ -93,7 +93,7 @@ const RoomingBoard: React.FC = () => {
                 <div className="flex items-center gap-3 dark-card p-2 rounded-lg border shadow-sm">
                     <span className="text-sm font-semibold text-gray-300 ml-2">Pilih Keberangkatan:</span>
                     <select
-                        className="p-2 border-none focus:ring-0 bg-transparent text-sm font-bold text-brand-primary"
+                        className="p-2 border-none focus:ring-0 bg-transparent text-sm font-bold text-primary cursor-pointer outline-none"
                         value={selectedDepartureId}
                         onChange={(e) => setSelectedDepartureId(e.target.value)}
                     >
@@ -108,7 +108,7 @@ const RoomingBoard: React.FC = () => {
 
             {loading ? (
                 <div className="text-center py-20">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b border-[var(--color-border)]-2 border-brand-primary mx-auto"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                     <p className="mt-4 text-gray-500 font-medium">Memuat data jamaah...</p>
                 </div>
             ) : (
@@ -130,20 +130,20 @@ const RoomingBoard: React.FC = () => {
                                     </td>
                                 </tr>
                             ) : bookings.map((booking) => (
-                                <tr key={booking.id} className="hover:bg-blue-50/30 transition-colors">
+                                <tr key={booking.id} className="hover:bg-[var(--color-primary-bg)] transition-colors group">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center">
-                                            <div className="w-10 h-10 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary font-bold mr-3">
+                                            <div className="w-10 h-10 rounded-full bg-[var(--color-primary-bg)] flex items-center justify-center text-primary font-bold mr-3">
                                                 {booking.pilgrim?.name.charAt(0)}
                                             </div>
                                             <div>
-                                                <p className="font-bold text-white">{booking.pilgrim?.name}</p>
-                                                <p className="text-xs text-gray-500">{booking.pilgrim?.phone}</p>
+                                                <p className="font-bold text-white tracking-tight">{booking.pilgrim?.name}</p>
+                                                <p className="text-xs text-gray-500 uppercase tracking-widest">{booking.pilgrim?.phone}</p>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-[#8b5cf6]/10 text-purple-400">
                                             {booking.roomType?.name || 'Double'}
                                         </span>
                                     </td>
@@ -152,7 +152,7 @@ const RoomingBoard: React.FC = () => {
                                             <input
                                                 type="text"
                                                 placeholder="Contoh: 101, 102"
-                                                className={`w-36 p-2 text-sm border-2 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all ${booking.roomAssignment?.roomNumber ? 'border-green-200 bg-green-50/30' : 'border-[var(--color-border)]'
+                                                className={`w-36 p-2 text-sm border bg-[#131210] text-white rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-bold ${booking.roomAssignment?.roomNumber ? 'border-success/50' : 'border-[var(--color-border)]'
                                                     }`}
                                                 defaultValue={booking.roomAssignment?.roomNumber || ''}
                                                 onBlur={(e) => {
@@ -163,18 +163,18 @@ const RoomingBoard: React.FC = () => {
                                             />
                                             {saving === booking.id && (
                                                 <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                                                    <div className="animate-spin h-4 w-4 border-2 border-brand-primary border-t-transparent rounded-full"></div>
+                                                    <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
                                                 </div>
                                             )}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
                                         {booking.roomAssignment?.roomNumber ? (
-                                            <span className="text-green-600 flex items-center gap-1 text-sm font-bold">
+                                            <span className="text-success flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest">
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
                                                 </svg>
-                                                Selesai
+                                                Terisi
                                             </span>
                                         ) : (
                                             <span className="text-gray-400 text-sm italic">Menunggu</span>

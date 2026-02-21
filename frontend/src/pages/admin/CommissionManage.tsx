@@ -175,7 +175,7 @@ const CommissionManage: React.FC = () => {
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>User (Pemilik Aturan)</label>
                                 <select value={form.userId} onChange={e => setForm({ ...form, userId: e.target.value })} required
-                                    style={{ width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                                    style={{ width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-bg-alt)', color: 'white', outline: 'none' }}>
                                     <option value="">Pilih user...</option>
                                     {allUsers.map(u => <option key={u.id} value={u.id}>{u.name} ({u.role})</option>)}
                                 </select>
@@ -183,14 +183,14 @@ const CommissionManage: React.FC = () => {
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>Target Role Downline</label>
                                 <select value={form.targetRole} onChange={e => setForm({ ...form, targetRole: e.target.value })}
-                                    style={{ width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                                    style={{ width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-bg-alt)', color: 'white', outline: 'none' }}>
                                     {['cabang', 'mitra', 'agen', 'reseller'].map(r => <option key={r} value={r}>{r}</option>)}
                                 </select>
                             </div>
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>Tipe Komisi</label>
                                 <select value={form.commissionType} onChange={e => setForm({ ...form, commissionType: e.target.value })}
-                                    style={{ width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                                    style={{ width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-bg-alt)', color: 'white', outline: 'none' }}>
                                     <option value="percentage">Persentase (%)</option>
                                     <option value="flat">Flat (Rp)</option>
                                 </select>
@@ -201,7 +201,7 @@ const CommissionManage: React.FC = () => {
                                 </label>
                                 <input type="number" min={0} value={form.commissionValue}
                                     onChange={e => setForm({ ...form, commissionValue: parseFloat(e.target.value) })}
-                                    style={{ width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid var(--color-border)' }} />
+                                    style={{ width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-bg-alt)', color: 'white', outline: 'none' }} />
                             </div>
                             <div style={{ gridColumn: '1/-1', display: 'flex', justifyContent: 'flex-end' }}>
                                 <button type="submit" style={{ background: 'var(--color-primary)', color: 'white', padding: '0.75rem 2rem', borderRadius: '8px', fontWeight: 700, border: 'none', cursor: 'pointer' }}>
@@ -233,14 +233,14 @@ const CommissionManage: React.FC = () => {
                                                 <p style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', textTransform: 'capitalize' }}>{r.user?.role}</p>
                                             </td>
                                             <td style={{ padding: '0.875rem 1rem' }}>
-                                                <span style={{ background: '#ede9fe', color: '#7c3aed', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600 }}>{r.targetRole}</span>
+                                                <span style={{ background: '#8b5cf61a', color: '#a78bfa', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600 }}>{r.targetRole}</span>
                                             </td>
                                             <td style={{ padding: '0.875rem 1rem', fontSize: '0.875rem' }}>{r.commissionType === 'percentage' ? 'Persentase' : 'Flat'}</td>
                                             <td style={{ padding: '0.875rem 1rem', fontWeight: 700 }}>
                                                 {r.commissionType === 'percentage' ? `${r.commissionValue}%` : formatCurrency(r.commissionValue)}
                                             </td>
                                             <td style={{ padding: '0.875rem 1rem' }}>
-                                                <button onClick={() => handleDeleteRule(r.id)} style={{ color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem' }}>Hapus</button>
+                                                <button onClick={() => handleDeleteRule(r.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 700 }}>Hapus</button>
                                             </td>
                                         </tr>
                                     ))}
@@ -279,8 +279,8 @@ const CommissionManage: React.FC = () => {
                                         <td style={{ padding: '0.875rem 1rem' }}>
                                             <span style={{
                                                 padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 700,
-                                                background: e.status === 'paid' ? '#dcfce7' : '#fef3c7',
-                                                color: e.status === 'paid' ? '#16a34a' : '#d97706'
+                                                background: e.status === 'paid' ? '#22c55e1a' : '#f59e0b1a',
+                                                color: e.status === 'paid' ? '#4ade80' : '#fbbf24'
                                             }}>
                                                 {e.status === 'paid' ? '✓ Dibayar' : '⏳ Pending'}
                                             </span>
@@ -294,9 +294,9 @@ const CommissionManage: React.FC = () => {
                                                     onClick={() => handleDisburse(e.id)}
                                                     disabled={disbursing === e.id}
                                                     style={{
-                                                        background: '#16a34a', color: 'white',
+                                                        background: '#22c55e1a', color: '#4ade80',
                                                         padding: '0.4rem 0.875rem', borderRadius: '6px',
-                                                        fontWeight: 700, border: 'none', cursor: 'pointer', fontSize: '0.8rem'
+                                                        fontWeight: 700, border: '1px solid #22c55e33', cursor: 'pointer', fontSize: '0.8rem'
                                                     }}
                                                 >
                                                     {disbursing === e.id ? '…' : '💸 Cairkan'}

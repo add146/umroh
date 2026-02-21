@@ -114,7 +114,7 @@ const LogisticsChecklist: React.FC = () => {
                 <div className="dark-card p-2 rounded-xl shadow-sm border flex items-center gap-3">
                     <span className="text-xs font-bold text-gray-400 uppercase ml-2">Keberangkatan</span>
                     <select
-                        className="bg-transparent border-none text-brand-primary font-bold text-sm focus:ring-0"
+                        className="bg-transparent border-none text-primary font-bold text-sm focus:ring-0 outline-none cursor-pointer"
                         value={selectedDepartureId}
                         onChange={(e) => setSelectedDepartureId(e.target.value)}
                     >
@@ -150,15 +150,15 @@ const LogisticsChecklist: React.FC = () => {
                                         key={item.id}
                                         onClick={() => toggleStatus(data.id, item.id, item.status)}
                                         className={`flex items-center justify-between p-3 rounded-xl border-2 cursor-pointer transition-all ${item.status === 'received'
-                                                ? 'bg-green-50 border-green-200 text-green-700'
-                                                : 'dark-card border-[var(--color-border)] text-gray-600 hover:border-[var(--color-border)]'
+                                            ? 'bg-[#22c55e]/10 border-success/30 text-success'
+                                            : 'dark-card border-[var(--color-border)] text-gray-300 hover:border-primary'
                                             }`}
                                     >
                                         <div className="flex items-center gap-3">
                                             {updating === `${data.id}-${item.id}` ? (
                                                 <div className="animate-spin h-5 w-5 border-2 border-brand-primary border-t-transparent rounded-full"></div>
                                             ) : (
-                                                <div className={`w-5 h-5 rounded-md flex items-center justify-center border-2 ${item.status === 'received' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300'
+                                                <div className={`w-5 h-5 rounded-md flex items-center justify-center border-2 transition-colors ${item.status === 'received' ? 'bg-success border-success text-white' : 'border-[var(--color-border)]'
                                                     }`}>
                                                     {item.status === 'received' && (
                                                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

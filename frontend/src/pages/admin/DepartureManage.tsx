@@ -28,20 +28,20 @@ const DepartureManage: React.FC = () => {
     // Helper functions
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'available': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
-            case 'last_call': return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
-            case 'full': return 'bg-red-500/10 text-red-500 border-red-500/20';
-            case 'departed': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-            default: return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
+            case 'available': return 'bg-[#10b981]/10 text-emerald-500 border-emerald-500/20';
+            case 'last_call': return 'bg-[#f59e0b]/10 text-amber-500 border-amber-500/20';
+            case 'full': return 'bg-[#ef4444]/10 text-red-500 border-red-500/20';
+            case 'departed': return 'bg-[#3b82f6]/10 text-blue-500 border-blue-500/20';
+            default: return 'bg-[#64748b]/10 text-gray-500 border-gray-500/20';
         }
     };
 
     const getSiskoColor = (status: string) => {
         switch (status) {
-            case 'synced': return 'bg-green-500/10 text-green-500';
-            case 'pending': return 'bg-yellow-500/10 text-yellow-500';
-            case 'error': return 'bg-red-500/10 text-red-500';
-            default: return 'bg-gray-500/10 text-gray-500';
+            case 'synced': return 'bg-[#22c55e]/10 text-green-500';
+            case 'pending': return 'bg-[#eab308]/10 text-yellow-500';
+            case 'error': return 'bg-[#ef4444]/10 text-red-500';
+            default: return 'bg-[#64748b]/10 text-gray-500';
         }
     };
 
@@ -66,7 +66,7 @@ const DepartureManage: React.FC = () => {
             {summary && (
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="dark-card p-6 rounded-2xl border border-[var(--color-border)] flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                        <div className="w-12 h-12 rounded-xl bg-[#3b82f6]/10 flex items-center justify-center text-blue-500">
                             <Calendar className="w-6 h-6" />
                         </div>
                         <div>
@@ -75,7 +75,7 @@ const DepartureManage: React.FC = () => {
                         </div>
                     </div>
                     <div className="dark-card p-6 rounded-2xl border border-[var(--color-border)] flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                        <div className="w-12 h-12 rounded-xl bg-[var(--color-primary-bg)] flex items-center justify-center text-primary">
                             <Users className="w-6 h-6" />
                         </div>
                         <div>
@@ -84,7 +84,7 @@ const DepartureManage: React.FC = () => {
                         </div>
                     </div>
                     <div className="dark-card p-6 rounded-2xl border border-[var(--color-border)] flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500">
+                        <div className="w-12 h-12 rounded-xl bg-[#22c55e]/10 flex items-center justify-center text-green-500">
                             <CheckCircle className="w-6 h-6" />
                         </div>
                         <div>
@@ -93,7 +93,7 @@ const DepartureManage: React.FC = () => {
                         </div>
                     </div>
                     <div className="dark-card p-6 rounded-2xl border border-[var(--color-border)] flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-yellow-500/10 flex items-center justify-center text-yellow-500">
+                        <div className="w-12 h-12 rounded-xl bg-[#eab308]/10 flex items-center justify-center text-yellow-500">
                             <Clock className="w-6 h-6" />
                         </div>
                         <div>
@@ -205,7 +205,7 @@ const DepartureManage: React.FC = () => {
                                     </div>
                                     <Link
                                         to={`/admin/packages/${dep.packageId}`}
-                                        className="px-4 py-2 bg-primary/10 text-primary hover:bg-primary/20 hover:scale-105 active:scale-95 transition-all text-xs font-bold rounded-lg flex items-center gap-2"
+                                        className="px-4 py-2 bg-[var(--color-primary-bg)] text-primary hover:bg-[#a88a36]/20 hover:scale-105 active:scale-95 transition-all text-xs font-bold rounded-lg flex items-center gap-2"
                                     >
                                         <Eye className="w-4 h-4" /> Kelola Detail
                                     </Link>
