@@ -59,7 +59,7 @@ export default function InvoicesPage() {
             </div>
 
             {/* Table */}
-            <div style={{ background: '#131210', border: '1px solid var(--color-border)', borderRadius: '1rem', overflow: 'hidden' }}>
+            <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }}>
                 <table className="w-full text-left">
                     <thead>
                         <tr className="bg-[#131210] border-b border-[var(--color-border)]">

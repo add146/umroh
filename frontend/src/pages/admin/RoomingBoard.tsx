@@ -112,7 +112,7 @@ const RoomingBoard: React.FC = () => {
                     <p className="mt-4 text-gray-500 font-medium">Memuat data jamaah...</p>
                 </div>
             ) : (
-                <div className="dark-card rounded-3xl border border-[var(--color-border)] shadow-xl overflow-hidden overflow-x-auto">
+                <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }}>
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-[#131210] border-b border-[var(--color-border)] text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">

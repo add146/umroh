@@ -54,7 +54,7 @@ export default function PackageManage() {
             </div>
 
             {/* Table */}
-            <div className="dark-card rounded-[32px] border border-[var(--color-border)] shadow-2xl overflow-hidden overflow-x-auto">
+            <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }}>
                 <table className="w-full text-left">
                     <thead>
                         <tr className="bg-[#131210]/50 divide-x divide-white/10">

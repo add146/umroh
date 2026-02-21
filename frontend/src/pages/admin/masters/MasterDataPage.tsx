@@ -161,7 +161,7 @@ export const MasterDataPage: React.FC<{ type: 'hotels' | 'airlines' | 'airports'
                 </div>
 
                 {/* Tabel Data */}
-                <div style={{ background: '#131210', border: '1px solid var(--color-border)', borderRadius: '1rem', overflow: 'hidden' }}>
+                <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }}>
                     <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-border)' }}>
                         <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>Daftar Aktif</h3>
                     </div>
