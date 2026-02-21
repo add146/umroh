@@ -132,7 +132,7 @@ export default function PackageDetail() {
     if (!pkg) return null;
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-700 max-w-7xl mx-auto">
+        <div className="space-y-10 animate-in fade-in duration-700 max-w-7xl mx-auto">
             {/* Header Block */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-[var(--color-border)] pb-8 pt-4">
                 <div className="space-y-4">

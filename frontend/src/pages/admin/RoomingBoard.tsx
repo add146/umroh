@@ -83,17 +83,17 @@ const RoomingBoard: React.FC = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700">
-            <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 border-b border-[var(--color-border)] pb-8">
+        <div className="space-y-10 animate-in fade-in duration-700">
+            <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 pb-6 border-b border-[var(--color-border)]">
                 <div className="space-y-3">
-                    <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight flex flex-wrap items-center gap-4">
+                    <h1 className="text-3xl font-black text-white tracking-tight">
                         🏢 Rooming Board
                     </h1>
-                    <p className="text-gray-400 font-medium">Kelola penempatan kamar jamaah per keberangkatan</p>
+                    <p className="text-gray-400 font-medium text-sm">Kelola penempatan kamar jamaah per keberangkatan</p>
                 </div>
 
-                <div className="bg-[#131210] p-2 rounded-2xl border border-[var(--color-border)] shadow-sm flex items-center gap-3">
-                    <span className="text-xs font-bold text-gray-400 uppercase ml-2">Pilih Keberangkatan:</span>
+                <div className="bg-[#131210] p-2.5 rounded-xl border border-[var(--color-border)] shadow-sm flex items-center gap-3">
+                    <span className="text-xs font-bold text-gray-400 uppercase ml-2">Keberangkatan:</span>
                     <select
                         className="p-2 border-none focus:ring-0 bg-transparent text-sm font-bold text-primary cursor-pointer outline-none"
                         value={selectedDepartureId}

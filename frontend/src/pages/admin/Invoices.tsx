@@ -37,28 +37,31 @@ export default function InvoicesPage() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 border-b border-[var(--color-border)] pb-8">
-                <div className="space-y-3">
-                    <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight flex flex-wrap items-center gap-4">
+        <div className="space-y-10 animate-in fade-in duration-700">
+            {/* Page Header */}
+            <div className="space-y-4 pb-6 border-b border-[var(--color-border)]">
+                <div className="flex flex-wrap items-center gap-3">
+                    <h1 className="text-3xl font-black text-white tracking-tight">
                         Verifikasi Pembayaran
-                        <span className="text-xs bg-[var(--color-primary-bg)] text-primary px-4 py-1.5 rounded-full ring-1 ring-primary/20 mt-1 lg:mt-0">{invoices.filter(i => i.status === 'pending').length} Menunggu</span>
                     </h1>
-                    <p className="text-gray-400 font-medium">Monitoring arus pembayaran jamaah dan verifikasi bukti transfer.</p>
+                    <span className="text-xs bg-[var(--color-primary-bg)] text-primary px-4 py-1.5 rounded-full ring-1 ring-primary/20 font-bold">{invoices.filter(i => i.status === 'pending').length} Menunggu</span>
                 </div>
-
-                <div className="flex gap-4 w-full lg:w-auto mt-4 lg:mt-0">
-                    <div className="relative flex-1 lg:w-72">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                        <input className="w-full pl-11 pr-4 py-3 bg-[#131210] text-white border border-[var(--color-border)] rounded-xl text-sm focus:ring-2 focus:ring-primary/50 transition-all outline-none font-bold" placeholder="Cari Kode Invoice / Nama..." />
-                    </div>
-                    <button className="px-4 py-3 bg-[#131210] border border-[var(--color-border)] text-gray-300 rounded-xl hover:text-white hover:bg-white/5 transition-all flex items-center justify-center">
-                        <Filter className="w-5 h-5" />
-                    </button>
-                </div>
+                <p className="text-gray-400 font-medium text-sm">Monitoring arus pembayaran jamaah dan verifikasi bukti transfer.</p>
             </div>
 
-            <div className="dark-card rounded-3xl border border-[var(--color-border)] shadow-xl overflow-hidden overflow-x-auto">
+            {/* Search & Filter Bar */}
+            <div className="flex gap-4">
+                <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <input className="w-full pl-11 pr-4 py-3.5 bg-[#131210] text-white border border-[var(--color-border)] rounded-xl text-sm focus:ring-2 focus:ring-primary/50 transition-all outline-none font-medium placeholder:text-gray-600" placeholder="Cari Kode Invoice / Nama..." />
+                </div>
+                <button className="px-4 py-3.5 bg-[#131210] border border-[var(--color-border)] text-gray-400 rounded-xl hover:text-white hover:bg-white/5 transition-all flex items-center justify-center">
+                    <Filter className="w-5 h-5" />
+                </button>
+            </div>
+
+            {/* Table */}
+            <div className="dark-card rounded-2xl border border-[var(--color-border)] shadow-lg overflow-hidden overflow-x-auto">
                 <table className="w-full text-left">
                     <thead>
                         <tr className="bg-[#131210] border-b border-[var(--color-border)]">

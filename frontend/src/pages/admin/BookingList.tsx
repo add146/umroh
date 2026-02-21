@@ -22,16 +22,17 @@ const BookingList: React.FC = () => {
     if (loading) return <div>Loading...</div>;
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 border-b border-[var(--color-border)] pb-8">
-                <div className="space-y-3">
-                    <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight flex flex-wrap items-center gap-4">
-                        Daftar Booking Jama'ah
-                    </h1>
-                    <p className="text-gray-400 font-medium">Kelola dan pantau seluruh pendaftaran paket umroh beserta statusnya.</p>
-                </div>
+        <div className="space-y-10 animate-in fade-in duration-700">
+            {/* Page Header */}
+            <div className="space-y-3 pb-6 border-b border-[var(--color-border)]">
+                <h1 className="text-3xl font-black text-white tracking-tight">
+                    Daftar Booking Jama'ah
+                </h1>
+                <p className="text-gray-400 font-medium text-sm">Kelola dan pantau seluruh pendaftaran paket umroh beserta statusnya.</p>
             </div>
-            <div className="dark-card rounded-3xl border border-[var(--color-border)] shadow-xl overflow-hidden overflow-x-auto">
+
+            {/* Table */}
+            <div className="dark-card rounded-2xl border border-[var(--color-border)] shadow-lg overflow-hidden overflow-x-auto">
                 <table className="w-full text-left">
                     <thead>
                         <tr className="bg-[#131210] border-b border-[var(--color-border)] text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">

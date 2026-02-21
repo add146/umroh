@@ -46,16 +46,16 @@ const DepartureManage: React.FC = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700">
+        <div className="space-y-10 animate-in fade-in duration-700">
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-[var(--color-border)] pb-8 pt-4">
-                <div>
-                    <h1 className="text-3xl font-black text-white tracking-tight mb-2">Jadwal Keberangkatan</h1>
-                    <p className="text-gray-400">Pantau seluruh jadwal keberangkatan, status kuota, dan sinkronisasi SISKOPATUH.</p>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pb-6 border-b border-[var(--color-border)]">
+                <div className="space-y-3">
+                    <h1 className="text-3xl font-black text-white tracking-tight">Jadwal Keberangkatan</h1>
+                    <p className="text-gray-400 font-medium text-sm">Pantau seluruh jadwal keberangkatan, status kuota, dan sinkronisasi SISKOPATUH.</p>
                 </div>
                 <button
                     onClick={fetchDepartures}
-                    className="flex items-center gap-2 px-4 py-2 border border-white/10 rounded-xl text-gray-300 hover:bg-white/5 transition-all text-sm font-bold"
+                    className="flex items-center gap-2 px-4 py-2.5 border border-[var(--color-border)] rounded-xl text-gray-300 hover:bg-white/5 transition-all text-sm font-bold"
                 >
                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                     Segarkan Data

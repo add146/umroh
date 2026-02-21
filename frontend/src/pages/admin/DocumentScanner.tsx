@@ -61,17 +61,15 @@ const DocumentScanner: React.FC = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 border-b border-[var(--color-border)] pb-8">
-                <div className="space-y-3">
-                    <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight flex flex-wrap items-center gap-4">
-                        📸 OCR Document Scanner
-                    </h1>
-                    <p className="text-gray-400 font-medium">Unggah KTP atau Paspor untuk ekstraksi data otomatis.</p>
-                </div>
+        <div className="space-y-10 animate-in fade-in duration-700">
+            <div className="space-y-3 pb-6 border-b border-[var(--color-border)]">
+                <h1 className="text-3xl font-black text-white tracking-tight">
+                    📸 OCR Document Scanner
+                </h1>
+                <p className="text-gray-400 font-medium text-sm">Unggah KTP atau Paspor untuk ekstraksi data otomatis.</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:pt-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Side: Upload Form */}
                 <div className="space-y-6">
                     <div className="dark-card p-6 rounded-2xl shadow-sm border border-[var(--color-border)]">
