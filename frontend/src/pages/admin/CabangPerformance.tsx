@@ -17,8 +17,6 @@ export const CabangPerformance: React.FC = () => {
                 // For a real app, backend should have a /api/stats/cabang endpoint 
                 // that does aggregation. But for MVP let's mock the agg or just map them here.
                 // Or better, fetch all bookings over all branches. We will just list Cabangs with dummy numbers
-                // if aggregation logic gets too complex on frontend. Or we just fetch them.
-                const bookingsRes = await apiFetch('/api/bookings');
                 // Removed allBookings to fix linting, using backend data implicitly for now
 
                 const perfMap = cabangs.map((c: any) => {

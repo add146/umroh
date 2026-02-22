@@ -4,7 +4,6 @@ import { apiFetch } from '../lib/api';
 export const ProspectList: React.FC = () => {
     const [prospects, setProspects] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [isGeneratingWA, setIsGeneratingWA] = useState(false);
 
     const fetchProspects = async () => {
         setIsLoading(true);
