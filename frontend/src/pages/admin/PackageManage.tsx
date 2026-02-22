@@ -45,8 +45,8 @@ export default function PackageManage() {
 
                 <Link
                     to="/admin/packages/create"
-                    className="flex items-center gap-2 px-6 py-3 bg-primary text-[#0a0907] rounded-xl font-black shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all outline-none"
-                    style={{ textDecoration: 'none' }}
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl font-black shadow-lg hover:scale-105 active:scale-95 transition-all outline-none"
+                    style={{ textDecoration: 'none', background: '#d4a017', color: '#0a0907' }}
                 >
                     <Plus className="w-5 h-5" />
                     Tambah Paket
