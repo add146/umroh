@@ -9,6 +9,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { DownlineManagePage } from './pages/DownlineManage';
 import Registration from './pages/Registration';
 import Landing from './pages/Landing';
+import AgentJoinPage from './pages/AgentJoinPage';
 import PackageManage from './pages/admin/PackageManage';
 import PackageDetail from './pages/admin/PackageDetail';
 import PackageForm from './pages/admin/PackageForm';
@@ -53,6 +54,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<Registration />} />
+          <Route path="/join/:code" element={<AgentJoinPage />} />
 
           <Route path="/dashboard" element={
             <ProtectedRoute>

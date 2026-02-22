@@ -7,6 +7,7 @@ export const users = sqliteTable('users', {
     password: text('password').notNull(),
     name: text('name').notNull(),
     phone: text('phone'),
+    nik: text('nik').unique(),
     role: text('role', { enum: ['pusat', 'cabang', 'mitra', 'agen', 'reseller'] }).notNull(),
     affiliateCode: text('affiliate_code').unique(),
     parentId: text('parent_id').references((): any => users.id),

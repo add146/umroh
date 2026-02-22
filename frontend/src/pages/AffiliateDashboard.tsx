@@ -188,6 +188,60 @@ const AffiliateDashboard: React.FC = () => {
                 </p>
             </div>
 
+            {/* Reseller Recruitment Link (Agen only) */}
+            {stats?.role === 'agen' && (
+                <div style={{
+                    background: 'linear-gradient(135deg, #1B5E20 0%, #0a3d0a 100%)',
+                    borderRadius: '16px',
+                    padding: '2rem',
+                    marginBottom: '2rem',
+                    color: 'white'
+                }}>
+                    <p style={{ fontSize: '0.85rem', opacity: 0.7, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        🤝 Link Rekrut Reseller
+                    </p>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <div style={{
+                            flex: 1,
+                            background: 'rgba(255,255,255,0.1)',
+                            borderRadius: '8px',
+                            padding: '0.75rem 1rem',
+                            fontFamily: 'monospace',
+                            fontSize: '0.9rem',
+                            wordBreak: 'break-all',
+                            border: '1px solid rgba(255,255,255,0.2)'
+                        }}>
+                            {stats?.affiliateCode ? `${frontendUrl}/join/${stats.affiliateCode}` : 'Kode belum tersedia'}
+                        </div>
+                        <button
+                            onClick={() => {
+                                if (stats?.affiliateCode) {
+                                    navigator.clipboard.writeText(`${frontendUrl}/join/${stats.affiliateCode}`);
+                                    setCopied(true);
+                                    setTimeout(() => setCopied(false), 2000);
+                                }
+                            }}
+                            style={{
+                                background: copied ? '#16a34a' : '#2e7d32',
+                                color: 'white',
+                                padding: '0.75rem 1.5rem',
+                                borderRadius: '8px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                border: 'none',
+                                transition: 'background 0.2s',
+                                whiteSpace: 'nowrap'
+                            }}
+                        >
+                            {copied ? '✓ Tersalin!' : '📋 Salin Link'}
+                        </button>
+                    </div>
+                    <p style={{ marginTop: '0.75rem', fontSize: '0.8rem', opacity: 0.6 }}>
+                        Bagikan link ini ke siapa saja. Mereka bisa langsung mendaftar sebagai reseller di bawah Anda.
+                    </p>
+                </div>
+            )}
+
             {/* Tabs */}
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '2px solid var(--color-border)' }}>
                 {(['referrals', 'commissions'] as const).map(tab => (

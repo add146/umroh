@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
 import {
     commissionRules,
@@ -226,6 +226,151 @@ api.post('/ledger/:id/disburse', authMiddleware, requireRole('pusat'), async (c)
         .returning();
 
     return c.json(updated);
+});
+
+// ─────────────────────────────────────────
+// 8. PUBLIC AGENT PROFILE (No auth)
+// ─────────────────────────────────────────
+api.get('/agent/:code', async (c) => {
+    const code = c.req.param('code');
+    const db = getDb(c.env.DB);
+
+    const [agent] = await db
+        .select({
+            id: users.id,
+            name: users.name,
+            role: users.role,
+            affiliateCode: users.affiliateCode,
+        })
+        .from(users)
+        .where(eq(users.affiliateCode, code))
+        .limit(1);
+
+    if (!agent || agent.role !== 'agen') {
+        return c.json({ error: 'Agent not found' }, 404);
+    }
+
+    return c.json({ agent: { name: agent.name, affiliateCode: agent.affiliateCode, role: agent.role } });
+});
+
+// ─────────────────────────────────────────
+// 9. CHECK NIK AVAILABILITY (No auth)
+// ─────────────────────────────────────────
+api.get('/check-nik/:nik', async (c) => {
+    const nik = c.req.param('nik');
+    const db = getDb(c.env.DB);
+
+    const [existing] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.nik, nik))
+        .limit(1);
+
+    return c.json({ available: !existing });
+});
+
+// ─────────────────────────────────────────
+// 10. PUBLIC RESELLER REGISTRATION (No auth)
+// ─────────────────────────────────────────
+api.post('/register-reseller', zValidator('json', z.object({
+    name: z.string().min(2),
+    email: z.string().email(),
+    phone: z.string().optional(),
+    password: z.string().min(6),
+    nik: z.string().min(16).max(16),
+    agentCode: z.string(),
+})), async (c) => {
+    const body = c.req.valid('json');
+    const db = getDb(c.env.DB);
+
+    // 1. Find agent by affiliate code
+    const [agent] = await db
+        .select({ id: users.id, role: users.role })
+        .from(users)
+        .where(eq(users.affiliateCode, body.agentCode))
+        .limit(1);
+
+    if (!agent || agent.role !== 'agen') {
+        return c.json({ error: 'Kode agen tidak valid' }, 404);
+    }
+
+    // 2. Check NIK uniqueness
+    const [existingNik] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.nik, body.nik))
+        .limit(1);
+
+    if (existingNik) {
+        return c.json({ error: 'NIK sudah terdaftar di sistem' }, 400);
+    }
+
+    // 3. Check email uniqueness
+    const [existingEmail] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, body.email))
+        .limit(1);
+
+    if (existingEmail) {
+        return c.json({ error: 'Email sudah terdaftar' }, 400);
+    }
+
+    // 4. Hash password & create reseller
+    const { hashPassword } = await import('../lib/password.js');
+    const hashedPassword = await hashPassword(body.password);
+    const affiliateCode = `AFF-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+    try {
+        const [newUser] = await db.insert(users).values({
+            name: body.name,
+            email: body.email,
+            phone: body.phone,
+            nik: body.nik,
+            password: hashedPassword,
+            role: 'reseller',
+            parentId: agent.id,
+            affiliateCode,
+        }).returning({ id: users.id });
+
+        // 5. Insert hierarchy paths
+        const { insertUserWithHierarchy } = await import('../services/hierarchy.js');
+        await insertUserWithHierarchy(c.env.DB, newUser.id, agent.id);
+
+        return c.json({
+            message: 'Pendaftaran reseller berhasil! Silakan login.',
+            user: { id: newUser.id, affiliateCode }
+        }, 201);
+    } catch (error: any) {
+        if (error.message?.includes('UNIQUE')) {
+            return c.json({ error: 'Data sudah terdaftar' }, 400);
+        }
+        return c.json({ error: 'Gagal mendaftar' }, 500);
+    }
+});
+
+// ─────────────────────────────────────────
+// 11. MY RESELLERS (Agen only)
+// ─────────────────────────────────────────
+api.get('/my-resellers', authMiddleware, async (c) => {
+    const user = c.get('user');
+    const db = getDb(c.env.DB);
+
+    const resellers = await db
+        .select({
+            id: users.id,
+            name: users.name,
+            email: users.email,
+            phone: users.phone,
+            affiliateCode: users.affiliateCode,
+            isActive: users.isActive,
+            createdAt: users.createdAt,
+        })
+        .from(users)
+        .where(and(eq(users.parentId, user.id), eq(users.role, 'reseller')))
+        .orderBy(desc(users.createdAt));
+
+    return c.json({ resellers });
 });
 
 export default api;

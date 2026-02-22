@@ -123,6 +123,86 @@ export const AgentDashboard: React.FC = () => {
                     </div>
                 </Link>
             </div>
+
+            {/* Reseller List */}
+            <ResellerList />
+        </div>
+    );
+};
+
+const ResellerList: React.FC = () => {
+    const [resellers, setResellers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const data = await apiFetch<{ resellers: any[] }>('/api/affiliate/my-resellers');
+                setResellers(data.resellers || []);
+            } catch { /* ignore */ }
+            finally { setLoading(false); }
+        };
+        load();
+    }, []);
+
+    const frontendUrl = window.location.origin;
+
+    return (
+        <div style={{ marginTop: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h2 style={{ fontSize: '1.125rem', fontWeight: 700 }}>Daftar Reseller Saya ({resellers.length})</h2>
+            </div>
+
+            <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }}>
+                <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-border)' }}>
+                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>Reseller Aktif</h3>
+                </div>
+
+                {loading ? (
+                    <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Memuat data...</div>
+                ) : resellers.length === 0 ? (
+                    <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                        <p style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👥</p>
+                        <p>Belum ada reseller. Bagikan link rekrut di halaman Afiliasi.</p>
+                    </div>
+                ) : (
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                        <thead>
+                            <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.02)' }}>
+                                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)' }}>Nama</th>
+                                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)' }}>Email</th>
+                                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)' }}>Link Afiliasi</th>
+                                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)' }}>Bergabung</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {resellers.map(r => (
+                                <tr key={r.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                                    <td style={{ padding: '1rem 1.5rem', fontWeight: 500 }}>{r.name}</td>
+                                    <td style={{ padding: '1rem 1.5rem', color: 'var(--color-text-light)' }}>{r.email}</td>
+                                    <td style={{ padding: '1rem 1.5rem' }}>
+                                        {r.affiliateCode ? (
+                                            <span style={{
+                                                padding: '0.25rem 0.5rem', borderRadius: '4px',
+                                                background: 'rgba(200,168,81,0.1)', color: 'var(--color-primary)',
+                                                fontFamily: 'monospace', fontSize: '0.75rem', cursor: 'pointer'
+                                            }}
+                                                onClick={() => navigator.clipboard.writeText(`${frontendUrl}/register?ref=${r.affiliateCode}`)}
+                                                title="Klik untuk salin"
+                                            >
+                                                {r.affiliateCode}
+                                            </span>
+                                        ) : '-'}
+                                    </td>
+                                    <td style={{ padding: '1rem 1.5rem', color: 'var(--color-text-light)', fontSize: '0.8rem' }}>
+                                        {r.createdAt ? new Date(r.createdAt).toLocaleDateString('id-ID') : '-'}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </div>
         </div>
     );
 };

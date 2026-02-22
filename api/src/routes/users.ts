@@ -27,6 +27,7 @@ const createUserSchema = z.object({
     password: z.string().min(6),
     affiliateCode: z.string().optional(),
     targetRole: z.string().optional(),
+    nik: z.string().optional(),
 });
 
 // Any role except Reseller can create their direct downline
@@ -53,6 +54,7 @@ userStore.post('/', authMiddleware, zValidator('json', createUserSchema), async 
             password: hashedPassword,
             name: body.name,
             phone: body.phone,
+            nik: body.nik || undefined,
             role: targetRole as 'pusat' | 'cabang' | 'mitra' | 'agen' | 'reseller',
             parentId: currentUser.id,
             affiliateCode: body.affiliateCode || `AFF-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
@@ -69,7 +71,7 @@ userStore.post('/', authMiddleware, zValidator('json', createUserSchema), async 
         }, 201);
     } catch (error: any) {
         if (error.message?.includes('UNIQUE')) {
-            return c.json({ error: 'Email or Affiliate Code already exists' }, 400);
+            return c.json({ error: 'Email, NIK, or Affiliate Code already exists' }, 400);
         }
         return c.json({ error: 'Failed to create user' }, 500);
     }
