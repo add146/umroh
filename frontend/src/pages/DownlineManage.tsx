@@ -61,57 +61,66 @@ export const DownlineManagePage: React.FC = () => {
             user?.role === 'mitra' ? 'Agen' : 'Reseller';
 
     return (
-        <div>
-            <div className="flex justify-between items-center mb-6">
+        <div className="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Manage Downline</h1>
-                    <p className="text-gray-500">View and add direct {downlineLabel}s</p>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Manage Downline</h1>
+                    <p style={{ color: 'var(--color-text-muted)', margin: 0 }}>View and add direct {downlineLabel}s</p>
                 </div>
                 {(user?.role === 'pusat' || user?.role === 'cabang' || user?.role === 'mitra' || user?.role === 'agen') && (
                     <button
-                        className="bg-black hover:bg-gray-800 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                        className="btn btn-primary"
+                        style={{ padding: '0.75rem 1.5rem', borderRadius: '0.5rem', fontWeight: 600 }}
                         onClick={() => setIsModalOpen(true)}
                     >
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px', marginRight: '0.5rem' }}>person_add</span>
                         Add {downlineLabel}
                     </button>
                 )}
             </div>
 
-            <div style={{ backgroundColor: 'var(--color-bg-card)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                    <thead style={{ backgroundColor: '#f1f5f9' }}>
-                        <tr>
-                            <th style={{ padding: '1rem', fontSize: '0.875rem' }}>Name</th>
-                            <th style={{ padding: '1rem', fontSize: '0.875rem' }}>Email</th>
-                            <th style={{ padding: '1rem', fontSize: '0.875rem' }}>Role</th>
-                            <th style={{ padding: '1rem', fontSize: '0.875rem' }}>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {isLoading ? (
-                            <tr><td colSpan={4} style={{ padding: '2rem', textAlign: 'center' }}>Loading...</td></tr>
-                        ) : downlines.length === 0 ? (
-                            <tr><td colSpan={4} style={{ padding: '2rem', textAlign: 'center' }}>No downlines found.</td></tr>
-                        ) : downlines.map((d) => (
-                            <tr key={d.id} style={{ borderTop: '1px solid var(--color-border)' }}>
-                                <td style={{ padding: '1rem', fontSize: '0.875rem', fontWeight: 500 }}>{d.name}</td>
-                                <td style={{ padding: '1rem', fontSize: '0.875rem' }}>{d.email}</td>
-                                <td style={{ padding: '1rem', fontSize: '0.875rem', textTransform: 'capitalize' }}>{d.role}</td>
-                                <td style={{ padding: '1rem', fontSize: '0.875rem' }}>
-                                    <span style={{
-                                        padding: '0.25rem 0.5rem',
-                                        borderRadius: '999px',
-                                        fontSize: '0.75rem',
-                                        backgroundColor: d.isActive ? '#dcfce7' : '#fee2e2',
-                                        color: d.isActive ? '#166534' : '#991b1b'
-                                    }}>
-                                        {d.isActive ? 'Active' : 'Inactive'}
-                                    </span>
-                                </td>
+            <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }}>
+                <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-border)' }}>
+                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>Daftar {downlineLabel} Aktif</h3>
+                </div>
+
+                {isLoading ? (
+                    <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading records...</div>
+                ) : downlines.length === 0 ? (
+                    <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No downlines found.</div>
+                ) : (
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                        <thead>
+                            <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.02)' }}>
+                                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)' }}>Name</th>
+                                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)' }}>Email</th>
+                                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)' }}>Role</th>
+                                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)' }}>Status</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {downlines.map((d) => (
+                                <tr key={d.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                                    <td style={{ padding: '1rem 1.5rem', fontWeight: 500 }}>{d.name}</td>
+                                    <td style={{ padding: '1rem 1.5rem', color: 'var(--color-text-light)' }}>{d.email}</td>
+                                    <td style={{ padding: '1rem 1.5rem', textTransform: 'capitalize' }}>{d.role}</td>
+                                    <td style={{ padding: '1rem 1.5rem' }}>
+                                        <span style={{
+                                            padding: '0.25rem 0.6rem',
+                                            borderRadius: '999px',
+                                            fontSize: '0.75rem',
+                                            backgroundColor: d.isActive ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                            color: d.isActive ? '#22c55e' : '#ef4444',
+                                            fontWeight: 600
+                                        }}>
+                                            {d.isActive ? 'Active' : 'Inactive'}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
             </div>
 
             {/* Modal Placeholder */}
