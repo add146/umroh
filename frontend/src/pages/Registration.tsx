@@ -51,36 +51,90 @@ const STEPS = [
     { label: 'Review', icon: 'fact_check' },
 ];
 
+// Maps step number -> form field names for that step
+const STEP_FIELDS: Record<number, { field: string; label: string }[]> = {
+    1: [
+        { field: 'departureId', label: 'Keberangkatan' },
+        { field: 'roomTypeId', label: 'Tipe Kamar' },
+    ],
+    2: [
+        { field: 'pilgrim.name', label: 'Nama Lengkap' },
+        { field: 'pilgrim.noKtp', label: 'No. KTP (NIK)' },
+        { field: 'pilgrim.sex', label: 'Jenis Kelamin' },
+        { field: 'pilgrim.born', label: 'Tanggal Lahir' },
+        { field: 'pilgrim.address', label: 'Alamat Lengkap' },
+        { field: 'pilgrim.fatherName', label: 'Nama Ayah Kandung' },
+    ],
+    3: [],
+    4: [
+        { field: 'pilgrim.maritalStatus', label: 'Status Pernikahan' },
+        { field: 'pilgrim.phone', label: 'No. HP / WhatsApp' },
+        { field: 'pilgrim.lastEducation', label: 'Pendidikan Terakhir' },
+        { field: 'pilgrim.work', label: 'Pekerjaan' },
+    ],
+    5: [
+        { field: 'pilgrim.famContactName', label: 'Nama Kontak Darurat' },
+        { field: 'pilgrim.famContact', label: 'No. HP Darurat' },
+        { field: 'pilgrim.sourceFrom', label: 'Sumber Informasi' },
+    ],
+};
+
 const Registration = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [lockKey] = useState<string | null>(null);
+    const [visitedSteps, setVisitedSteps] = useState<Set<number>>(new Set([1]));
 
     const methods = useForm<RegistrationData>({
         resolver: zodResolver(registrationSchema),
+        mode: 'onTouched', // validate on blur so fields show errors as user fills
         defaultValues: {
             pilgrim: { hasPassport: false, sex: 'L', maritalStatus: 'Belum Menikah' }
         }
     });
 
-    const nextStep = async () => {
-        const fields = getFieldsForStep(currentStep);
-        const isValid = await methods.trigger(fields as any);
-        if (isValid) setCurrentStep(prev => Math.min(prev + 1, 6));
+    // Navigate to any step freely
+    const goToStep = (step: number) => {
+        setVisitedSteps(prev => new Set([...prev, step]));
+        setCurrentStep(step);
     };
-    const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
-    const getFieldsForStep = (step: number) => {
-        switch (step) {
-            case 1: return ['departureId', 'roomTypeId'];
-            case 2: return ['pilgrim.name', 'pilgrim.noKtp', 'pilgrim.sex', 'pilgrim.born', 'pilgrim.address', 'pilgrim.fatherName'];
-            case 3: return ['pilgrim.hasPassport', 'pilgrim.noPassport'];
-            case 4: return ['pilgrim.maritalStatus', 'pilgrim.phone', 'pilgrim.lastEducation', 'pilgrim.work'];
-            case 5: return ['pilgrim.famContactName', 'pilgrim.famContact', 'pilgrim.sourceFrom'];
-            default: return [];
+    const nextStep = () => {
+        const next = Math.min(currentStep + 1, 6);
+        goToStep(next);
+    };
+
+    const prevStep = () => {
+        const prev = Math.max(currentStep - 1, 1);
+        goToStep(prev);
+    };
+
+    // Collect all missing required fields across all steps
+    const getMissingFields = (): { step: number; label: string; fields: { field: string; label: string }[] }[] => {
+        const values = methods.getValues();
+        const missing: { step: number; label: string; fields: { field: string; label: string }[] }[] = [];
+
+        for (const [stepStr, fieldDefs] of Object.entries(STEP_FIELDS)) {
+            const stepNum = parseInt(stepStr);
+            const missingInStep: { field: string; label: string }[] = [];
+
+            for (const fd of fieldDefs) {
+                const parts = fd.field.split('.');
+                let val: any = values;
+                for (const p of parts) { val = val?.[p]; }
+
+                if (!val || (typeof val === 'string' && val.trim() === '')) {
+                    missingInStep.push(fd);
+                }
+            }
+
+            if (missingInStep.length > 0) {
+                missing.push({ step: stepNum, label: STEPS[stepNum - 1].label, fields: missingInStep });
+            }
         }
+        return missing;
     };
 
     const onSubmit = async (data: RegistrationData) => {
@@ -103,7 +157,7 @@ const Registration = () => {
     return (
         <div style={{ minHeight: '100vh', background: 'var(--color-bg)', color: 'var(--color-text)', fontFamily: 'Inter, sans-serif' }}>
 
-            {/* Top bar - seat lock countdown */}
+            {/* Top bar */}
             <div style={{
                 background: 'linear-gradient(90deg, #dc2626, #b91c1c)',
                 padding: '0.5rem 1rem', textAlign: 'center',
@@ -132,9 +186,8 @@ const Registration = () => {
 
             <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2.5rem 1.5rem' }}>
 
-                {/* ===== STEPPER ===== */}
+                {/* ===== STEPPER (clickable) ===== */}
                 <div style={{ marginBottom: '3rem' }}>
-                    {/* Progress line */}
                     <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         {/* Background line */}
                         <div style={{ position: 'absolute', top: '19px', left: '19px', right: '19px', height: '2px', background: 'var(--color-border)', zIndex: 0 }} />
@@ -146,7 +199,11 @@ const Registration = () => {
                             const isDone = currentStep > stepNum;
                             const isActive = currentStep === stepNum;
                             return (
-                                <div key={step.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', position: 'relative', zIndex: 2 }}>
+                                <div
+                                    key={step.label}
+                                    onClick={() => goToStep(stepNum)}
+                                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', position: 'relative', zIndex: 2, cursor: 'pointer' }}
+                                >
                                     <div style={{
                                         width: '40px', height: '40px', borderRadius: '9999px',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -161,11 +218,6 @@ const Registration = () => {
                                             : <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>{step.icon}</span>
                                         }
                                     </div>
-                                    <span style={{
-                                        fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase',
-                                        letterSpacing: '0.05em', display: 'none',
-                                        color: isActive ? 'var(--color-primary)' : isDone ? 'var(--color-text-muted)' : 'var(--color-text-light)'
-                                    }} className="md-show">{step.label}</span>
                                     <span style={{
                                         fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase',
                                         letterSpacing: '0.05em',
@@ -200,7 +252,7 @@ const Registration = () => {
                             {currentStep === 3 && <StepPassport />}
                             {currentStep === 4 && <StepContact />}
                             {currentStep === 5 && <StepFamily />}
-                            {currentStep === 6 && <StepReview isLoading={loading} />}
+                            {currentStep === 6 && <StepReview isLoading={loading} getMissingFields={getMissingFields} goToStep={goToStep} />}
 
                             {/* Navigation */}
                             <div style={{
@@ -211,7 +263,7 @@ const Registration = () => {
                                     display: 'flex', alignItems: 'center', gap: '0.5rem',
                                     padding: '0.75rem 1.5rem', borderRadius: '0.75rem', fontWeight: 700,
                                     fontSize: '0.875rem', background: 'rgba(255,255,255,0.06)',
-                                    color: 'var(--color-text-muted)', transition: 'all 0.2s',
+                                    color: 'var(--color-text-muted)', transition: 'all 0.2s', border: 'none', cursor: 'pointer',
                                     visibility: currentStep === 1 ? 'hidden' : 'visible'
                                 }}>
                                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>
@@ -223,7 +275,7 @@ const Registration = () => {
                                         display: 'flex', alignItems: 'center', gap: '0.5rem',
                                         padding: '0.75rem 2rem', borderRadius: '0.75rem', fontWeight: 800,
                                         fontSize: '0.875rem', background: 'var(--color-primary)',
-                                        color: 'var(--color-bg)', transition: 'all 0.2s', boxShadow: 'var(--shadow-gold)'
+                                        color: 'var(--color-bg)', transition: 'all 0.2s', boxShadow: 'var(--shadow-gold)', border: 'none', cursor: 'pointer',
                                     }}>
                                         Langkah {currentStep + 1}: {STEPS[currentStep].label}
                                         <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_forward</span>
@@ -234,7 +286,7 @@ const Registration = () => {
                                         padding: '0.875rem 2.5rem', borderRadius: '0.75rem', fontWeight: 900,
                                         fontSize: '0.9375rem', background: 'var(--color-primary)',
                                         color: 'var(--color-bg)', transition: 'all 0.2s', boxShadow: 'var(--shadow-gold)',
-                                        opacity: loading ? 0.7 : 1
+                                        opacity: loading ? 0.7 : 1, border: 'none', cursor: 'pointer',
                                     }}>
                                         {loading ? (
                                             <><span className="material-symbols-outlined" style={{ fontSize: '20px', animation: 'spin 1s linear infinite' }}>progress_activity</span> Memproses...</>
