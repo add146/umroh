@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { apiFetch } from '../../lib/api';
 
+const inputStyle: React.CSSProperties = {
+    width: '100%', padding: '0.875rem', background: '#0a0907', border: '1px solid #333', color: 'white', borderRadius: '0.5rem', outline: 'none', fontSize: '0.875rem',
+};
+const labelStyle: React.CSSProperties = {
+    display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--color-text-light)', fontWeight: 600,
+};
+
 const DocumentScanner: React.FC = () => {
     const [file, setFile] = useState<File | null>(null);
     const [docType, setDocType] = useState<'ktp' | 'passport' | 'visa' | 'other'>('ktp');
@@ -13,51 +20,31 @@ const DocumentScanner: React.FC = () => {
     const handleSearch = async () => {
         if (searchQuery.length < 3) return;
         try {
-            // Reusing bookings endpoint or creating search pilgrim endpoint
-            // For now, let's fetch bookings and filter client-side for POC
             const data = await apiFetch<{ bookings: any[] }>('/api/bookings');
             const found = data.bookings.filter(b =>
-                b.pilgrim?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                b.pilgrim?.noKtp.includes(searchQuery)
+                b.pilgrim?.name.toLowerCase().includes(searchQuery.toLowerCase()) || b.pilgrim?.noKtp.includes(searchQuery)
             );
             setPilgrims(found.map(b => b.pilgrim));
-        } catch (error) {
-            console.error(error);
-        }
+        } catch (error) { console.error(error); }
     };
 
     const handleUpload = async () => {
         if (!file || !selectedPilgrim) return;
         setUploading(true);
         setOcrResult(null);
-
         const formData = new FormData();
         formData.append('file', file);
         formData.append('pilgrimId', selectedPilgrim.id);
         formData.append('docType', docType);
-
         try {
-            // Using direct fetch for multipart
             const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8787'}/api/documents/upload`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: formData
+                method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }, body: formData
             });
             const data = await res.json();
-            if (data.success) {
-                setOcrResult(data.ocr);
-                alert('Dokumen berhasil diunggah dan diproses OCR');
-            } else {
-                alert('Gagal: ' + data.error);
-            }
-        } catch (error) {
-            console.error(error);
-            alert('Terjadi kesalahan saat upload');
-        } finally {
-            setUploading(false);
-        }
+            if (data.success) { setOcrResult(data.ocr); alert('Dokumen berhasil diunggah dan diproses OCR'); }
+            else { alert('Gagal: ' + data.error); }
+        } catch (error) { console.error(error); alert('Terjadi kesalahan saat upload'); }
+        finally { setUploading(false); }
     };
 
     return (
@@ -67,141 +54,99 @@ const DocumentScanner: React.FC = () => {
                 <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Unggah KTP atau Paspor untuk ekstraksi data otomatis.</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                 {/* Left Side: Upload Form */}
-                <div className="space-y-6">
-                    <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }}>
-                        <label className="block text-sm font-bold text-gray-300 mb-2">1. Cari Jamaah</label>
-                        <div className="flex gap-2 mb-4">
-                            <input
-                                type="text"
-                                className="flex-1 p-3 bg-[#131210] border border-[var(--color-border)] rounded-xl text-white focus:ring-2 focus:ring-primary outline-none"
-                                placeholder="Nama atau No. KTP..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                            <button
-                                onClick={handleSearch}
-                                className="px-4 py-2 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors"
-                            >
-                                Cari
-                            </button>
-                        </div>
-
-                        {pilgrims.length > 0 && !selectedPilgrim && (
-                            <div className="space-y-2 max-h-40 overflow-y-auto mb-4 border border-[var(--color-border)] rounded-xl p-2">
-                                {pilgrims.map(p => (
-                                    <div
-                                        key={p.id}
-                                        onClick={() => setSelectedPilgrim(p)}
-                                        className="p-3 hover:bg-[var(--color-primary-bg)] rounded-lg cursor-pointer flex justify-between items-center"
-                                    >
-                                        <span className="font-bold text-gray-200">{p.name}</span>
-                                        <span className="text-xs text-gray-400 font-mono">{p.noKtp}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {selectedPilgrim && (
-                            <div className="bg-[var(--color-primary-bg)] p-4 rounded-xl border border-[var(--color-border-gold)] flex justify-between items-center mb-4">
-                                <div>
-                                    <p className="text-xs font-bold text-primary uppercase">Jamaah Terpilih</p>
-                                    <p className="font-bold text-white">{selectedPilgrim.name}</p>
-                                </div>
-                                <button onClick={() => setSelectedPilgrim(null)} className="text-xs text-red-500 font-bold hover:underline">Ganti</button>
-                            </div>
-                        )}
-
-                        <label className="block text-sm font-bold text-gray-300 mb-2">2. Tipe Dokumen</label>
-                        <select
-                            className="w-full p-3 bg-[#131210] text-white border border-[var(--color-border)] rounded-xl mb-4 focus:ring-2 focus:ring-primary outline-none"
-                            value={docType}
-                            onChange={(e: any) => setDocType(e.target.value)}
-                        >
-                            <option value="ktp">KTP (Kartu Tanda Penduduk)</option>
-                            <option value="passport">Paspor</option>
-                            <option value="visa">Visa</option>
-                            <option value="other">Lainnya</option>
-                        </select>
-
-                        <label className="block text-sm font-bold text-gray-300 mb-2">3. Pilih File</label>
-                        <div className="border-2 border-dashed border-[var(--color-border)] rounded-2xl p-8 text-center hover:border-primary transition-colors cursor-pointer relative">
-                            <input
-                                type="file"
-                                className="absolute inset-0 opacity-0 cursor-pointer"
-                                onChange={(e) => setFile(e.target.files?.[0] || null)}
-                            />
-                            {file ? (
-                                <div className="text-primary">
-                                    <svg className="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h2a2 2 0 002-2V4a2 2 0 00-2-2H9zM11 3a1 1 0 110 2 1 1 0 010-2z" />
-                                    </svg>
-                                    <p className="font-bold">{file.name}</p>
-                                    <p className="text-xs opacity-70">{(file.size / 1024).toFixed(1)} KB</p>
-                                </div>
-                            ) : (
-                                <div className="text-gray-400">
-                                    <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                    </svg>
-                                    <p className="font-medium">Klik atau drop file di sini</p>
-                                    <p className="text-xs uppercase font-bold tracking-wider mt-1">PNG, JPG, PDF</p>
-                                </div>
-                            )}
-                        </div>
-
-                        <button
-                            disabled={!file || !selectedPilgrim || uploading}
-                            onClick={handleUpload}
-                            className={`w-full mt-6 py-4 rounded-xl font-black uppercase tracking-widest text-white transition-all ${!file || !selectedPilgrim || uploading ? 'bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-primary hover:bg-primary-dark shadow-lg'
-                                }`}
-                        >
-                            {uploading ? 'Memproses OCR...' : 'Mulai Scan & Upload'}
-                        </button>
+                <div style={{ background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', padding: '1.5rem' }}>
+                    <label style={labelStyle}>1. Cari Jamaah</label>
+                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                        <input type="text" placeholder="Nama atau No. KTP..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ ...inputStyle, flex: 1 }} />
+                        <button onClick={handleSearch} style={{ padding: '0.75rem 1.25rem', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '0.5rem', fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem' }}>Cari</button>
                     </div>
-                </div>
 
-                {/* Right Side: OCR Result View */}
-                <div className="space-y-6">
-                    {ocrResult ? (
-                        <div className="dark-card p-6 rounded-2xl shadow-xl border-2 border-[var(--color-border-gold)] animate-in fade-in slide-in-from-right-4 duration-500">
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="p-2 bg-green-100 text-green-600 rounded-lg">
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                                    </svg>
+                    {pilgrims.length > 0 && !selectedPilgrim && (
+                        <div style={{ maxHeight: '160px', overflowY: 'auto', marginBottom: '1rem', border: '1px solid #333', borderRadius: '0.5rem', padding: '0.375rem' }}>
+                            {pilgrims.map(p => (
+                                <div key={p.id} onClick={() => setSelectedPilgrim(p)} style={{ padding: '0.625rem', cursor: 'pointer', borderRadius: '0.375rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontWeight: 700, color: '#ccc' }}>{p.name}</span>
+                                    <span style={{ fontSize: '0.75rem', color: '#888', fontFamily: 'monospace' }}>{p.noKtp}</span>
                                 </div>
-                                <h2 className="text-xl font-black text-white">Hasil Ekstraksi OCR</h2>
-                            </div>
-
-                            <div className="space-y-4">
-                                {Object.entries(ocrResult).map(([key, value]) => (
-                                    <div key={key} className="p-4 bg-[#131210] rounded-xl border border-[var(--color-border)]">
-                                        <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">{key}</p>
-                                        <p className="font-bold text-white">{value as string}</p>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="mt-8 p-4 bg-yellow-50 border border-yellow-100 rounded-xl">
-                                <p className="text-xs text-yellow-700 font-medium leading-relaxed">
-                                    <span className="font-black">PENTING:</span> Data di atas telah diekstrak secara otomatis. Pastikan untuk memvalidasi dengan dokumen asli sebelum melakukan verifikasi final.
-                                </p>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="bg-[#131210] border-2 border-dashed border-[var(--color-border)] rounded-2xl p-12 text-center h-full flex flex-col justify-center">
-                            <div className="opacity-30">
-                                <svg className="w-20 h-20 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                <p className="text-xl font-bold">Menunggu Dokumen</p>
-                                <p className="mt-2">Hasil ekstraksi OCR akan muncul di sini setelah upload selesai.</p>
-                            </div>
+                            ))}
                         </div>
                     )}
+
+                    {selectedPilgrim && (
+                        <div style={{ background: 'var(--color-primary-bg)', padding: '0.875rem', borderRadius: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <div>
+                                <p style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', margin: '0 0 0.125rem 0' }}>Jamaah Terpilih</p>
+                                <p style={{ fontWeight: 700, color: 'white', margin: 0 }}>{selectedPilgrim.name}</p>
+                            </div>
+                            <button onClick={() => setSelectedPilgrim(null)} style={{ background: 'none', border: 'none', color: '#ef4444', fontWeight: 700, cursor: 'pointer', fontSize: '0.8125rem' }}>Ganti</button>
+                        </div>
+                    )}
+
+                    <label style={{ ...labelStyle, marginTop: '0.5rem' }}>2. Tipe Dokumen</label>
+                    <select value={docType} onChange={(e: any) => setDocType(e.target.value)} style={{ ...inputStyle, marginBottom: '1rem', cursor: 'pointer' }}>
+                        <option value="ktp">KTP (Kartu Tanda Penduduk)</option>
+                        <option value="passport">Paspor</option>
+                        <option value="visa">Visa</option>
+                        <option value="other">Lainnya</option>
+                    </select>
+
+                    <label style={labelStyle}>3. Pilih File</label>
+                    <div style={{ border: '2px dashed #333', borderRadius: '0.75rem', padding: '2rem', textAlign: 'center', position: 'relative', cursor: 'pointer' }}>
+                        <input type="file" style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} onChange={(e) => setFile(e.target.files?.[0] || null)} />
+                        {file ? (
+                            <div style={{ color: 'var(--color-primary)' }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '40px', display: 'block', marginBottom: '0.5rem' }}>description</span>
+                                <p style={{ fontWeight: 700, margin: '0 0 0.25rem 0' }}>{file.name}</p>
+                                <p style={{ fontSize: '0.75rem', opacity: 0.7, margin: 0 }}>{(file.size / 1024).toFixed(1)} KB</p>
+                            </div>
+                        ) : (
+                            <div style={{ color: '#888' }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '40px', display: 'block', marginBottom: '0.5rem' }}>cloud_upload</span>
+                                <p style={{ fontWeight: 600, margin: '0 0 0.25rem 0' }}>Klik atau drop file di sini</p>
+                                <p style={{ fontSize: '0.75rem', margin: 0 }}>PNG, JPG, PDF</p>
+                            </div>
+                        )}
+                    </div>
+
+                    <button disabled={!file || !selectedPilgrim || uploading} onClick={handleUpload} style={{
+                        width: '100%', marginTop: '1rem', padding: '1rem', border: 'none', borderRadius: '0.75rem', fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer',
+                        background: (!file || !selectedPilgrim || uploading) ? '#333' : 'var(--color-primary)',
+                        color: (!file || !selectedPilgrim || uploading) ? '#888' : 'white',
+                    }}>
+                        {uploading ? 'Memproses OCR...' : 'Mulai Scan & Upload'}
+                    </button>
                 </div>
+
+                {/* Right Side: OCR Result */}
+                {ocrResult ? (
+                    <div style={{ background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', padding: '1.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                            <span className="material-symbols-outlined" style={{ color: '#22c55e' }}>check_circle</span>
+                            <h2 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0 }}>Hasil Ekstraksi OCR</h2>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {Object.entries(ocrResult).map(([key, value]) => (
+                                <div key={key} style={{ background: '#0a0907', border: '1px solid #333', borderRadius: '0.5rem', padding: '0.875rem' }}>
+                                    <p style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.03em', margin: '0 0 0.25rem 0' }}>{key}</p>
+                                    <p style={{ fontWeight: 700, color: 'white', margin: 0 }}>{value as string}</p>
+                                </div>
+                            ))}
+                        </div>
+                        <div style={{ marginTop: '1.5rem', padding: '0.875rem', background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.2)', borderRadius: '0.5rem' }}>
+                            <p style={{ fontSize: '0.8125rem', color: '#eab308', margin: 0 }}>
+                                <strong>PENTING:</strong> Data di atas diekstrak secara otomatis. Pastikan untuk memvalidasi dengan dokumen asli.
+                            </p>
+                        </div>
+                    </div>
+                ) : (
+                    <div style={{ background: '#1a1917', border: '2px dashed #333', borderRadius: '1rem', padding: '3rem', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '64px', color: '#555', marginBottom: '1rem' }}>document_scanner</span>
+                        <p style={{ fontWeight: 700, color: '#666', fontSize: '1.125rem', margin: '0 0 0.5rem 0' }}>Menunggu Dokumen</p>
+                        <p style={{ color: '#555', fontSize: '0.875rem', margin: 0 }}>Hasil ekstraksi OCR akan muncul di sini setelah upload selesai.</p>
+                    </div>
+                )}
             </div>
         </div>
     );

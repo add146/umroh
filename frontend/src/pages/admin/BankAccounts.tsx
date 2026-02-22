@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Landmark, Plus, Save, Trash2, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiFetch } from '../../lib/api';
 
@@ -11,58 +10,50 @@ interface BankAccount {
     isActive: boolean;
 }
 
+const inputStyle: React.CSSProperties = {
+    width: '100%', padding: '0.875rem', background: '#0a0907', border: '1px solid #333', color: 'white', borderRadius: '0.5rem', outline: 'none', fontSize: '0.875rem',
+};
+const labelStyle: React.CSSProperties = {
+    display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--color-text-light)',
+};
+const thStyle: React.CSSProperties = {
+    padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.875rem',
+};
+const tdStyle: React.CSSProperties = { padding: '1rem 1.5rem' };
+
 export default function BankAccountsPage() {
     const [banks, setBanks] = useState<BankAccount[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
     const [newBank, setNewBank] = useState({ bankName: '', accountNumber: '', accountHolder: '' });
 
-    useEffect(() => {
-        fetchBanks();
-    }, []);
+    useEffect(() => { fetchBanks(); }, []);
 
     const fetchBanks = async () => {
         try {
             const data = await apiFetch<BankAccount[]>('/api/payments/banks');
             setBanks(data);
-        } catch (error) {
-            toast.error('Gagal mengambil data rekening');
-        } finally {
-            setLoading(false);
-        }
+        } catch (error) { toast.error('Gagal mengambil data rekening'); }
+        finally { setLoading(false); }
     };
 
     const handleAdd = async () => {
-        if (!newBank.bankName || !newBank.accountNumber || !newBank.accountHolder) {
-            return toast.error('Semua field harus diisi');
-        }
-
+        if (!newBank.bankName || !newBank.accountNumber || !newBank.accountHolder) { return toast.error('Semua field harus diisi'); }
         try {
-            await apiFetch('/api/payments/banks', {
-                method: 'POST',
-                body: JSON.stringify(newBank)
-            });
-
+            await apiFetch('/api/payments/banks', { method: 'POST', body: JSON.stringify(newBank) });
             toast.success('Rekening berhasil ditambahkan');
             setIsAdding(false);
             setNewBank({ bankName: '', accountNumber: '', accountHolder: '' });
             fetchBanks();
-        } catch (error) {
-            toast.error('Gagal menambah rekening');
-        }
+        } catch (error) { toast.error('Gagal menambah rekening'); }
     };
 
     const toggleStatus = async (id: string, currentStatus: boolean) => {
         try {
-            await apiFetch(`/api/payments/banks/${id}`, {
-                method: 'PATCH',
-                body: JSON.stringify({ isActive: !currentStatus })
-            });
+            await apiFetch(`/api/payments/banks/${id}`, { method: 'PATCH', body: JSON.stringify({ isActive: !currentStatus }) });
             toast.success('Status berhasil diperbarui');
             fetchBanks();
-        } catch (error) {
-            toast.error('Gagal memperbarui status');
-        }
+        } catch (error) { toast.error('Gagal memperbarui status'); }
     };
 
     return (
@@ -72,127 +63,104 @@ export default function BankAccountsPage() {
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Setelan Rekening</h1>
                     <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Kelola rekening bank untuk tujuan transfer manual jamaah.</p>
                 </div>
-                <button
-                    onClick={() => setIsAdding(!isAdding)}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all duration-300 ${isAdding ? 'bg-[#ef4444]/10 text-red-500 hover:bg-[#ef4444]/20' : 'bg-primary text-white hover:bg-primary-light shadow-lg hover:shadow-xl'
-                        }`}
-                >
-                    {isAdding ? <XCircle className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                <button onClick={() => setIsAdding(!isAdding)} style={{
+                    display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem',
+                    background: isAdding ? 'rgba(239,68,68,0.1)' : 'var(--color-primary)',
+                    color: isAdding ? '#ef4444' : 'white',
+                    borderRadius: '0.75rem', fontWeight: 700, border: 'none', cursor: 'pointer', fontSize: '0.875rem',
+                }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{isAdding ? 'close' : 'add'}</span>
                     {isAdding ? 'Batal' : 'Tambah Rekening'}
                 </button>
             </div>
 
+            {/* Add Form */}
             {isAdding && (
-                <div className="dark-card p-8 rounded-3xl border border-primary/20 shadow-2xl animate-in slide-in-from-top-4 duration-300">
-                    <div className="flex items-center gap-3 mb-8">
-                        <div className="p-2 bg-[var(--color-primary-bg)] rounded-lg text-primary">
-                            <Landmark className="w-6 h-6" />
+                <div style={{ background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', padding: '1.5rem', marginBottom: '1.5rem' }}>
+                    <h2 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>account_balance</span>
+                        Rekening Baru
+                    </h2>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                        <div>
+                            <label style={labelStyle}>Nama Bank</label>
+                            <input value={newBank.bankName} onChange={(e) => setNewBank({ ...newBank, bankName: e.target.value })} placeholder="Contoh: BANK BCA" style={inputStyle} />
                         </div>
-                        <h2 className="text-xl font-black text-white">Rekening Baru</h2>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Nama Bank</label>
-                            <input
-                                className="w-full bg-[#131210] border border-[var(--color-border)] rounded-xl px-4 py-3 font-bold text-white focus:dark-card focus:ring-2 focus:ring-primary outline-none transition-all"
-                                value={newBank.bankName}
-                                onChange={(e) => setNewBank({ ...newBank, bankName: e.target.value })}
-                                placeholder="Contoh: BANK BCA"
-                            />
+                        <div>
+                            <label style={labelStyle}>Nomor Rekening</label>
+                            <input value={newBank.accountNumber} onChange={(e) => setNewBank({ ...newBank, accountNumber: e.target.value })} placeholder="Contoh: 1234567890" style={{ ...inputStyle, fontFamily: 'monospace' }} />
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Nomor Rekening</label>
-                            <input
-                                className="w-full bg-[#131210] border border-[var(--color-border)] rounded-xl px-4 py-3 font-mono font-bold text-white focus:dark-card focus:ring-2 focus:ring-primary outline-none transition-all"
-                                value={newBank.accountNumber}
-                                onChange={(e) => setNewBank({ ...newBank, accountNumber: e.target.value })}
-                                placeholder="Contoh: 1234567890"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Atas Nama</label>
-                            <input
-                                className="w-full bg-[#131210] border border-[var(--color-border)] rounded-xl px-4 py-3 font-bold text-white focus:dark-card focus:ring-2 focus:ring-primary outline-none transition-all"
-                                value={newBank.accountHolder}
-                                onChange={(e) => setNewBank({ ...newBank, accountHolder: e.target.value })}
-                                placeholder="Nama Pemilik Rekening"
-                            />
+                        <div>
+                            <label style={labelStyle}>Atas Nama</label>
+                            <input value={newBank.accountHolder} onChange={(e) => setNewBank({ ...newBank, accountHolder: e.target.value })} placeholder="Nama Pemilik Rekening" style={inputStyle} />
                         </div>
                     </div>
-
-                    <button onClick={handleAdd} className="mt-8 flex items-center gap-2 bg-secondary text-white px-8 py-3 rounded-xl font-black uppercase text-sm tracking-widest hover:bg-secondary-light transition-all active:scale-95">
-                        <Save className="w-5 h-5" /> Simpan Konfigurasi
+                    <button onClick={handleAdd} style={{ marginTop: '1rem', padding: '0.875rem 2rem', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '0.75rem', fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem' }}>
+                        Simpan Konfigurasi
                     </button>
                 </div>
             )}
 
-            <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }}>
-                <table className="w-full text-left">
+            {/* Table */}
+            <div style={{ background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', overflow: 'hidden' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                     <thead>
-                        <tr className="bg-[#131210]/50">
-                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-widest">Institusi Bank</th>
-                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-widest">Informasi Akun</th>
-                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Status</th>
-                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-widest text-right">Manajemen</th>
+                        <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.02)' }}>
+                            <th style={thStyle}>Institusi Bank</th>
+                            <th style={thStyle}>Informasi Akun</th>
+                            <th style={{ ...thStyle, textAlign: 'center' }}>Status</th>
+                            <th style={{ ...thStyle, textAlign: 'right' }}>Manajemen</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/10">
+                    <tbody>
                         {loading ? (
-                            <tr>
-                                <td colSpan={4} className="px-10 py-16 text-center">
-                                    <Loader2 className="animate-spin text-primary w-10 h-10 mx-auto" />
-                                </td>
-                            </tr>
+                            <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Memuat data...</td></tr>
                         ) : banks.length === 0 ? (
-                            <tr>
-                                <td colSpan={4} className="px-10 py-16 text-center text-gray-400 font-medium italic">
-                                    Belum ada rekening aktif yang terdaftar.
+                            <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Belum ada rekening aktif yang terdaftar.</td></tr>
+                        ) : banks.map(bank => (
+                            <tr key={bank.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                                <td style={tdStyle}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <div style={{
+                                            padding: '0.625rem', borderRadius: '0.75rem',
+                                            background: bank.isActive ? 'var(--color-primary)' : 'rgba(255,255,255,0.05)', color: bank.isActive ? 'white' : '#888',
+                                        }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '20px', display: 'block' }}>account_balance</span>
+                                        </div>
+                                        <span style={{ fontWeight: 800, color: 'white', fontSize: '1rem' }}>{bank.bankName}</span>
+                                    </div>
+                                </td>
+                                <td style={tdStyle}>
+                                    <p style={{ fontWeight: 800, fontFamily: 'monospace', color: 'white', margin: '0 0 0.125rem 0' }}>{bank.accountNumber}</p>
+                                    <p style={{ fontSize: '0.75rem', color: '#888', margin: 0 }}>A/N {bank.accountHolder}</p>
+                                </td>
+                                <td style={{ ...tdStyle, textAlign: 'center' }}>
+                                    <span style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+                                        padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase',
+                                        background: bank.isActive ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)',
+                                        color: bank.isActive ? '#22c55e' : '#888',
+                                    }}>
+                                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: bank.isActive ? '#22c55e' : '#888' }} />
+                                        {bank.isActive ? 'Aktif' : 'Non-Aktif'}
+                                    </span>
+                                </td>
+                                <td style={{ ...tdStyle, textAlign: 'right' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.375rem' }}>
+                                        <button onClick={() => toggleStatus(bank.id, bank.isActive)} style={{
+                                            padding: '0.5rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer',
+                                            background: bank.isActive ? 'rgba(234,179,8,0.1)' : 'rgba(34,197,94,0.1)',
+                                            color: bank.isActive ? '#eab308' : '#22c55e',
+                                        }} title={bank.isActive ? 'Nonaktifkan' : 'Aktifkan'}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '18px', display: 'block' }}>{bank.isActive ? 'toggle_off' : 'toggle_on'}</span>
+                                        </button>
+                                        <button style={{ padding: '0.5rem', background: 'rgba(239,68,68,0.1)', color: '#ef4444', borderRadius: '0.5rem', border: 'none', cursor: 'pointer' }} title="Hapus">
+                                            <span className="material-symbols-outlined" style={{ fontSize: '18px', display: 'block' }}>delete</span>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
-                        ) : (
-                            banks.map((bank) => (
-                                <tr key={bank.id} className="hover:bg-[var(--color-primary-bg)] transition-colors group">
-                                    <td className="px-10 py-6">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`p-3 rounded-2xl transition-all duration-300 ${bank.isActive ? 'bg-primary text-white shadow-lg' : 'bg-white/5 text-gray-400'}`}>
-                                                <Landmark className="w-5 h-5" />
-                                            </div>
-                                            <span className="text-xl font-black text-white tracking-tight">{bank.bankName}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-10 py-6">
-                                        <p className="text-lg font-black font-mono tracking-wider text-white">{bank.accountNumber}</p>
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">A/N {bank.accountHolder}</p>
-                                    </td>
-                                    <td className="px-8 py-6 text-center">
-                                        <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${bank.isActive ? 'bg-[#22c55e]/10 text-success' : 'bg-white/5 text-gray-400'
-                                            }`}>
-                                            <div className={`w-1.5 h-1.5 rounded-full ${bank.isActive ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                                            {bank.isActive ? 'Aktif' : 'Non-Aktif'}
-                                        </span>
-                                    </td>
-                                    <td className="px-8 py-6 text-right">
-                                        <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={() => toggleStatus(bank.id, bank.isActive)}
-                                                className={`p-3 rounded-xl transition-all duration-300 ${bank.isActive ? 'bg-[#f59e0b]/10 text-amber-500 hover:bg-[#f59e0b]/20' : 'bg-[#22c55e]/10 text-success hover:bg-[#22c55e]/20'
-                                                    }`}
-                                                title={bank.isActive ? 'Nonaktifkan' : 'Aktifkan'}
-                                            >
-                                                {bank.isActive ? <XCircle className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
-                                            </button>
-                                            <button
-                                                className="p-3 bg-[#ef4444]/10 text-red-500 rounded-xl hover:bg-[#ef4444]/20 transition-all opacity-40 hover:opacity-100"
-                                                title="Hapus Permanen"
-                                            >
-                                                <Trash2 className="w-5 h-5" />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
+                        ))}
                     </tbody>
                 </table>
             </div>

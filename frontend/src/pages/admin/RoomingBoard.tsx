@@ -1,24 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
 
-interface Departure {
-    id: string;
-    departureDate: string;
-    packageId: string;
-    package?: { name: string };
-}
+interface Departure { id: string; departureDate: string; packageId: string; package?: { name: string }; }
+interface Booking { id: string; pilgrimId: string; pilgrim?: { name: string; phone: string }; roomType?: { name: string }; roomAssignment?: { id: string; roomNumber: string; notes: string }; }
 
-interface Booking {
-    id: string;
-    pilgrimId: string;
-    pilgrim?: { name: string; phone: string };
-    roomType?: { name: string };
-    roomAssignment?: {
-        id: string;
-        roomNumber: string;
-        notes: string;
-    };
-}
+const thStyle: React.CSSProperties = { padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.875rem' };
+const tdStyle: React.CSSProperties = { padding: '1rem 1.5rem' };
 
 const RoomingBoard: React.FC = () => {
     const [departures, setDepartures] = useState<Departure[]>([]);
@@ -27,59 +14,34 @@ const RoomingBoard: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState<string | null>(null);
 
-    useEffect(() => {
-        fetchDepartures();
-    }, []);
+    useEffect(() => { fetchDepartures(); }, []);
 
     const fetchDepartures = async () => {
         try {
             const data = await apiFetch<{ departures: Departure[] }>('/api/departures');
             setDepartures(data.departures || []);
-            if (data.departures?.length > 0) {
-                setSelectedDepartureId(data.departures[0].id);
-            }
-        } catch (error) {
-            console.error('Failed to fetch departures', error);
-        }
+            if (data.departures?.length > 0) setSelectedDepartureId(data.departures[0].id);
+        } catch (error) { console.error('Failed to fetch departures', error); }
     };
 
-    useEffect(() => {
-        if (selectedDepartureId) {
-            fetchRooming(selectedDepartureId);
-        }
-    }, [selectedDepartureId]);
+    useEffect(() => { if (selectedDepartureId) fetchRooming(selectedDepartureId); }, [selectedDepartureId]);
 
     const fetchRooming = async (id: string) => {
         setLoading(true);
         try {
             const data = await apiFetch<Booking[]>(`/api/operations/rooming/${id}`);
             setBookings(data || []);
-        } catch (error) {
-            console.error('Failed to fetch rooming board', error);
-        } finally {
-            setLoading(false);
-        }
+        } catch (error) { console.error('Failed to fetch rooming board', error); }
+        finally { setLoading(false); }
     };
 
     const handleAssignRoom = async (bookingId: string, roomNumber: string) => {
         setSaving(bookingId);
         try {
-            await apiFetch('/api/operations/rooming/assign', {
-                method: 'POST',
-                body: JSON.stringify({ bookingId, roomNumber })
-            });
-            // Update local state
-            setBookings(prev => prev.map(b =>
-                b.id === bookingId
-                    ? { ...b, roomAssignment: { ...(b.roomAssignment || { id: '', notes: '' }), roomNumber } }
-                    : b
-            ));
-        } catch (error) {
-            console.error('Failed to assign room', error);
-            alert('Gagal menyimpan nomor kamar');
-        } finally {
-            setSaving(null);
-        }
+            await apiFetch('/api/operations/rooming/assign', { method: 'POST', body: JSON.stringify({ bookingId, roomNumber }) });
+            setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, roomAssignment: { ...(b.roomAssignment || { id: '', notes: '' }), roomNumber } } : b));
+        } catch (error) { console.error('Failed to assign room', error); alert('Gagal menyimpan nomor kamar'); }
+        finally { setSaving(null); }
     };
 
     return (
@@ -89,95 +51,70 @@ const RoomingBoard: React.FC = () => {
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Rooming Board</h1>
                     <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Kelola penempatan kamar jamaah per keberangkatan</p>
                 </div>
-
-                <div style={{ background: '#131210', padding: '0.5rem 0.75rem', borderRadius: '0.625rem', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{ background: '#1a1917', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Keberangkatan:</span>
-                    <select
-                        className="p-2 border-none focus:ring-0 bg-transparent text-sm font-bold text-primary cursor-pointer outline-none"
-                        value={selectedDepartureId}
-                        onChange={(e) => setSelectedDepartureId(e.target.value)}
-                    >
-                        {departures.map(d => (
-                            <option key={d.id} value={d.id}>
-                                {d.departureDate} - {d.package?.name || 'Paket'}
-                            </option>
-                        ))}
+                    <select value={selectedDepartureId} onChange={(e) => setSelectedDepartureId(e.target.value)}
+                        style={{ padding: '0.5rem', background: 'transparent', border: 'none', color: 'var(--color-primary)', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer', outline: 'none' }}>
+                        {departures.map(d => <option key={d.id} value={d.id}>{d.departureDate} - {d.package?.name || 'Paket'}</option>)}
                     </select>
                 </div>
             </div>
 
             {loading ? (
-                <div className="text-center py-20">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                    <p className="mt-4 text-gray-500 font-medium">Memuat data jamaah...</p>
-                </div>
+                <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Memuat data jamaah...</div>
             ) : (
-                <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }}>
-                    <table className="w-full text-left">
+                <div style={{ background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', overflow: 'hidden' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                         <thead>
-                            <tr className="bg-[#131210] border-b border-[var(--color-border)] text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">
-                                <th className="px-6 py-5">Jamaah</th>
-                                <th className="px-6 py-5">Tipe Kamar</th>
-                                <th className="px-6 py-5">No. Kamar</th>
-                                <th className="px-6 py-5">Status</th>
+                            <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.02)' }}>
+                                <th style={thStyle}>Jamaah</th>
+                                <th style={thStyle}>Tipe Kamar</th>
+                                <th style={thStyle}>No. Kamar</th>
+                                <th style={thStyle}>Status</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[var(--color-border)]">
+                        <tbody>
                             {bookings.length === 0 ? (
-                                <tr>
-                                    <td colSpan={4} className="px-6 py-10 text-center text-gray-500 italic">
-                                        Belum ada jamaah terdaftar untuk keberangkatan ini.
-                                    </td>
-                                </tr>
-                            ) : bookings.map((booking) => (
-                                <tr key={booking.id} className="hover:bg-[var(--color-bg-hover)] transition-colors group">
-                                    <td className="px-8 py-5">
-                                        <div className="flex items-center">
-                                            <div className="w-10 h-10 rounded-full bg-[var(--color-primary-bg)] flex items-center justify-center text-primary font-bold mr-3">
-                                                {booking.pilgrim?.name.charAt(0)}
+                                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Belum ada jamaah terdaftar untuk keberangkatan ini.</td></tr>
+                            ) : bookings.map(booking => (
+                                <tr key={booking.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                                    <td style={tdStyle}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--color-primary-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', fontWeight: 800, fontSize: '0.875rem' }}>
+                                                {booking.pilgrim?.name?.charAt(0)}
                                             </div>
                                             <div>
-                                                <p className="font-bold text-white tracking-tight">{booking.pilgrim?.name}</p>
-                                                <p className="text-xs text-gray-500 uppercase tracking-widest">{booking.pilgrim?.phone}</p>
+                                                <p style={{ fontWeight: 700, color: 'white', margin: '0 0 0.125rem 0' }}>{booking.pilgrim?.name}</p>
+                                                <p style={{ fontSize: '0.6875rem', color: '#888', margin: 0 }}>{booking.pilgrim?.phone}</p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-8 py-5">
-                                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-[#8b5cf6]/10 text-purple-400">
+                                    <td style={tdStyle}>
+                                        <span style={{ padding: '0.25rem 0.625rem', borderRadius: '999px', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', background: 'rgba(139,92,246,0.1)', color: '#a78bfa' }}>
                                             {booking.roomType?.name || 'Double'}
                                         </span>
                                     </td>
-                                    <td className="px-8 py-5">
-                                        <div className="relative">
-                                            <input
-                                                type="text"
-                                                placeholder="Contoh: 101, 102"
-                                                className={`w-36 p-2 text-sm border bg-[#131210] text-white rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-bold ${booking.roomAssignment?.roomNumber ? 'border-success/50' : 'border-[var(--color-border)]'
-                                                    }`}
+                                    <td style={tdStyle}>
+                                        <div style={{ position: 'relative' }}>
+                                            <input type="text" placeholder="Contoh: 101" style={{
+                                                width: '120px', padding: '0.5rem 0.75rem', fontSize: '0.875rem', fontWeight: 700,
+                                                background: '#0a0907', color: 'white', borderRadius: '0.5rem', outline: 'none',
+                                                border: booking.roomAssignment?.roomNumber ? '1px solid rgba(34,197,94,0.3)' : '1px solid #333',
+                                            }}
                                                 defaultValue={booking.roomAssignment?.roomNumber || ''}
-                                                onBlur={(e) => {
-                                                    if (e.target.value !== (booking.roomAssignment?.roomNumber || '')) {
-                                                        handleAssignRoom(booking.id, e.target.value);
-                                                    }
-                                                }}
+                                                onBlur={(e) => { if (e.target.value !== (booking.roomAssignment?.roomNumber || '')) handleAssignRoom(booking.id, e.target.value); }}
                                             />
-                                            {saving === booking.id && (
-                                                <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                                                    <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                                                </div>
-                                            )}
+                                            {saving === booking.id && <span style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.75rem', color: 'var(--color-primary)' }}>...</span>}
                                         </div>
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td style={tdStyle}>
                                         {booking.roomAssignment?.roomNumber ? (
-                                            <span className="text-success flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                                                </svg>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: '#22c55e' }}>
+                                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check_circle</span>
                                                 Terisi
                                             </span>
                                         ) : (
-                                            <span className="text-gray-400 text-sm italic">Menunggu</span>
+                                            <span style={{ fontSize: '0.8125rem', color: '#888', fontStyle: 'italic' }}>Menunggu</span>
                                         )}
                                     </td>
                                 </tr>

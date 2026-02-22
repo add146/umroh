@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Edit, Loader2, Package, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiFetch } from '../../lib/api';
+
+const thStyle: React.CSSProperties = {
+    padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.875rem',
+};
+const tdStyle: React.CSSProperties = {
+    padding: '1rem 1.5rem',
+};
 
 export default function PackageManage() {
     const [packages, setPackages] = useState<any[]>([]);
@@ -19,9 +25,7 @@ export default function PackageManage() {
         }
     };
 
-    useEffect(() => {
-        fetchPackages();
-    }, []);
+    useEffect(() => { fetchPackages(); }, []);
 
     const handleDelete = async (id: string) => {
         if (!confirm('Apakah Anda yakin ingin menghapus paket ini?')) return;
@@ -42,87 +46,77 @@ export default function PackageManage() {
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Paket Umroh</h1>
                     <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Kelola dan konfigurasi seluruh paket perjalanan umroh Anda.</p>
                 </div>
-
-                <Link
-                    to="/admin/packages/create"
-                    className="flex items-center gap-2 px-6 py-3 rounded-xl font-black shadow-lg hover:scale-105 active:scale-95 transition-all outline-none"
-                    style={{ textDecoration: 'none', background: '#d4a017', color: '#0a0907' }}
-                >
-                    <Plus className="w-5 h-5" />
+                <Link to="/admin/packages/create" style={{
+                    display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem',
+                    background: 'var(--color-primary)', color: 'white', borderRadius: '0.75rem',
+                    fontWeight: 700, textDecoration: 'none', fontSize: '0.875rem',
+                }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
                     Tambah Paket
                 </Link>
             </div>
 
             {/* Table */}
-            <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }}>
-                <table className="w-full text-left">
+            <div style={{ background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', overflow: 'hidden' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                     <thead>
-                        <tr className="bg-[#131210]/50 divide-x divide-white/10">
-                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] w-24">ID</th>
-                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Nama Paket</th>
-                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Harga Base</th>
-                            <th className="px-10 py-5 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] text-right">Aksi</th>
+                        <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.02)' }}>
+                            <th style={thStyle}>ID</th>
+                            <th style={thStyle}>Nama Paket</th>
+                            <th style={thStyle}>Harga Base</th>
+                            <th style={{ ...thStyle, textAlign: 'right' }}>Aksi</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/10">
+                    <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan={4} className="px-10 py-24 text-center">
-                                    <Loader2 className="animate-spin text-primary w-12 h-12 mx-auto" />
-                                    <p className="mt-4 text-xs font-black uppercase tracking-widest text-gray-300">Memuat data paket...</p>
-                                </td>
+                                <td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Memuat data paket...</td>
                             </tr>
                         ) : packages.length === 0 ? (
                             <tr>
-                                <td colSpan={4} className="px-10 py-24 text-center">
-                                    <div className="bg-[#131210] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <Package className="text-gray-200 w-10 h-10" />
-                                    </div>
-                                    <p className="text-gray-400 font-bold italic tracking-tight">Belum ada paket umroh yang tersedia.</p>
+                                <td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '48px', color: 'var(--color-primary)', display: 'block', marginBottom: '1rem' }}>package_2</span>
+                                    Belum ada paket umroh yang tersedia.
                                 </td>
                             </tr>
-                        ) : (
-                            packages.map((pkg) => (
-                                <tr key={pkg.id} className="hover:bg-primary/[0.01] transition-colors group">
-                                    <td className="px-10 py-6">
-                                        <span className="px-3 py-1 bg-white/5 rounded-md font-mono text-xs text-gray-400">
-                                            {pkg.id.split('-')[0]}
-                                        </span>
-                                    </td>
-                                    <td className="px-10 py-6">
-                                        <p className="font-bold text-white text-lg tracking-tight">{pkg.name}</p>
-                                    </td>
-                                    <td className="px-10 py-6">
-                                        <p className="text-xl font-black text-primary tracking-tight">
-                                            <span className="text-sm mr-1.5 text-secondary">Rp</span>
-                                            {pkg.basePrice.toLocaleString('id-ID')}
-                                        </p>
-                                    </td>
-                                    <td className="px-8 py-6 text-right">
-                                        <div className="flex justify-end gap-3 opacity-50 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={() => handleDelete(pkg.id)}
-                                                className="p-3 dark-card border border-red-900/50 text-red-400 rounded-xl hover:bg-red-950/50 hover:text-red-300 transition-all flex items-center gap-2"
-                                                title="Hapus"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                            <Link
-                                                to={`/admin/packages/${pkg.id}`}
-                                                className="p-3 dark-card border border-[var(--color-border)] shadow-sm text-secondary rounded-xl hover:shadow-md hover:border-secondary hover:text-white transition-all flex items-center gap-2"
-                                                title="Detail & Master Data"
-                                            >
-                                                <Edit className="w-4 h-4" /> <span className="text-xs font-black uppercase tracking-widest hidden md:inline">Kelola Produk</span>
-                                            </Link>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
+                        ) : packages.map((pkg) => (
+                            <tr key={pkg.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                                <td style={tdStyle}>
+                                    <span style={{ padding: '0.25rem 0.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.25rem', fontFamily: 'monospace', fontSize: '0.75rem', color: '#888' }}>
+                                        {pkg.id.split('-')[0]}
+                                    </span>
+                                </td>
+                                <td style={tdStyle}>
+                                    <span style={{ fontWeight: 700, color: 'white' }}>{pkg.name}</span>
+                                </td>
+                                <td style={tdStyle}>
+                                    <span style={{ fontWeight: 800, color: 'var(--color-primary)' }}>
+                                        Rp{pkg.basePrice.toLocaleString('id-ID')}
+                                    </span>
+                                </td>
+                                <td style={{ ...tdStyle, textAlign: 'right' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                                        <button onClick={() => handleDelete(pkg.id)} style={{
+                                            padding: '0.5rem', color: 'var(--color-error)', background: 'rgba(239,68,68,0.1)',
+                                            borderRadius: '0.5rem', border: 'none', cursor: 'pointer',
+                                        }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '18px', display: 'block' }}>delete</span>
+                                        </button>
+                                        <Link to={`/admin/packages/${pkg.id}`} style={{
+                                            padding: '0.5rem 1rem', background: 'var(--color-primary-bg)', color: 'var(--color-primary)',
+                                            borderRadius: '0.5rem', textDecoration: 'none', fontSize: '0.8125rem', fontWeight: 700,
+                                            display: 'flex', alignItems: 'center', gap: '0.375rem',
+                                        }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span>
+                                            Kelola Produk
+                                        </Link>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
             </div>
-
         </div>
     );
 }
