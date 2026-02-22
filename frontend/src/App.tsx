@@ -66,6 +66,14 @@ function App() {
             </ProtectedRoute>
           } />
 
+          <Route path="/admin/packages/:id/edit" element={
+            <ProtectedRoute allowedRoles={['pusat']}>
+              <DashboardLayout>
+                <PackageForm />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+
           <Route path="/admin/packages/:id" element={
             <ProtectedRoute allowedRoles={['pusat']}>
               <DashboardLayout>

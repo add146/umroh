@@ -21,6 +21,10 @@ export default function PackageDetail() {
     const [departureForm, setDepartureForm] = useState({ date: '', airport: '', seats: 45 });
     const [roomForm, setRoomForm] = useState({ name: '', capacity: 4, priceAdjustment: 0 });
 
+    const [masters, setMasters] = useState({
+        airports: [] as any[]
+    });
+
     const fetchPackageDetail = async () => {
         try {
             const data = await apiFetch<{ package: any }>(`/api/packages/${id}`);
@@ -30,6 +34,10 @@ export default function PackageDetail() {
                 navigate('/admin/packages');
                 toast.error('Paket tidak ditemukan');
             }
+
+            // Fetch airports for the modal
+            const ap = await apiFetch<any>('/api/masters/airports');
+            setMasters({ airports: ap.airports || [] });
         } catch (error) {
             toast.error('Gagal memuat detail paket');
             navigate('/admin/packages');
@@ -155,13 +163,21 @@ export default function PackageDetail() {
                     </div>
                 </div>
 
-                <button
-                    onClick={() => setIsDepartureModalOpen(true)}
-                    className="flex items-center gap-2 px-6 py-3 bg-primary text-[#0a0907] rounded-xl font-black shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
-                >
-                    <Plus className="w-5 h-5" />
-                    Tambah Keberangkatan
-                </button>
+                <div className="flex gap-4">
+                    <button
+                        onClick={() => navigate(`/admin/packages/${pkg.id}/edit`)}
+                        className="flex items-center gap-2 px-6 py-3 bg-white/5 text-white border border-white/10 rounded-xl font-black shadow-lg hover:bg-white/10 active:scale-95 transition-all"
+                    >
+                        Edit Paket
+                    </button>
+                    <button
+                        onClick={() => setIsDepartureModalOpen(true)}
+                        className="flex items-center gap-2 px-6 py-3 bg-primary text-[#0a0907] rounded-xl font-black shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                    >
+                        <Plus className="w-5 h-5" />
+                        Tambah Keberangkatan
+                    </button>
+                </div>
             </div>
 
             {/* Package Details (Master Data Recap) */}
@@ -394,15 +410,18 @@ export default function PackageDetail() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black uppercase text-gray-400 tracking-widest mb-2">Bandara (Kode / Nama)</label>
-                                    <input
-                                        type="text"
+                                    <label className="block text-xs font-black uppercase text-gray-400 tracking-widest mb-2">Bandara</label>
+                                    <select
                                         required
                                         value={departureForm.airport}
                                         onChange={(e) => setDepartureForm({ ...departureForm, airport: e.target.value })}
-                                        placeholder="Misal: Juanda Int (SUB)"
                                         className="w-full px-5 py-4 bg-[#131210] border border-[var(--color-border)] rounded-2xl text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium"
-                                    />
+                                    >
+                                        <option value="">Pilih Bandara</option>
+                                        {masters.airports.map(a => (
+                                            <option key={a.id} value={a.code}>{a.name} ({a.code})</option>
+                                        ))}
+                                    </select>
                                 </div>
 
                                 <div>
