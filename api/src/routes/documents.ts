@@ -14,16 +14,16 @@ const api = new Hono<{ Bindings: Env }>();
 api.post('/upload', async (c) => {
     const formData = await c.req.parseBody();
     const file = formData['file'] as File;
-    const pilgrimId = formData['pilgrimId'] as string;
+    const pilgrimId = formData['pilgrimId'] as string | undefined;
     const docType = formData['docType'] as 'ktp' | 'passport' | 'visa' | 'other';
 
-    if (!file || !pilgrimId || !docType) {
-        return c.json({ error: 'Missing file, pilgrimId or docType' }, 400);
+    if (!file || !docType) {
+        return c.json({ error: 'Missing file or docType' }, 400);
     }
 
-    const db = getDb(c.env.DB);
     const buffer = await file.arrayBuffer();
-    const key = `pilgrims/${pilgrimId}/${docType}_${Date.now()}_${file.name}`;
+    const keyPrefix = pilgrimId && pilgrimId !== 'new_registration' ? `pilgrims/${pilgrimId}` : 'temp';
+    const key = `${keyPrefix}/${docType}_${Date.now()}_${file.name}`;
 
     try {
         // 1. Upload to R2
@@ -35,13 +35,18 @@ api.post('/upload', async (c) => {
             ocrResult = await OCRService.extractData(buffer, docType);
         }
 
-        // 3. Save metadata to DB
-        const [doc] = await db.insert(documents).values({
-            pilgrimId,
-            docType,
-            r2Key: key,
-            ocrResult: ocrResult ? JSON.stringify(ocrResult) : null,
-        }).returning();
+        // 3. Only save to DB if we have a valid pilgrimId (not during registration flow)
+        let doc = null;
+        if (pilgrimId && pilgrimId !== 'new_registration') {
+            const db = getDb(c.env.DB);
+            const [inserted] = await db.insert(documents).values({
+                pilgrimId,
+                docType,
+                r2Key: key,
+                ocrResult: ocrResult ? JSON.stringify(ocrResult) : null,
+            }).returning();
+            doc = inserted;
+        }
 
         return c.json({
             success: true,
