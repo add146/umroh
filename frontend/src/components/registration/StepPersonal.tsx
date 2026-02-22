@@ -12,8 +12,10 @@ const StepPersonal: React.FC = () => {
         if (data.nik) setValue('pilgrim.noKtp', data.nik);
         if (data.born) setValue('pilgrim.born', data.born);
         if (data.address) setValue('pilgrim.address', data.address);
-        if (data.fatherName) setValue('pilgrim.fatherName', data.fatherName);
         if (data.sex) setValue('pilgrim.sex', data.sex === 'L' ? 'L' : 'P');
+        // KTP also has maritalStatus and work — set them in contact step
+        if (data.maritalStatus) setValue('pilgrim.maritalStatus', data.maritalStatus);
+        if (data.work) setValue('pilgrim.work', data.work);
     };
 
     return (

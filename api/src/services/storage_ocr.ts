@@ -24,12 +24,13 @@ export class OCRService {
 
         if (type === 'ktp') {
             return {
-                nik: '3273' + Math.floor(Math.random() * 1000000000000).toString().padStart(12, '0'),
-                name: 'MOHAMMAD TESTER',
-                address: 'Jl. Raya Kebahagiaan No. 88, Jakarta Selatan',
-                born: '1985-05-20',
+                nik: '3515' + Math.floor(Math.random() * 1000000000000).toString().padStart(12, '0'),
+                name: 'ADHI NUGROHO',
+                address: 'JL IKAN LUMBA-LUMBA 19 RT 005/004 TAMBAKREJO WARU',
+                born: '1983-07-30',
                 sex: 'L',
-                fatherName: 'TESTER SENIOR'
+                maritalStatus: 'Menikah',
+                work: 'KARYAWAN SWASTA',
             };
         }
 
