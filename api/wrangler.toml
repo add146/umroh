@@ -28,7 +28,7 @@ name = "umroh-api-prod"
 
 [env.production.vars]
 ENVIRONMENT = "production"
-FRONTEND_URL = "https://umroh.khibroh.com"
+FRONTEND_URL = "https://umroh-3vl.pages.dev"
 
 [[env.production.d1_databases]]
 binding = "DB"
