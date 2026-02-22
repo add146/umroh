@@ -41,6 +41,3 @@ CREATE TABLE `prospects` (
 	FOREIGN KEY (`owner_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`converted_booking_id`) REFERENCES `bookings`(`id`) ON UPDATE no action ON DELETE no action
 );
---> statement-breakpoint
-ALTER TABLE `packages` ADD `duration` text;--> statement-breakpoint
-ALTER TABLE `packages` ADD `service_type` text;
