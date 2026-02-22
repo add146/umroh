@@ -2,9 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { apiFetch } from '../../lib/api';
 
-interface StepReviewProps {
-    isLoading: boolean;
-}
+interface StepReviewProps { isLoading: boolean; }
 
 const StepReview: React.FC<StepReviewProps> = ({ isLoading }) => {
     const { watch } = useFormContext();
@@ -21,97 +19,92 @@ const StepReview: React.FC<StepReviewProps> = ({ isLoading }) => {
                     if (room) {
                         const basePrice = response.departure.package.basePrice || 0;
                         const adjustment = room.priceAdjustment || 0;
-                        setPriceDetails({
-                            basePrice,
-                            roomAdjustment: adjustment,
-                            total: basePrice + adjustment,
-                            packageName: response.departure.package.name,
-                            roomName: room.name
-                        });
+                        setPriceDetails({ basePrice, roomAdjustment: adjustment, total: basePrice + adjustment, packageName: response.departure.package.name, roomName: room.name });
                     }
                 }
-            } catch (error) {
-                console.error("Failed to fetch price details:", error);
-            }
+            } catch (error) { console.error("Failed to fetch price details:", error); }
         };
         fetchDetails();
     }, [data.departureId, data.roomTypeId]);
 
     const SummaryItem = ({ label, value }: { label: string; value: string | boolean | undefined }) => (
-        <div className="flex justify-between py-2 border-b border-gray-50 last:border-0">
-            <span className="text-xs text-gray-400 uppercase font-bold">{label}</span>
-            <span className="text-sm font-bold text-gray-900 text-right">{value?.toString() || '-'}</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            <span style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase', fontWeight: 700 }}>{label}</span>
+            <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'white', textAlign: 'right' }}>{value?.toString() || '-'}</span>
         </div>
     );
 
     return (
-        <div className="space-y-8">
-            <div className="text-center">
-                <h2 className="text-2xl font-black text-gray-900 mb-2">Review Pendaftaran</h2>
-                <p className="text-sm text-gray-500">Silakan periksa kembali seluruh data sebelum menekan tombol Daftar.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <div style={{ textAlign: 'center' }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white', margin: '0 0 0.375rem 0' }}>Review Pendaftaran</h2>
+                <p style={{ fontSize: '0.875rem', color: '#888', margin: 0 }}>Silakan periksa kembali seluruh data sebelum menekan tombol Daftar.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                    <div className="bg-gray-50 p-6 rounded-2xl">
-                        <h3 className="text-sm font-black text-brand-primary mb-4 border-b pb-2 uppercase tracking-tighter">IDENTITAS UTAMA</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{ background: '#0a0907', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #333' }}>
+                        <h3 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid #333' }}>Identitas Utama</h3>
                         <SummaryItem label="Nama Lengkap" value={data.pilgrim?.name} />
                         <SummaryItem label="No. KTP" value={data.pilgrim?.noKtp} />
                         <SummaryItem label="Tgl Lahir" value={data.pilgrim?.born} />
                         <SummaryItem label="Pekerjaan" value={data.pilgrim?.work} />
                     </div>
 
-                    <div className="bg-gray-50 p-6 rounded-2xl">
-                        <h3 className="text-sm font-black text-brand-primary mb-4 border-b pb-2 uppercase tracking-tighter">KONTAK & DARURAT</h3>
+                    <div style={{ background: '#0a0907', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #333' }}>
+                        <h3 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid #333' }}>Kontak & Darurat</h3>
                         <SummaryItem label="No. WhatsApp" value={data.pilgrim?.phone} />
                         <SummaryItem label="Darurat" value={data.pilgrim?.famContactName} />
                         <SummaryItem label="HP Darurat" value={data.pilgrim?.famContact} />
                     </div>
                 </div>
 
-                <div className="space-y-6">
-                    <div className="bg-gray-50 p-6 rounded-2xl border-2 border-brand-secondary/30">
-                        <h3 className="text-sm font-black text-brand-primary mb-4 border-b pb-2 uppercase tracking-tighter">RINCIAN PAKET</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{ background: '#0a0907', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-primary)', borderWidth: '1px' }}>
+                        <h3 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid #333' }}>Rincian Paket</h3>
                         <SummaryItem label="Paket" value={priceDetails?.packageName || 'Memuat...'} />
                         <SummaryItem label="Pilihan Kamar" value={priceDetails?.roomName || 'Memuat...'} />
                         <SummaryItem label="Status Paspor" value={data.pilgrim?.hasPassport ? 'Sudah Ada' : 'Belum Ada'} />
                     </div>
 
-                    <div className="p-6 rounded-2xl bg-brand-primary text-white shadow-xl shadow-brand-primary/20">
+                    {/* Price Summary */}
+                    <div style={{ padding: '1.25rem', borderRadius: '0.75rem', background: 'var(--color-primary)', color: 'white' }}>
                         {priceDetails ? (
-                            <div className="space-y-3 mb-4">
-                                <div className="flex justify-between text-white/80 text-sm">
+                            <div style={{ marginBottom: '1rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', opacity: 0.8, marginBottom: '0.5rem' }}>
                                     <span>Harga Dasar</span>
                                     <span>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(priceDetails.basePrice)}</span>
                                 </div>
-                                <div className="flex justify-between text-white/80 text-sm border-b border-white/20 pb-3">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', opacity: 0.8, marginBottom: '0.75rem', paddingBottom: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
                                     <span>Penyesuaian Kamar</span>
                                     <span>{priceDetails.roomAdjustment >= 0 ? '+' : '-'}{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Math.abs(priceDetails.roomAdjustment))}</span>
                                 </div>
-                                <div className="flex justify-between items-end font-bold text-lg pt-1">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontWeight: 700, fontSize: '1.125rem' }}>
                                     <span>Total Tagihan</span>
-                                    <span className="text-2xl text-brand-secondary">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(priceDetails.total)}</span>
+                                    <span style={{ fontSize: '1.5rem', fontWeight: 900 }}>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(priceDetails.total)}</span>
                                 </div>
                             </div>
                         ) : (
-                            <p className="text-[10px] font-bold text-white/60 uppercase mb-4">Memuat rincian harga...</p>
+                            <p style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.6, textTransform: 'uppercase', margin: '0 0 1rem 0' }}>Memuat rincian harga...</p>
                         )}
-                        <div className="flex justify-between items-center text-sm font-medium opacity-90 border-t border-white/20 pt-4 mt-2">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.875rem', fontWeight: 600, opacity: 0.9, borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '0.75rem' }}>
                             <span>Lanjutkan Pembayaran di Tahap Berikutnya</span>
                             <span>➔</span>
                         </div>
                     </div>
 
-                    <div className="p-4 bg-yellow-50 border border-yellow-100 rounded-xl text-[10px] text-yellow-700 leading-relaxed italic">
-                        * Dengan menekan tombol daftar, Anda menyetujui seluruh syarat dan ketentuan perjalanan yang berlaku di Al Madinah Umroh.
+                    <div style={{ padding: '0.875rem', background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.2)', borderRadius: '0.5rem' }}>
+                        <p style={{ fontSize: '0.75rem', color: '#eab308', margin: 0, fontStyle: 'italic' }}>
+                            * Dengan menekan tombol daftar, Anda menyetujui seluruh syarat dan ketentuan perjalanan yang berlaku di Al Madinah Umroh.
+                        </p>
                     </div>
                 </div>
             </div>
 
             {isLoading && (
-                <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
-                    <div className="w-16 h-16 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-                    <p className="font-bold text-brand-primary">Sedang Memproses Booking...</p>
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', zIndex: 50, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '48px', color: 'var(--color-primary)', animation: 'spin 1s linear infinite', marginBottom: '1rem' }}>progress_activity</span>
+                    <p style={{ fontWeight: 700, color: 'var(--color-primary)' }}>Sedang Memproses Booking...</p>
                 </div>
             )}
         </div>

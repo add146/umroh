@@ -178,7 +178,7 @@ const Registration = () => {
                 </div>
 
                 {/* ===== FORM CARD ===== */}
-                <div className="dark-card" style={{ borderRadius: '1.25rem', padding: '2.5rem', marginBottom: '1.5rem' }}>
+                <div style={{ background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', padding: '2.5rem', marginBottom: '1.5rem' }}>
                     <div style={{ marginBottom: '2rem' }}>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '0.375rem' }}>
                             Langkah {currentStep}: {STEPS[currentStep - 1].label}

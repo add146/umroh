@@ -1,49 +1,41 @@
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
 
+const inputStyle: React.CSSProperties = { width: '100%', padding: '0.875rem', background: '#0a0907', border: '1px solid #333', color: 'white', borderRadius: '0.5rem', outline: 'none', fontSize: '0.875rem' };
+const labelStyle: React.CSSProperties = { display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.5rem' };
+
 const StepFamily: React.FC = () => {
     const { register } = useFormContext();
 
     return (
-        <div className="space-y-8">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-1">Keluarga & Sumber Informasi</h2>
-                <p className="text-sm text-gray-500">Kontak darurat dan referensi pendaftaran.</p>
+                <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'white', margin: '0 0 0.25rem 0' }}>Keluarga & Sumber Informasi</h2>
+                <p style={{ fontSize: '0.8125rem', color: '#888', margin: 0 }}>Kontak darurat dan referensi pendaftaran.</p>
             </div>
 
-            <div className="space-y-6">
-                <div className="p-6 bg-brand-primary/5 rounded-2xl border border-brand-primary/10">
-                    <h3 className="text-sm font-bold text-brand-primary mb-4 flex items-center">
-                        <span className="mr-2">🚨</span> Kontak Darurat (Keluarga)
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                {/* Emergency Contact Card */}
+                <div style={{ padding: '1.25rem', background: 'var(--color-primary-bg)', borderRadius: '0.75rem', border: '1px solid rgba(var(--color-primary-rgb, 200,170,100), 0.2)' }}>
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--color-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>emergency</span>
+                        Kontak Darurat (Keluarga)
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                         <div>
-                            <label className="block text text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Nama Kontak</label>
-                            <input
-                                type="text"
-                                {...register('pilgrim.famContactName')}
-                                className="w-full bg-white border-gray-100 rounded-xl p-3 text-sm focus:ring-brand-primary"
-                                placeholder="Nama anggota keluarga"
-                            />
+                            <label style={labelStyle}>Nama Kontak</label>
+                            <input type="text" {...register('pilgrim.famContactName')} placeholder="Nama anggota keluarga" style={inputStyle} />
                         </div>
                         <div>
-                            <label className="block text text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Nomor HP</label>
-                            <input
-                                type="tel"
-                                {...register('pilgrim.famContact')}
-                                className="w-full bg-white border-gray-100 rounded-xl p-3 text-sm focus:ring-brand-primary"
-                                placeholder="08xxxxxxxx"
-                            />
+                            <label style={labelStyle}>Nomor HP</label>
+                            <input type="tel" {...register('pilgrim.famContact')} placeholder="08xxxxxxxx" style={inputStyle} />
                         </div>
                     </div>
                 </div>
 
                 <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Dari Mana Anda Mengetahui Kami?</label>
-                    <select
-                        {...register('pilgrim.sourceFrom')}
-                        className="w-full bg-gray-50 border-gray-100 rounded-xl p-4 text-sm focus:ring-brand-primary"
-                    >
+                    <label style={labelStyle}>Dari Mana Anda Mengetahui Kami?</label>
+                    <select {...register('pilgrim.sourceFrom')} style={inputStyle}>
                         <option value="">Pilih Sumber Informasi</option>
                         <option value="Media Sosial">Media Sosial (IG/FB/TikTok)</option>
                         <option value="Rekomendasi Teman">Rekomendasi Teman/Keluarga</option>
@@ -53,14 +45,9 @@ const StepFamily: React.FC = () => {
                     </select>
                 </div>
 
-                <div className="md:col-span-2">
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Anggota Keluarga Yang Ikut (Opsional)</label>
-                    <textarea
-                        {...register('pilgrim.famMember')}
-                        rows={2}
-                        className="w-full bg-gray-50 border-gray-100 rounded-xl p-4 text-sm focus:ring-brand-primary"
-                        placeholder="Sebutkan nama keluarga lain jika mendaftar bersamaan (misal: Istri, Anak)..."
-                    ></textarea>
+                <div>
+                    <label style={labelStyle}>Anggota Keluarga Yang Ikut (Opsional)</label>
+                    <textarea {...register('pilgrim.famMember')} rows={2} placeholder="Sebutkan nama keluarga lain jika mendaftar bersamaan (misal: Istri, Anak)..." style={{ ...inputStyle, resize: 'vertical' }}></textarea>
                 </div>
             </div>
         </div>

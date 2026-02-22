@@ -1,6 +1,9 @@
 import { useFormContext } from 'react-hook-form';
 import OCRUpload from './OCRUpload';
 
+const inputStyle: React.CSSProperties = { width: '100%', padding: '0.875rem', background: '#0a0907', border: '1px solid #333', color: 'white', borderRadius: '0.5rem', outline: 'none', fontSize: '0.875rem' };
+const labelStyle: React.CSSProperties = { display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.5rem' };
+
 const StepPassport: React.FC = () => {
     const { register, watch, setValue } = useFormContext();
     const hasPassport = watch('pilgrim.hasPassport');
@@ -12,68 +15,46 @@ const StepPassport: React.FC = () => {
     };
 
     return (
-        <div className="space-y-8">
-            <div className="flex justify-between items-center">
-                <div className="flex-1">
-                    <h2 className="text-xl font-bold text-gray-900 mb-1">Data Paspor</h2>
-                    <p className="text-sm text-gray-500">Kosongkan jika Anda belum memiliki paspor.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                    <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'white', margin: '0 0 0.25rem 0' }}>Data Paspor</h2>
+                    <p style={{ fontSize: '0.8125rem', color: '#888', margin: 0 }}>Kosongkan jika Anda belum memiliki paspor.</p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     {hasPassport && <OCRUpload docType="passport" onSuccess={handleOCRSuccess} />}
-                    <div className="flex items-center bg-gray-50 p-3 rounded-2xl border">
-                        <span className="text-xs font-bold text-gray-400 mr-3">SUDAH PUNYA PASPOR?</span>
-                        <input
-                            type="checkbox"
-                            {...register('pilgrim.hasPassport')}
-                            className="w-6 h-6 rounded border-gray-300 text-brand-primary focus:ring-brand-primary"
-                        />
+                    <div style={{ display: 'flex', alignItems: 'center', background: '#0a0907', padding: '0.625rem 0.875rem', borderRadius: '0.5rem', border: '1px solid #333' }}>
+                        <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: '#888', marginRight: '0.75rem' }}>SUDAH PUNYA PASPOR?</span>
+                        <input type="checkbox" {...register('pilgrim.hasPassport')} style={{ width: '20px', height: '20px', accentColor: 'var(--color-primary)' }} />
                     </div>
                 </div>
             </div>
 
             {hasPassport && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-4 duration-300">
+                <div className="animate-in fade-in duration-300" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div>
-                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Nomor Paspor</label>
-                        <input
-                            type="text"
-                            {...register('pilgrim.noPassport')}
-                            className="w-full bg-gray-50 border-gray-100 rounded-xl p-4 text-sm focus:ring-brand-primary"
-                            placeholder="e.g. A 1234567"
-                        />
+                        <label style={labelStyle}>Nomor Paspor</label>
+                        <input type="text" {...register('pilgrim.noPassport')} placeholder="e.g. A 1234567" style={{ ...inputStyle, fontFamily: 'monospace' }} />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Kantor Imigrasi (Dikeluarkan di)</label>
-                        <input
-                            type="text"
-                            {...register('pilgrim.passportFrom')}
-                            className="w-full bg-gray-50 border-gray-100 rounded-xl p-4 text-sm focus:ring-brand-primary"
-                            placeholder="Jakarta Selatan, Surabaya, dsb"
-                        />
+                        <label style={labelStyle}>Kantor Imigrasi (Dikeluarkan di)</label>
+                        <input type="text" {...register('pilgrim.passportFrom')} placeholder="Jakarta Selatan, Surabaya, dsb" style={inputStyle} />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Tanggal Pengeluaran</label>
-                        <input
-                            type="date"
-                            {...register('pilgrim.passportReleaseDate')}
-                            className="w-full bg-gray-50 border-gray-100 rounded-xl p-4 text-sm focus:ring-brand-primary"
-                        />
+                        <label style={labelStyle}>Tanggal Pengeluaran</label>
+                        <input type="date" {...register('pilgrim.passportReleaseDate')} style={inputStyle} />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Tanggal Habis Berlaku</label>
-                        <input
-                            type="date"
-                            {...register('pilgrim.passportExpiry')}
-                            className="w-full bg-gray-50 border-gray-100 rounded-xl p-4 text-sm focus:ring-brand-primary"
-                        />
+                        <label style={labelStyle}>Tanggal Habis Berlaku</label>
+                        <input type="date" {...register('pilgrim.passportExpiry')} style={inputStyle} />
                     </div>
                 </div>
             )}
 
             {!hasPassport && (
-                <div className="p-8 border-2 border-dashed rounded-2xl text-center bg-gray-50">
-                    <p className="text-sm text-gray-500 mb-2">Anda memilih opsi <strong>Belum Memiliki Paspor</strong>.</p>
-                    <p className="text-xs text-gray-400">Anda tetap dapat melanjutkan pendaftaran. Pengurusan paspor dapat dibantu oleh tim kami setelah booking selesai.</p>
+                <div style={{ padding: '2rem', border: '2px dashed #333', borderRadius: '0.75rem', textAlign: 'center', background: '#0a0907' }}>
+                    <p style={{ fontSize: '0.875rem', color: '#888', margin: '0 0 0.375rem 0' }}>Anda memilih opsi <strong style={{ color: 'white' }}>Belum Memiliki Paspor</strong>.</p>
+                    <p style={{ fontSize: '0.75rem', color: '#666', margin: 0 }}>Anda tetap dapat melanjutkan pendaftaran. Pengurusan paspor dapat dibantu oleh tim kami setelah booking selesai.</p>
                 </div>
             )}
         </div>

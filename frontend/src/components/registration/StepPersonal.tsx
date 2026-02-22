@@ -1,6 +1,9 @@
 import { useFormContext } from 'react-hook-form';
 import OCRUpload from './OCRUpload';
 
+const inputStyle: React.CSSProperties = { width: '100%', padding: '0.875rem', background: '#0a0907', border: '1px solid #333', color: 'white', borderRadius: '0.5rem', outline: 'none', fontSize: '0.875rem' };
+const labelStyle: React.CSSProperties = { display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.5rem' };
+
 const StepPersonal: React.FC = () => {
     const { register, setValue, formState: { errors } } = useFormContext();
 
@@ -14,83 +17,58 @@ const StepPersonal: React.FC = () => {
     };
 
     return (
-        <div className="space-y-8">
-            <div className="flex justify-between items-start">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                 <div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-1">Data Pribadi</h2>
-                    <p className="text-sm text-gray-500">Pastikan data sesuai dengan KTP Anda.</p>
+                    <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'white', margin: '0 0 0.25rem 0' }}>Data Pribadi</h2>
+                    <p style={{ fontSize: '0.8125rem', color: '#888', margin: 0 }}>Pastikan data sesuai dengan KTP Anda.</p>
                 </div>
-                <div className="w-64">
+                <div style={{ width: '200px' }}>
                     <OCRUpload docType="ktp" onSuccess={handleOCRSuccess} />
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="md:col-span-2">
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Nama Lengkap (Sesuai KTP)</label>
-                    <input
-                        type="text"
-                        {...register('pilgrim.name')}
-                        className="w-full bg-gray-50 border-gray-100 rounded-xl p-4 text-sm focus:ring-brand-primary focus:border-brand-primary"
-                        placeholder="Contoh: Ahmad Subagyo"
-                    />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={labelStyle}>Nama Lengkap (Sesuai KTP)</label>
+                    <input type="text" {...register('pilgrim.name')} placeholder="Contoh: Ahmad Subagyo" style={inputStyle} />
                     {errors.pilgrim && (errors.pilgrim as any).name && (
-                        <p className="text-red-500 text-[10px] mt-1">{(errors.pilgrim as any).name.message}</p>
+                        <p style={{ color: '#ef4444', fontSize: '0.6875rem', margin: '0.25rem 0 0 0' }}>{(errors.pilgrim as any).name.message}</p>
                     )}
                 </div>
 
                 <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Nomor KTP (NIK)</label>
-                    <input
-                        type="text"
-                        {...register('pilgrim.noKtp')}
-                        maxLength={16}
-                        className="w-full bg-gray-50 border-gray-100 rounded-xl p-4 text-sm focus:ring-brand-primary focus:border-brand-primary"
-                        placeholder="16 Digit NIK"
-                    />
+                    <label style={labelStyle}>Nomor KTP (NIK)</label>
+                    <input type="text" {...register('pilgrim.noKtp')} maxLength={16} placeholder="16 Digit NIK" style={{ ...inputStyle, fontFamily: 'monospace' }} />
                 </div>
 
                 <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Jenis Kelamin</label>
-                    <div className="flex gap-4 h-[54px]">
-                        <label className="flex-1 flex items-center justify-center border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
-                            <input type="radio" value="L" {...register('pilgrim.sex')} className="mr-2 accent-brand-primary" />
-                            <span className="text-sm font-bold">Laki-laki</span>
+                    <label style={labelStyle}>Jenis Kelamin</label>
+                    <div style={{ display: 'flex', gap: '0.75rem', height: '48px' }}>
+                        <label style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #333', borderRadius: '0.5rem', cursor: 'pointer', background: '#0a0907', gap: '0.375rem' }}>
+                            <input type="radio" value="L" {...register('pilgrim.sex')} style={{ accentColor: 'var(--color-primary)' }} />
+                            <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'white' }}>Laki-laki</span>
                         </label>
-                        <label className="flex-1 flex items-center justify-center border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
-                            <input type="radio" value="P" {...register('pilgrim.sex')} className="mr-2 accent-brand-primary" />
-                            <span className="text-sm font-bold">Perempuan</span>
+                        <label style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #333', borderRadius: '0.5rem', cursor: 'pointer', background: '#0a0907', gap: '0.375rem' }}>
+                            <input type="radio" value="P" {...register('pilgrim.sex')} style={{ accentColor: 'var(--color-primary)' }} />
+                            <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'white' }}>Perempuan</span>
                         </label>
                     </div>
                 </div>
 
                 <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Tanggal Lahir</label>
-                    <input
-                        type="date"
-                        {...register('pilgrim.born')}
-                        className="w-full bg-gray-50 border-gray-100 rounded-xl p-4 text-sm focus:ring-brand-primary focus:border-brand-primary"
-                    />
+                    <label style={labelStyle}>Tanggal Lahir</label>
+                    <input type="date" {...register('pilgrim.born')} style={inputStyle} />
                 </div>
 
                 <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Nama Ayah Kandung</label>
-                    <input
-                        type="text"
-                        {...register('pilgrim.fatherName')}
-                        className="w-full bg-gray-50 border-gray-100 rounded-xl p-4 text-sm focus:ring-brand-primary focus:border-brand-primary"
-                        placeholder="Nama Bapak"
-                    />
+                    <label style={labelStyle}>Nama Ayah Kandung</label>
+                    <input type="text" {...register('pilgrim.fatherName')} placeholder="Nama Bapak" style={inputStyle} />
                 </div>
 
-                <div className="md:col-span-2">
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Alamat Lengkap</label>
-                    <textarea
-                        {...register('pilgrim.address')}
-                        rows={3}
-                        className="w-full bg-gray-50 border-gray-100 rounded-xl p-4 text-sm focus:ring-brand-primary focus:border-brand-primary"
-                        placeholder="Nama jalan, nomor rumah, RT/RW, Kec, Kota/Kab"
-                    ></textarea>
+                <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={labelStyle}>Alamat Lengkap</label>
+                    <textarea {...register('pilgrim.address')} rows={3} placeholder="Nama jalan, nomor rumah, RT/RW, Kec, Kota/Kab" style={{ ...inputStyle, resize: 'vertical' }}></textarea>
                 </div>
             </div>
         </div>

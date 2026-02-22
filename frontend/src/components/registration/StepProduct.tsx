@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { apiFetch } from '../../lib/api';
 
-interface StepProductProps {
-    packageId?: string;
-}
+interface StepProductProps { packageId?: string; }
+
+const inputStyle: React.CSSProperties = { width: '100%', padding: '0.875rem', background: '#0a0907', border: '1px solid #333', color: 'white', borderRadius: '0.5rem', outline: 'none', fontSize: '0.875rem' };
+const sectionTitle: React.CSSProperties = { fontSize: '1.125rem', fontWeight: 700, color: 'white', margin: '0 0 0.25rem 0' };
+const sectionDesc: React.CSSProperties = { fontSize: '0.8125rem', color: '#888', margin: '0 0 0.75rem 0' };
 
 const StepProduct: React.FC<StepProductProps> = ({ packageId: initialPackageId }) => {
     const { register, setValue, watch } = useFormContext();
@@ -14,174 +16,123 @@ const StepProduct: React.FC<StepProductProps> = ({ packageId: initialPackageId }
     const [roomTypes, setRoomTypes] = useState<any[]>([]);
     const [loadingPackages, setLoadingPackages] = useState(true);
     const [loadingDepartures, setLoadingDepartures] = useState(false);
-
     const selectedDepartureId = watch('departureId');
 
-    // Fetch packages
     useEffect(() => {
         const fetchPackages = async () => {
             try {
                 const data = await apiFetch('/api/packages');
                 setPackages(data.packages || []);
-                if (!initialPackageId && data.packages?.length > 0) {
-                    setSelectedPackageId(data.packages[0].id);
-                }
-            } catch (error) {
-                console.error('Failed to fetch packages:', error);
-            } finally {
-                setLoadingPackages(false);
-            }
+                if (!initialPackageId && data.packages?.length > 0) setSelectedPackageId(data.packages[0].id);
+            } catch (error) { console.error('Failed to fetch packages:', error); }
+            finally { setLoadingPackages(false); }
         };
         fetchPackages();
     }, [initialPackageId]);
 
-    // Fetch departures when package changes
     useEffect(() => {
         const fetchDepartures = async () => {
-            if (!selectedPackageId) {
-                setDepartures([]);
-                return;
-            }
+            if (!selectedPackageId) { setDepartures([]); return; }
             setLoadingDepartures(true);
             try {
                 const data = await apiFetch(`/api/departures?packageId=${selectedPackageId}`);
                 setDepartures(data.departures || []);
-                if (data.departures?.length > 0) {
-                    setValue('departureId', data.departures[0].id);
-                } else {
-                    setValue('departureId', '');
-                    setRoomTypes([]);
-                }
-            } catch (error) {
-                console.error('Failed to fetch departures:', error);
-            } finally {
-                setLoadingDepartures(false);
-            }
+                if (data.departures?.length > 0) { setValue('departureId', data.departures[0].id); } else { setValue('departureId', ''); setRoomTypes([]); }
+            } catch (error) { console.error('Failed to fetch departures:', error); }
+            finally { setLoadingDepartures(false); }
         };
         fetchDepartures();
     }, [selectedPackageId, setValue]);
 
-    // Fetch rooms when departure changes
     useEffect(() => {
         const fetchRooms = async () => {
-            if (!selectedDepartureId) {
-                setRoomTypes([]);
-                return;
-            }
+            if (!selectedDepartureId) { setRoomTypes([]); return; }
             try {
                 const data = await apiFetch(`/api/departures/${selectedDepartureId}`);
                 setRoomTypes(data.departure?.roomTypes || data.roomTypes || []);
-                if (data.departure?.roomTypes?.length > 0) {
-                    setValue('roomTypeId', data.departure.roomTypes[0].id);
-                } else if (data.roomTypes?.length > 0) {
-                    setValue('roomTypeId', data.roomTypes[0].id);
-                } else {
-                    setValue('roomTypeId', '');
-                }
-            } catch (error) {
-                console.error('Failed to fetch room types:', error);
-            }
+                if (data.departure?.roomTypes?.length > 0) { setValue('roomTypeId', data.departure.roomTypes[0].id); }
+                else if (data.roomTypes?.length > 0) { setValue('roomTypeId', data.roomTypes[0].id); }
+                else { setValue('roomTypeId', ''); }
+            } catch (error) { console.error('Failed to fetch room types:', error); }
         };
         fetchRooms();
     }, [selectedDepartureId, setValue]);
 
     return (
-        <div className="space-y-8">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             {/* Package Selection */}
             <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-1">Pilih Produk / Paket</h2>
-                <p className="text-sm text-gray-500 mb-3">Pilih paket umroh atau haji yang Anda inginkan.</p>
+                <h2 style={sectionTitle}>Pilih Produk / Paket</h2>
+                <p style={sectionDesc}>Pilih paket umroh atau haji yang Anda inginkan.</p>
                 {loadingPackages ? (
-                    <div className="h-12 bg-gray-50 animate-pulse rounded-xl w-full"></div>
+                    <div style={{ height: '48px', background: 'rgba(255,255,255,0.05)', borderRadius: '0.5rem' }} />
                 ) : (
-                    <select
-                        value={selectedPackageId}
-                        onChange={(e) => setSelectedPackageId(e.target.value)}
-                        className="w-full p-4 border-2 border-gray-100 rounded-xl focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none transition-all appearance-none cursor-pointer text-gray-900 font-medium"
-                        style={{
-                            backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                            backgroundPosition: 'right 1rem center',
-                            backgroundRepeat: 'no-repeat',
-                            backgroundSize: '1.5em 1.5em'
-                        }}
-                    >
+                    <select value={selectedPackageId} onChange={(e) => setSelectedPackageId(e.target.value)} style={inputStyle}>
                         <option value="" disabled>-- Pilih Paket --</option>
-                        {packages.map((pkg) => (
-                            <option key={pkg.id} value={pkg.id}>
-                                {pkg.name}
-                            </option>
-                        ))}
+                        {packages.map((pkg) => <option key={pkg.id} value={pkg.id}>{pkg.name}</option>)}
                     </select>
                 )}
             </div>
 
+            {/* Departures */}
             <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-1">Pilih Keberangkatan</h2>
-                <p className="text-sm text-gray-500">Tentukan tanggal dan kota keberangkatan Anda.</p>
+                <h2 style={sectionTitle}>Pilih Keberangkatan</h2>
+                <p style={sectionDesc}>Tentukan tanggal dan kota keberangkatan Anda.</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    {loadingDepartures ? (
+                        <div style={{ gridColumn: '1 / -1', height: '80px', background: 'rgba(255,255,255,0.05)', borderRadius: '0.5rem' }} />
+                    ) : departures.length === 0 ? (
+                        <div style={{ gridColumn: '1 / -1', padding: '1rem', textAlign: 'center', color: '#888', border: '2px dashed #333', borderRadius: '0.5rem', fontSize: '0.875rem' }}>
+                            {selectedPackageId ? 'Tidak ada jadwal keberangkatan untuk paket ini.' : 'Pilih paket terlebih dahulu.'}
+                        </div>
+                    ) : (
+                        departures.map((dep) => (
+                            <label key={dep.id} style={{
+                                display: 'flex', flexDirection: 'column', padding: '1rem', borderRadius: '0.5rem', cursor: 'pointer', transition: 'all 0.2s',
+                                border: selectedDepartureId === dep.id ? '2px solid var(--color-primary)' : '2px solid #333',
+                                background: selectedDepartureId === dep.id ? 'var(--color-primary-bg)' : '#0a0907',
+                            }}>
+                                <input type="radio" value={dep.id} {...register('departureId')} style={{ display: 'none' }} />
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.375rem' }}>
+                                    <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'white' }}>
+                                        {new Date(dep.departureDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                    </span>
+                                    <span style={{ fontSize: '0.6875rem', padding: '0.125rem 0.5rem', background: 'rgba(255,255,255,0.1)', borderRadius: '0.25rem', fontWeight: 700, color: '#ccc' }}>{dep.airport}</span>
+                                </div>
+                                <p style={{ fontSize: '0.75rem', color: '#888', margin: 0 }}>Status: {dep.status === 'full' ? 'Penuh' : 'Tersedia'}</p>
+                            </label>
+                        ))
+                    )}
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {loadingDepartures ? (
-                    <div className="col-span-2 h-20 bg-gray-50 animate-pulse rounded-xl"></div>
-                ) : departures.length === 0 ? (
-                    <div className="col-span-2 p-4 text-center text-gray-500 border-2 border-dashed border-gray-200 rounded-xl">
-                        {selectedPackageId ? 'Tidak ada jadwal keberangkatan untuk paket ini.' : 'Pilih paket terlebih dahulu.'}
-                    </div>
-                ) : (
-                    departures.map((dep) => (
-                        <label
-                            key={dep.id}
-                            className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition-all ${selectedDepartureId === dep.id ? 'border-brand-primary bg-brand-primary/5' : 'border-gray-100 hover:border-gray-200'}`}
-                        >
-                            <input
-                                type="radio"
-                                value={dep.id}
-                                {...register('departureId')}
-                                className="sr-only"
-                            />
-                            <div className="flex justify-between items-start mb-2">
-                                <span className="text-sm font-bold text-gray-900">
-                                    {new Date(dep.departureDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+            {/* Room Types */}
+            <div>
+                <h2 style={sectionTitle}>Pilih Tipe Kamar</h2>
+                <p style={sectionDesc}>Kapasitas kamar mempengaruhi harga per paket.</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
+                    {roomTypes.length === 0 ? (
+                        <div style={{ gridColumn: '1 / -1', padding: '1rem', textAlign: 'center', color: '#888', border: '2px dashed #333', borderRadius: '0.5rem', fontSize: '0.875rem' }}>
+                            Pilih jadwal keberangkatan terlebih dahulu.
+                        </div>
+                    ) : (
+                        roomTypes.map((room) => (
+                            <label key={room.id} style={{
+                                display: 'flex', flexDirection: 'column', padding: '1rem', borderRadius: '0.5rem', cursor: 'pointer', transition: 'all 0.2s',
+                                border: watch('roomTypeId') === room.id ? '2px solid var(--color-primary)' : '2px solid #333',
+                                background: watch('roomTypeId') === room.id ? 'var(--color-primary-bg)' : '#0a0907',
+                            }}>
+                                <input type="radio" value={room.id} {...register('roomTypeId')} style={{ display: 'none' }} />
+                                <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'white', marginBottom: '0.25rem' }}>{room.name}</span>
+                                <span style={{ fontSize: '0.75rem', color: '#888', marginBottom: '0.5rem' }}>{room.capacity} Pax Per Kamar</span>
+                                <span style={{ fontWeight: 800, color: 'var(--color-primary)' }}>
+                                    {room.priceAdjustment >= 0 ? '+' : '-'}
+                                    {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Math.abs(room.priceAdjustment))}
                                 </span>
-                                <span className="bg-gray-200 text-[10px] px-2 py-0.5 rounded font-black">{dep.airport}</span>
-                            </div>
-                            <p className="text-xs text-gray-500">Status: {dep.status === 'full' ? 'Penuh' : 'Tersedia'}</p>
-                        </label>
-                    ))
-                )}
-            </div>
-
-            <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-1">Pilih Tipe Kamar</h2>
-                <p className="text-sm text-gray-500">Kapasitas kamar mempengaruhi harga per paket.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {roomTypes.length === 0 ? (
-                    <div className="col-span-3 p-4 text-center text-gray-500 border-2 border-dashed border-gray-200 rounded-xl">
-                        Pilih jadwal keberangkatan terlebih dahulu.
-                    </div>
-                ) : (
-                    roomTypes.map((room) => (
-                        <label
-                            key={room.id}
-                            className={`flex flex-col p-4 border-2 rounded-xl cursor-pointer transition-all ${watch('roomTypeId') === room.id ? 'border-brand-primary bg-brand-primary/5' : 'border-gray-100 hover:border-gray-200'}`}
-                        >
-                            <input
-                                type="radio"
-                                value={room.id}
-                                {...register('roomTypeId')}
-                                className="sr-only"
-                            />
-                            <span className="text-sm font-bold text-gray-900 mb-1">{room.name}</span>
-                            <span className="text-xs text-gray-500 mb-3">{room.capacity} Pax Per Kamar</span>
-                            <span className="text-brand-primary font-black">
-                                {room.priceAdjustment >= 0 ? '+' : '-'}
-                                {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Math.abs(room.priceAdjustment))}
-                            </span>
-                        </label>
-                    ))
-                )}
+                            </label>
+                        ))
+                    )}
+                </div>
             </div>
         </div>
     );
