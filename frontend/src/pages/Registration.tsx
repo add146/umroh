@@ -85,7 +85,7 @@ const Registration = () => {
     const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [lockKey] = useState<string | null>(null);
-    const [visitedSteps, setVisitedSteps] = useState<Set<number>>(new Set([1]));
+    const [, setVisitedSteps] = useState<Set<number>>(new Set([1]));
 
     const methods = useForm<RegistrationData>({
         resolver: zodResolver(registrationSchema),
