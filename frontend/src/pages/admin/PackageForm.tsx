@@ -6,25 +6,24 @@ import { ArrowLeft, Save, Plus, Trash2, X, Loader2, ImagePlus } from 'lucide-rea
 
 // Simple toolbar for rich text areas
 function RichTextToolbar({ id }: { id: string }) {
-    const exec = (cmd: string, val?: string) => {
-        document.execCommand(cmd, false, val);
+    const exec = (cmd: string) => {
+        document.execCommand(cmd, false);
         document.getElementById(id)?.focus();
     };
     return (
-        <div style={{ display: 'flex', gap: '2px', padding: '0.5rem', borderBottom: '1px solid #333', background: '#0a0907' }}>
+        <div className="flex gap-0.5 px-4 py-3 border-b border-[var(--color-border)] bg-[#0a0907]">
             {[
-                { cmd: 'bold', label: 'Bold', style: { fontWeight: 700 } },
-                { cmd: 'italic', label: 'Italic', style: { fontStyle: 'italic' } },
-                { cmd: 'insertUnorderedList', label: 'Bullet List', style: {} },
-                { cmd: 'insertOrderedList', label: 'Ordered List', style: {} },
+                { cmd: 'bold', label: 'Bold', active: false },
+                { cmd: 'italic', label: 'Italic', active: false },
+                { cmd: 'insertUnorderedList', label: 'Bullet List', active: false },
+                { cmd: 'insertOrderedList', label: 'Ordered List', active: true },
             ].map(b => (
-                <button key={b.cmd} type="button" onClick={() => exec(b.cmd)} style={{
-                    padding: '0.375rem 0.75rem', borderRadius: '0.25rem', border: 'none',
-                    background: b.cmd === 'insertOrderedList' ? 'var(--color-primary)' : 'transparent',
-                    color: b.cmd === 'insertOrderedList' ? '#000' : '#aaa',
-                    fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
-                    ...b.style as any,
-                }}>{b.label}</button>
+                <button key={b.cmd} type="button" onClick={() => exec(b.cmd)}
+                    className={`px-3 py-1.5 rounded text-xs font-bold transition-all ${b.active
+                        ? 'bg-[var(--color-primary)] text-[#0a0907]'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                >{b.label}</button>
             ))}
         </div>
     );
@@ -33,9 +32,9 @@ function RichTextToolbar({ id }: { id: string }) {
 // Rich text editor component
 function RichTextEditor({ id, label, value, onChange }: { id: string; label: string; value: string; onChange: (v: string) => void }) {
     return (
-        <div style={{ marginBottom: '2rem' }}>
-            <label style={{ display: 'block', fontSize: '1rem', fontWeight: 700, marginBottom: '0.75rem', color: 'white' }}>{label}</label>
-            <div style={{ border: '1px solid #333', borderRadius: '0.5rem', overflow: 'hidden', background: '#131210' }}>
+        <div>
+            <label className="block text-sm font-bold text-white mb-3">{label}</label>
+            <div className="border border-[var(--color-border)] rounded-2xl overflow-hidden bg-[#131210]">
                 <RichTextToolbar id={id} />
                 <div
                     id={id}
@@ -43,37 +42,18 @@ function RichTextEditor({ id, label, value, onChange }: { id: string; label: str
                     suppressContentEditableWarning
                     onBlur={(e) => onChange(e.currentTarget.innerHTML)}
                     dangerouslySetInnerHTML={{ __html: value }}
-                    style={{
-                        minHeight: '120px', padding: '1rem', color: 'white', fontSize: '0.875rem',
-                        lineHeight: 1.7, outline: 'none', background: '#131210',
-                    }}
+                    className="min-h-[120px] p-4 text-white text-sm leading-7 outline-none"
                 />
             </div>
         </div>
     );
 }
 
-const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '0.875rem', background: '#f8f8f8', border: '1px solid #e0e0e0',
-    color: '#222', borderRadius: '0.5rem', fontSize: '0.875rem',
-};
-
-const labelStyle: React.CSSProperties = {
-    display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#444', marginBottom: '0.5rem',
-};
-
-const sectionStyle: React.CSSProperties = {
-    background: 'white', border: '1px solid #e0e0e0', borderRadius: '0.75rem',
-    padding: '1.5rem', marginBottom: '1.5rem',
-};
-
-const sectionTitleStyle: React.CSSProperties = {
-    fontSize: '1rem', fontWeight: 700, marginBottom: '0.5rem', color: '#222',
-};
-
-const helpStyle: React.CSSProperties = {
-    fontSize: '0.75rem', color: '#999', marginTop: '0.375rem',
-};
+// Reusable styles
+const inputClass = "w-full px-5 py-4 bg-[#131210] border border-[var(--color-border)] rounded-2xl text-white focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all font-medium placeholder:text-gray-600";
+const labelClass = "block text-xs font-black uppercase text-gray-400 tracking-widest mb-2";
+const helpClass = "text-xs text-[var(--color-text-light)] mt-2";
+const sectionClass = "dark-card p-6 rounded-2xl border border-[var(--color-border)] mb-5";
 
 interface RoomConfig {
     name: string;
@@ -112,12 +92,10 @@ export default function PackageForm() {
         description: '',
         makkahHotelId: '',
         madinahHotelId: '',
-        // Transportasi
         departureAirlineId: '',
         returnAirlineId: '',
         departureAirportId: '',
         arrivalAirportId: '',
-
         termsConditions: '',
         requirements: '',
         itinerary: '<ol><li>Persiapan</li><li>...</li></ol>',
@@ -189,14 +167,14 @@ export default function PackageForm() {
             .finally(() => setLoadingPackage(false));
     }, [editId]);
 
-    // Add departure date
+    // Departure helpers
     const addDeparture = () => setDepartures([...departures, { date: '' }]);
     const removeDeparture = (idx: number) => setDepartures(departures.filter((_, i) => i !== idx));
     const updateDeparture = (idx: number, date: string) => {
         const nd = [...departures]; nd[idx] = { date }; setDepartures(nd);
     };
 
-    // Add room config
+    // Room helpers
     const addRoom = () => setRooms([...rooms, { name: '', capacity: 4, priceAdjustment: 0 }]);
     const removeRoom = (idx: number) => setRooms(rooms.filter((_, i) => i !== idx));
     const updateRoom = (idx: number, field: string, value: any) => {
@@ -269,8 +247,6 @@ export default function PackageForm() {
                                 arrivalAirportId: form.arrivalAirportId || undefined,
                             }),
                         });
-
-                        // Add room types to this departure
                         if (rooms.length > 0 && depRes.departure?.id) {
                             await apiFetch(`/api/departures/${depRes.departure.id}/rooms`, {
                                 method: 'POST',
@@ -293,9 +269,9 @@ export default function PackageForm() {
 
     if (loadingMasters || loadingPackage) {
         return (
-            <div style={{ padding: '4rem', textAlign: 'center' }}>
-                <Loader2 className="animate-spin text-primary w-12 h-12" style={{ margin: '0 auto' }} />
-                <p style={{ marginTop: '1rem', color: '#888' }}>Menyiapkan data form...</p>
+            <div className="py-20 text-center">
+                <Loader2 className="animate-spin w-12 h-12 mx-auto" style={{ color: 'var(--color-primary)' }} />
+                <p className="mt-4 text-sm font-bold text-gray-400 uppercase tracking-widest">Menyiapkan data form...</p>
             </div>
         );
     }
@@ -303,83 +279,63 @@ export default function PackageForm() {
     return (
         <div className="animate-in fade-in duration-700" style={{ maxWidth: '900px', margin: '0 auto' }}>
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
-                <button onClick={() => navigate('/admin/packages')} style={{ padding: '0.5rem', background: '#222', border: '1px solid #333', borderRadius: '0.5rem', color: '#fff', cursor: 'pointer', display: 'flex' }}>
+            <div className="flex items-center gap-4 mb-8">
+                <button onClick={() => navigate('/admin/packages')}
+                    className="p-3 dark-card border border-[var(--color-border)] rounded-xl text-white hover:border-[var(--color-primary)] transition-all">
                     <ArrowLeft size={20} />
                 </button>
-                <div>
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>{isEdit ? 'Edit Produk/Layanan' : 'Buat Produk/Layanan'}</h1>
-                </div>
+                <h1 className="text-2xl font-black tracking-tight">{isEdit ? 'Edit Produk/Layanan' : 'Buat Produk/Layanan'}</h1>
             </div>
 
             <form onSubmit={handleSubmit}>
 
                 {/* ====== GAMBAR ====== */}
-                <div style={sectionStyle}>
-                    <label style={labelStyle}>Gambar <span style={{ color: '#ccc', fontWeight: 400 }}>*</span></label>
-                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <div className={sectionClass}>
+                    <label className={labelClass}>Gambar</label>
+                    <div className="flex gap-3 flex-wrap">
                         {images.map((img, idx) => (
-                            <div key={idx} style={{
-                                width: '100px', height: '100px', borderRadius: '0.5rem', overflow: 'hidden',
-                                border: img ? '2px solid var(--color-primary)' : '2px dashed #ddd',
-                                background: img ? `url(${img}) center/cover` : '#fafafa',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                                position: 'relative',
-                            }}
+                            <div key={idx}
+                                className="w-24 h-24 rounded-xl overflow-hidden border-2 border-dashed border-[var(--color-border)] flex items-center justify-center cursor-pointer hover:border-[var(--color-primary)] transition-all relative"
+                                style={img ? { backgroundImage: `url(${img})`, backgroundSize: 'cover', backgroundPosition: 'center', borderStyle: 'solid', borderColor: 'var(--color-primary)' } : {}}
                                 onClick={() => {
                                     const url = prompt('Masukkan URL gambar:', img);
-                                    if (url !== null) {
-                                        const ni = [...images]; ni[idx] = url; setImages(ni);
-                                    }
+                                    if (url !== null) { const ni = [...images]; ni[idx] = url; setImages(ni); }
                                 }}>
-                                {!img && <ImagePlus size={24} color="#ccc" />}
+                                {!img && <ImagePlus size={24} className="text-gray-600" />}
                                 {img && (
                                     <button type="button" onClick={(e) => { e.stopPropagation(); const ni = [...images]; ni[idx] = ''; setImages(ni); }}
-                                        style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.6)', border: 'none', color: 'white', borderRadius: '50%', width: 20, height: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+                                        className="absolute top-1 right-1 bg-black/60 border-none text-white rounded-full w-5 h-5 flex items-center justify-center cursor-pointer">
                                         <X size={12} />
                                     </button>
                                 )}
                             </div>
                         ))}
                     </div>
-                    <p style={helpStyle}>Terdapat fitur yang akan dikembangkan 5.0</p>
+                    <p className={helpClass}>Terdapat fitur yang akan dikembangkan 5.0</p>
                 </div>
 
                 {/* ====== JUDUL ====== */}
-                <div style={sectionStyle}>
-                    <label style={labelStyle}>Judul <span style={{ color: 'red' }}>*</span></label>
-                    <input
-                        placeholder="Umroh Full xxx..."
-                        value={form.name}
+                <div className={sectionClass}>
+                    <label className={labelClass}>Judul <span className="text-red-400">*</span></label>
+                    <input placeholder="Umroh Full xxx..." value={form.name}
                         onChange={e => setForm({ ...form, name: e.target.value })}
-                        style={inputStyle}
-                        required
-                    />
-                    <p style={helpStyle}>Berikan nama yang menarik agar jamaah butuh untuk melihat</p>
+                        className={inputClass} required />
+                    <p className={helpClass}>Berikan nama yang menarik agar jamaah butuh untuk melihat</p>
                 </div>
 
                 {/* ====== HARGA ====== */}
-                <div style={sectionStyle}>
-                    <label style={labelStyle}>Harga <span style={{ color: 'red' }}>*</span></label>
-                    <input
-                        type="number"
-                        placeholder="Contoh: 35000000"
-                        value={form.basePrice}
+                <div className={sectionClass}>
+                    <label className={labelClass}>Harga <span className="text-red-400">*</span></label>
+                    <input type="number" placeholder="Contoh: 35000000" value={form.basePrice}
                         onChange={e => setForm({ ...form, basePrice: e.target.value })}
-                        style={inputStyle}
-                        required
-                    />
-                    <p style={helpStyle}>Berikan harga yang sesuai dan layanan harga</p>
+                        className={inputClass} required />
+                    <p className={helpClass}>Berikan harga yang sesuai dan layanan harga</p>
                 </div>
 
                 {/* ====== JENIS PAKET ====== */}
-                <div style={sectionStyle}>
-                    <label style={labelStyle}>Jenis Paket</label>
-                    <select
-                        value={form.packageType}
-                        onChange={e => setForm({ ...form, packageType: e.target.value })}
-                        style={inputStyle}
-                    >
+                <div className={sectionClass}>
+                    <label className={labelClass}>Jenis Paket</label>
+                    <select value={form.packageType} onChange={e => setForm({ ...form, packageType: e.target.value })} className={inputClass}>
                         <option value="">Pilih Jenis Paket</option>
                         <option value="Bintang 5">Bintang 5</option>
                         <option value="Bintang 4">Bintang 4</option>
@@ -388,159 +344,146 @@ export default function PackageForm() {
                         <option value="Ekonomi Saver">Ekonomi Saver</option>
                         <option value="Reguler">Reguler</option>
                     </select>
-                    <p style={helpStyle}>Tentukan jenis paket layanan</p>
-                    <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <input type="checkbox" id="isPromo" checked={form.isPromo} onChange={e => setForm({ ...form, isPromo: e.target.checked })} />
-                        <label htmlFor="isPromo" style={{ fontSize: '0.875rem', color: '#666', cursor: 'pointer' }}>Ceklist jika paket ada promo</label>
+                    <p className={helpClass}>Tentukan jenis paket layanan</p>
+                    <div className="flex items-center gap-2 mt-3">
+                        <input type="checkbox" id="isPromo" checked={form.isPromo}
+                            onChange={e => setForm({ ...form, isPromo: e.target.checked })}
+                            className="accent-[var(--color-primary)]" />
+                        <label htmlFor="isPromo" className="text-sm text-gray-400 cursor-pointer">Ceklist jika paket ada promo</label>
                     </div>
                 </div>
 
                 {/* ====== JENIS LAYANAN ====== */}
-                <div style={sectionStyle}>
-                    <label style={labelStyle}>Jenis Layanan</label>
-                    <input
-                        placeholder="Tentukan jenis layanan yang inilah untuk ditampilkan"
-                        value={form.serviceType}
-                        onChange={e => setForm({ ...form, serviceType: e.target.value })}
-                        style={inputStyle}
-                    />
+                <div className={sectionClass}>
+                    <label className={labelClass}>Jenis Layanan</label>
+                    <input placeholder="Tentukan jenis layanan yang inilah untuk ditampilkan"
+                        value={form.serviceType} onChange={e => setForm({ ...form, serviceType: e.target.value })} className={inputClass} />
                 </div>
 
                 {/* ====== DURASI PERJALANAN ====== */}
-                <div style={sectionStyle}>
-                    <label style={labelStyle}>Durasi Perjalanan</label>
-                    <input
-                        placeholder="Contoh: Selama 12 Hari + Turki"
-                        value={form.duration}
-                        onChange={e => setForm({ ...form, duration: e.target.value })}
-                        style={inputStyle}
-                    />
-                    <p style={helpStyle}>Tentukan tanggal keberangkatan nya</p>
+                <div className={sectionClass}>
+                    <label className={labelClass}>Durasi Perjalanan</label>
+                    <input placeholder="Contoh: Selama 12 Hari + Turki" value={form.duration}
+                        onChange={e => setForm({ ...form, duration: e.target.value })} className={inputClass} />
+                    <p className={helpClass}>Tentukan durasi perjalanan</p>
                 </div>
 
                 {/* ====== SETUP TGL KEBERANGKATAN ====== */}
-                <div style={sectionStyle}>
-                    <label style={labelStyle}>Setup Tgl Keberangkatan</label>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div className={sectionClass}>
+                    <label className={labelClass}>Setup Tgl Keberangkatan</label>
+                    <div className="flex flex-col gap-3">
                         {departures.map((dep, idx) => (
-                            <div key={idx} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                <input
-                                    type="date"
-                                    value={dep.date}
-                                    onChange={e => updateDeparture(idx, e.target.value)}
-                                    style={{ ...inputStyle, flex: 1 }}
-                                />
+                            <div key={idx} className="flex gap-2 items-center">
+                                <input type="date" value={dep.date} onChange={e => updateDeparture(idx, e.target.value)}
+                                    className={`${inputClass} flex-1`} />
                                 <button type="button" onClick={() => removeDeparture(idx)}
-                                    style={{ padding: '0.875rem', background: '#fee', border: '1px solid #fcc', borderRadius: '0.5rem', color: '#c33', cursor: 'pointer' }}>
+                                    className="p-4 bg-red-900/20 border border-red-900/50 rounded-2xl text-red-400 hover:bg-red-900/40 transition-all">
                                     <Trash2 size={16} />
                                 </button>
                             </div>
                         ))}
                         {departures.length === 0 && (
-                            <input type="date" disabled style={{ ...inputStyle, opacity: 0.5 }} placeholder="Pick a date" />
+                            <input type="date" disabled className={`${inputClass} opacity-40`} />
                         )}
                     </div>
-                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
+                    <div className="flex gap-2 mt-3">
                         <button type="button" onClick={addDeparture}
-                            style={{ padding: '0.5rem 1rem', background: 'var(--color-primary)', border: 'none', borderRadius: '0.375rem', color: '#000', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8125rem' }}>
+                            className="px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-1.5 transition-all"
+                            style={{ background: 'var(--color-primary)', color: '#0a0907' }}>
                             <Plus size={14} /> Tambah
                         </button>
                     </div>
-                    <p style={helpStyle}>Tentukan tanggal keberangkatan nya</p>
+                    <p className={helpClass}>Tentukan tanggal keberangkatan nya</p>
                 </div>
 
                 {/* ====== BANDARA KEBERANGKATAN ====== */}
-                <div style={sectionStyle}>
-                    <label style={labelStyle}>Bandara Keberangkatan</label>
-                    <select
-                        value={mainAirportId}
-                        onChange={e => setMainAirportId(e.target.value)}
-                        style={inputStyle}
-                    >
+                <div className={sectionClass}>
+                    <label className={labelClass}>Bandara Keberangkatan</label>
+                    <select value={mainAirportId} onChange={e => setMainAirportId(e.target.value)} className={inputClass}>
                         <option value="">Pilih bandara keberangkatan pilihan</option>
                         {masters.airports.map(a => (
                             <option key={a.id} value={a.id}>{a.name} ({a.code})</option>
                         ))}
                     </select>
-                    <p style={helpStyle}>Tentukan bandara paling sekitar pilihan</p>
+                    <p className={helpClass}>Tentukan bandara paling sesuai pilihan</p>
                 </div>
 
                 {/* ====== SETUP TRANSPORTASI ====== */}
-                <div style={sectionStyle}>
-                    <h3 style={sectionTitleStyle}>Setup Transportasi</h3>
-                    <p style={{ ...helpStyle, marginTop: '-0.25rem', marginBottom: '1rem' }}>Tentukan maskapai sebagai transportasi utama untuk dalam setiap pake layanan</p>
+                <div className={sectionClass}>
+                    <h3 className="text-base font-bold text-white mb-1">Setup Transportasi</h3>
+                    <p className={`${helpClass} !mt-0 mb-5`}>Tentukan maskapai sebagai transportasi utama untuk dalam setiap paket layanan</p>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
-                            <label style={labelStyle}>Pesawat Keberangkatan</label>
-                            <select value={form.departureAirlineId} onChange={e => setForm({ ...form, departureAirlineId: e.target.value })} style={inputStyle}>
+                            <label className={labelClass}>Pesawat Keberangkatan</label>
+                            <select value={form.departureAirlineId} onChange={e => setForm({ ...form, departureAirlineId: e.target.value })} className={inputClass}>
                                 <option value="">Pilih Pesawat</option>
                                 {masters.airlines.map(a => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
                             </select>
-                            <p style={helpStyle}>Terdapat maskapai layanan pilihan</p>
+                            <p className={helpClass}>Terdapat maskapai layanan pilihan</p>
                         </div>
                         <div>
-                            <label style={labelStyle}>Pesawat Kepulangan</label>
-                            <select value={form.returnAirlineId} onChange={e => setForm({ ...form, returnAirlineId: e.target.value })} style={inputStyle}>
+                            <label className={labelClass}>Pesawat Kepulangan</label>
+                            <select value={form.returnAirlineId} onChange={e => setForm({ ...form, returnAirlineId: e.target.value })} className={inputClass}>
                                 <option value="">Pilih Pesawat</option>
                                 {masters.airlines.map(a => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
                             </select>
-                            <p style={helpStyle}>Pilih dari pesawat kepulangan</p>
+                            <p className={helpClass}>Pilih dari pesawat kepulangan</p>
                         </div>
                         <div>
-                            <label style={labelStyle}>Bandara Keberangkatan</label>
-                            <select value={form.departureAirportId} onChange={e => setForm({ ...form, departureAirportId: e.target.value })} style={inputStyle}>
+                            <label className={labelClass}>Bandara Keberangkatan</label>
+                            <select value={form.departureAirportId} onChange={e => setForm({ ...form, departureAirportId: e.target.value })} className={inputClass}>
                                 <option value="">Pilih Bandara</option>
                                 {masters.airports.map(a => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
                             </select>
-                            <p style={helpStyle}>Tentukan pesawat bandara pilihan</p>
+                            <p className={helpClass}>Tentukan pesawat bandara pilihan</p>
                         </div>
                         <div>
-                            <label style={labelStyle}>Bandara Kedatangan</label>
-                            <select value={form.arrivalAirportId} onChange={e => setForm({ ...form, arrivalAirportId: e.target.value })} style={inputStyle}>
+                            <label className={labelClass}>Bandara Kedatangan</label>
+                            <select value={form.arrivalAirportId} onChange={e => setForm({ ...form, arrivalAirportId: e.target.value })} className={inputClass}>
                                 <option value="">Pilih Bandara</option>
                                 {masters.airports.map(a => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
                             </select>
-                            <p style={helpStyle}>Pilih dari pesawat kedatangan.</p>
+                            <p className={helpClass}>Pilih dari bandara kedatangan</p>
                         </div>
                     </div>
                 </div>
 
                 {/* ====== SETUP DATA HOTEL ====== */}
-                <div style={sectionStyle}>
-                    <h3 style={sectionTitleStyle}>Setup Data Hotel</h3>
-                    <p style={{ ...helpStyle, marginTop: '-0.25rem', marginBottom: '1rem' }}>Berikan data hotel akuntansi dimana akan jadi referensi dari kontrak layanan</p>
+                <div className={sectionClass}>
+                    <h3 className="text-base font-bold text-white mb-1">Setup Data Hotel</h3>
+                    <p className={`${helpClass} !mt-0 mb-5`}>Berikan data hotel sebagai referensi dari kontrak layanan</p>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
-                            <label style={labelStyle}>Hotel Makkah</label>
-                            <select value={form.makkahHotelId} onChange={e => setForm({ ...form, makkahHotelId: e.target.value })} style={inputStyle}>
+                            <label className={labelClass}>Hotel Makkah</label>
+                            <select value={form.makkahHotelId} onChange={e => setForm({ ...form, makkahHotelId: e.target.value })} className={inputClass}>
                                 <option value="">Pilih Hotel</option>
                                 {masters.hotels.map(h => <option key={h.id} value={h.id}>{h.name} (Bintang {h.starRating})</option>)}
                             </select>
-                            <p style={helpStyle}>Terdapat hotel ceras ke mekkah untuk di serifikasi</p>
+                            <p className={helpClass}>Terdapat hotel dekat ke Mekkah untuk di verifikasi</p>
                         </div>
                         <div>
-                            <label style={labelStyle}>Hotel Madinah</label>
-                            <select value={form.madinahHotelId} onChange={e => setForm({ ...form, madinahHotelId: e.target.value })} style={inputStyle}>
+                            <label className={labelClass}>Hotel Madinah</label>
+                            <select value={form.madinahHotelId} onChange={e => setForm({ ...form, madinahHotelId: e.target.value })} className={inputClass}>
                                 <option value="">Pilih Hotel</option>
                                 {masters.hotels.map(h => <option key={h.id} value={h.id}>{h.name} (Bintang {h.starRating})</option>)}
                             </select>
-                            <p style={helpStyle}>Pilih data hotel ceras ke mekkah ceras ke mekkah</p>
+                            <p className={helpClass}>Pilih data hotel dekat ke Madinah</p>
                         </div>
                     </div>
                 </div>
 
                 {/* ====== SETUP DATA KAMAR ====== */}
-                <div style={sectionStyle}>
-                    <h3 style={sectionTitleStyle}>Setup Data Kamar</h3>
-                    <p style={{ ...helpStyle, marginTop: '-0.25rem', marginBottom: '1rem' }}>Berikan data kamar yang ditampilkan dan terdapat dua varian kamara</p>
+                <div className={sectionClass}>
+                    <h3 className="text-base font-bold text-white mb-1">Setup Data Kamar</h3>
+                    <p className={`${helpClass} !mt-0 mb-5`}>Berikan data kamar yang ditampilkan dan terdapat varian kamar</p>
 
                     {rooms.map((room, idx) => (
-                        <div key={idx} style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end', marginBottom: '0.75rem' }}>
-                            <div style={{ flex: 1 }}>
-                                <label style={labelStyle}>Kapasitas Kamar</label>
-                                <select value={room.name || ''} onChange={e => updateRoom(idx, 'name', e.target.value)} style={inputStyle}>
+                        <div key={idx} className="flex gap-3 items-end mb-3">
+                            <div className="flex-1">
+                                <label className={labelClass}>Kapasitas Kamar</label>
+                                <select value={room.name || ''} onChange={e => updateRoom(idx, 'name', e.target.value)} className={inputClass}>
                                     <option value="">Pilih kapasitas kamar</option>
                                     <option value="Quad">Quad (4 Orang)</option>
                                     <option value="Triple">Triple (3 Orang)</option>
@@ -548,110 +491,76 @@ export default function PackageForm() {
                                     <option value="Single">Single (1 Orang)</option>
                                 </select>
                             </div>
-                            <div style={{ flex: 1 }}>
-                                <label style={labelStyle}>Harga</label>
-                                <input
-                                    type="number"
-                                    placeholder="15000000"
-                                    value={room.priceAdjustment || ''}
-                                    onChange={e => updateRoom(idx, 'priceAdjustment', parseInt(e.target.value) || 0)}
-                                    style={inputStyle}
-                                />
+                            <div className="flex-1">
+                                <label className={labelClass}>Harga</label>
+                                <input type="number" placeholder="15000000" value={room.priceAdjustment || ''}
+                                    onChange={e => updateRoom(idx, 'priceAdjustment', parseInt(e.target.value) || 0)} className={inputClass} />
                             </div>
                             <button type="button" onClick={() => removeRoom(idx)}
-                                style={{ padding: '0.875rem', background: '#fee', border: '1px solid #fcc', borderRadius: '0.5rem', color: '#c33', cursor: 'pointer', marginBottom: '0.15rem' }}>
+                                className="p-4 bg-red-900/20 border border-red-900/50 rounded-2xl text-red-400 hover:bg-red-900/40 transition-all mb-0.5">
                                 <Trash2 size={16} />
                             </button>
                         </div>
                     ))}
 
                     {rooms.length === 0 && (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                        <div className="grid grid-cols-2 gap-3 mb-3">
                             <div>
-                                <label style={labelStyle}>Kapasitas Kamar</label>
-                                <select disabled style={{ ...inputStyle, opacity: 0.5 }}><option>Pilih kapasitas kamar</option></select>
+                                <label className={labelClass}>Kapasitas Kamar</label>
+                                <select disabled className={`${inputClass} opacity-40`}><option>Pilih kapasitas kamar</option></select>
                             </div>
                             <div>
-                                <label style={labelStyle}>Harga</label>
-                                <input type="number" disabled placeholder="15000000" style={{ ...inputStyle, opacity: 0.5 }} />
+                                <label className={labelClass}>Harga</label>
+                                <input type="number" disabled placeholder="15000000" className={`${inputClass} opacity-40`} />
                             </div>
                         </div>
                     )}
 
                     <button type="button" onClick={addRoom}
-                        style={{
-                            width: '100%', padding: '0.75rem', background: '#fafafa', border: '1px dashed #ccc',
-                            borderRadius: '0.5rem', color: '#888', cursor: 'pointer', fontSize: '0.8125rem', fontWeight: 600,
-                        }}>
+                        className="w-full py-3 border-2 border-dashed border-[var(--color-border)] rounded-2xl text-gray-500 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] text-sm font-bold transition-all">
                         Tambahkan spesifikasi kamar
                     </button>
                 </div>
 
                 {/* ====== DESKRIPSI PRODUK/SOLUSI ====== */}
-                <div style={sectionStyle}>
-                    <label style={labelStyle}>Deskripsi Produk/Solusi</label>
-                    <textarea
-                        rows={5}
-                        value={form.description}
+                <div className={sectionClass}>
+                    <label className={labelClass}>Deskripsi Produk/Solusi</label>
+                    <textarea rows={5} value={form.description}
                         onChange={e => setForm({ ...form, description: e.target.value })}
-                        style={{ ...inputStyle, resize: 'vertical' }}
-                        placeholder="Berikan deskripsi mengenai produk layanan anda..."
-                    />
-                    <p style={helpStyle}>Berikan deskripsi produk layanan yang sesuai karena akan ditampilkan tangungjawab</p>
+                        className={`${inputClass} resize-y`}
+                        placeholder="Berikan deskripsi mengenai produk layanan anda..." />
+                    <p className={helpClass}>Berikan deskripsi produk layanan yang sesuai</p>
                 </div>
 
                 {/* ====== ITINERARY ====== */}
-                <div style={sectionStyle}>
-                    <RichTextEditor
-                        id="itinerary-editor"
-                        label="Itinerary"
-                        value={form.itinerary}
-                        onChange={v => setForm(f => ({ ...f, itinerary: v }))}
-                    />
+                <div className={sectionClass}>
+                    <RichTextEditor id="itinerary-editor" label="Itinerary"
+                        value={form.itinerary} onChange={v => setForm(f => ({ ...f, itinerary: v }))} />
                 </div>
 
                 {/* ====== FASILITAS ====== */}
-                <div style={sectionStyle}>
-                    <RichTextEditor
-                        id="facilities-editor"
-                        label="Fasilitas"
-                        value={form.facilities}
-                        onChange={v => setForm(f => ({ ...f, facilities: v }))}
-                    />
+                <div className={sectionClass}>
+                    <RichTextEditor id="facilities-editor" label="Fasilitas"
+                        value={form.facilities} onChange={v => setForm(f => ({ ...f, facilities: v }))} />
                 </div>
 
                 {/* ====== PERSYARATAN ====== */}
-                <div style={sectionStyle}>
-                    <RichTextEditor
-                        id="requirements-editor"
-                        label="Persyaratan"
-                        value={form.requirements}
-                        onChange={v => setForm(f => ({ ...f, requirements: v }))}
-                    />
+                <div className={sectionClass}>
+                    <RichTextEditor id="requirements-editor" label="Persyaratan"
+                        value={form.requirements} onChange={v => setForm(f => ({ ...f, requirements: v }))} />
                 </div>
 
                 {/* ====== SYARAT & KONDISI ====== */}
-                <div style={sectionStyle}>
-                    <RichTextEditor
-                        id="terms-editor"
-                        label="Syarat & Kondisi"
-                        value={form.termsConditions}
-                        onChange={v => setForm(f => ({ ...f, termsConditions: v }))}
-                    />
+                <div className={sectionClass}>
+                    <RichTextEditor id="terms-editor" label="Syarat & Kondisi"
+                        value={form.termsConditions} onChange={v => setForm(f => ({ ...f, termsConditions: v }))} />
                 </div>
 
                 {/* ====== SUBMIT ====== */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem', marginBottom: '3rem' }}>
-                    <button
-                        type="submit"
-                        disabled={saving}
-                        style={{
-                            padding: '0.875rem 3rem', background: 'var(--color-primary)', color: '#000',
-                            fontWeight: 800, border: 'none', borderRadius: '0.5rem', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem',
-                            opacity: saving ? 0.7 : 1,
-                        }}
-                    >
+                <div className="flex justify-end mt-4 mb-12">
+                    <button type="submit" disabled={saving}
+                        className="px-10 py-4 rounded-2xl font-black text-base flex items-center gap-2 shadow-lg hover:scale-105 active:scale-95 transition-all"
+                        style={{ background: 'var(--color-primary)', color: '#0a0907', opacity: saving ? 0.7 : 1 }}>
                         {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
                         {saving ? 'Menyimpan...' : 'Simpan'}
                     </button>
