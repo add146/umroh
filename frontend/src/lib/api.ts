@@ -1,6 +1,6 @@
 import { useAuthStore } from '../stores/authStore';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://umroh-api-prod.khibroh.workers.dev';
+const API_URL = import.meta.env.VITE_API_URL || 'https://umroh-api.khibroh.workers.dev';
 
 export async function apiFetch<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const { accessToken, updateAccessToken, logout } = useAuthStore.getState();
