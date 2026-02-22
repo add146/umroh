@@ -1,7 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { apiFetch } from '../../lib/api';
-import { Calendar, Plane, Users, CheckCircle, Clock, AlertCircle, Eye, RefreshCw, BarChart3, Backpack } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+const cardStyle: React.CSSProperties = {
+    background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', padding: '1.5rem',
+};
+
+const statCardStyle: React.CSSProperties = {
+    background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', padding: '1.25rem',
+    display: 'flex', alignItems: 'center', gap: '1rem',
+};
+
+const labelStyle: React.CSSProperties = {
+    fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-light)', textTransform: 'uppercase' as any, letterSpacing: '0.05em',
+};
 
 const DepartureManage: React.FC = () => {
     const [departures, setDepartures] = useState<any[]>([]);
@@ -9,6 +21,7 @@ const DepartureManage: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     const fetchDepartures = async () => {
+        setLoading(true);
         try {
             const data = await apiFetch<{ departures: any[], summary: any }>('/api/departures');
             setDepartures(data.departures || []);
@@ -20,86 +33,85 @@ const DepartureManage: React.FC = () => {
         }
     };
 
+    useEffect(() => { fetchDepartures(); }, []);
 
-    useEffect(() => {
-        fetchDepartures();
-    }, []);
-
-    // Helper functions
-    const getStatusColor = (status: string) => {
+    const getStatusLabel = (status: string) => {
         switch (status) {
-            case 'available': return 'bg-[#10b981]/10 text-emerald-500 border-emerald-500/20';
-            case 'last_call': return 'bg-[#f59e0b]/10 text-amber-500 border-amber-500/20';
-            case 'full': return 'bg-[#ef4444]/10 text-red-500 border-red-500/20';
-            case 'departed': return 'bg-[#3b82f6]/10 text-blue-500 border-blue-500/20';
-            default: return 'bg-[#64748b]/10 text-gray-500 border-gray-500/20';
+            case 'available': return { label: 'Available', color: '#22c55e', bg: 'rgba(34,197,94,0.1)' };
+            case 'last_call': return { label: 'Last Call', color: '#eab308', bg: 'rgba(234,179,8,0.1)' };
+            case 'full': return { label: 'Full', color: '#ef4444', bg: 'rgba(239,68,68,0.1)' };
+            case 'departed': return { label: 'Departed', color: '#3b82f6', bg: 'rgba(59,130,246,0.1)' };
+            default: return { label: status, color: '#888', bg: 'rgba(136,136,136,0.1)' };
         }
     };
 
-    const getSiskoColor = (status: string) => {
+    const getSiskoLabel = (status: string) => {
         switch (status) {
-            case 'synced': return 'bg-[#22c55e]/10 text-green-500';
-            case 'pending': return 'bg-[#eab308]/10 text-yellow-500';
-            case 'error': return 'bg-[#ef4444]/10 text-red-500';
-            default: return 'bg-[#64748b]/10 text-gray-500';
+            case 'synced': return { label: 'Synced', color: '#22c55e', bg: 'rgba(34,197,94,0.1)' };
+            case 'pending': return { label: 'Pending', color: '#eab308', bg: 'rgba(234,179,8,0.1)' };
+            case 'error': return { label: 'Error', color: '#ef4444', bg: 'rgba(239,68,68,0.1)' };
+            default: return { label: status || 'N/A', color: '#888', bg: 'rgba(136,136,136,0.1)' };
         }
     };
 
     return (
-        <div className="animate-in fade-in duration-700">
+        <div className="animate-in fade-in duration-700" style={{ maxWidth: '1200px', margin: '0 auto' }}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <div>
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Jadwal Keberangkatan</h1>
                     <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Pantau seluruh jadwal keberangkatan, status kuota, dan sinkronisasi SISKOPATUH.</p>
                 </div>
-                <button
-                    onClick={fetchDepartures}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: '#131210', border: '1px solid var(--color-border)', borderRadius: '0.625rem', color: 'var(--color-text-muted)', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600 }}
-                >
-                    <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                <button onClick={fetchDepartures} style={{
+                    display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.625rem 1.25rem',
+                    background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '0.5rem',
+                    color: 'var(--color-text-muted)', cursor: 'pointer', fontSize: '0.8125rem', fontWeight: 600,
+                }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>refresh</span>
                     Segarkan Data
                 </button>
             </div>
 
             {/* Summary Metrics */}
             {summary && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }} className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-[#3b82f6]/10 flex items-center justify-center text-blue-500">
-                            <Calendar className="w-6 h-6" />
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
+                    <div style={statCardStyle}>
+                        <div style={{ width: '48px', height: '48px', borderRadius: '0.75rem', background: 'rgba(59,130,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span className="material-symbols-outlined" style={{ color: '#3b82f6' }}>calendar_month</span>
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Total Jadwal</p>
-                            <p className="text-2xl font-black text-white">{summary.totalDepartures}</p>
+                            <p style={labelStyle}>Total Jadwal</p>
+                            <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white', margin: 0 }}>{summary.totalDepartures}</p>
                         </div>
                     </div>
-                    <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }} className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-[var(--color-primary-bg)] flex items-center justify-center text-primary">
-                            <Users className="w-6 h-6" />
+                    <div style={statCardStyle}>
+                        <div style={{ width: '48px', height: '48px', borderRadius: '0.75rem', background: 'var(--color-primary-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>group</span>
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Kursi Terisi</p>
-                            <p className="text-2xl font-black text-white">{summary.bookedSeats} <span className="text-sm text-gray-500">/ {summary.totalSeats}</span></p>
+                            <p style={labelStyle}>Kursi Terisi</p>
+                            <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white', margin: 0 }}>{summary.bookedSeats} <span style={{ fontSize: '0.875rem', color: '#888' }}>/ {summary.totalSeats}</span></p>
                         </div>
                     </div>
-                    <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }} className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-[#22c55e]/10 flex items-center justify-center text-green-500">
-                            <CheckCircle className="w-6 h-6" />
+                    <div style={statCardStyle}>
+                        <div style={{ width: '48px', height: '48px', borderRadius: '0.75rem', background: 'rgba(34,197,94,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span className="material-symbols-outlined" style={{ color: '#22c55e' }}>check_circle</span>
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Sisko Tersinkron</p>
-                            <p className="text-2xl font-black text-white">{summary.siskopatuh?.synced || 0}</p>
+                            <p style={labelStyle}>Sisko Tersinkron</p>
+                            <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white', margin: 0 }}>{summary.siskopatuh?.synced || 0}</p>
                         </div>
                     </div>
-                    <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }} className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-[#eab308]/10 flex items-center justify-center text-yellow-500">
-                            <Clock className="w-6 h-6" />
+                    <div style={statCardStyle}>
+                        <div style={{ width: '48px', height: '48px', borderRadius: '0.75rem', background: 'rgba(234,179,8,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span className="material-symbols-outlined" style={{ color: '#eab308' }}>schedule</span>
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Sisko Pending</p>
-                            <p className="text-2xl font-black text-white">{summary.siskopatuh?.pending || 0}</p>
-                            {summary.siskopatuh?.error > 0 && <span className="text-xs text-red-400 font-bold ml-2">({summary.siskopatuh?.error} Error)</span>}
+                            <p style={labelStyle}>Sisko Pending</p>
+                            <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white', margin: 0 }}>
+                                {summary.siskopatuh?.pending || 0}
+                                {summary.siskopatuh?.error > 0 && <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 700, marginLeft: '0.5rem' }}>({summary.siskopatuh?.error} Error)</span>}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -107,109 +119,121 @@ const DepartureManage: React.FC = () => {
 
             {/* Departures List */}
             {loading ? (
-                <div className="flex justify-center py-20">
-                    <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                </div>
+                <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Memuat data...</div>
             ) : departures.length === 0 ? (
-                <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }} className="p-16 text-center flex flex-col items-center justify-center">
-                    <div className="bg-[var(--color-primary-bg)] w-24 h-24 rounded-full flex items-center justify-center mb-6">
-                        <Backpack className="w-12 h-12 text-primary opacity-80" />
-                    </div>
-                    <h3 className="text-xl font-black text-white mb-3 tracking-wide">Belum Ada Jadwal</h3>
-                    <p className="text-sm text-gray-400 font-medium max-w-md mx-auto leading-relaxed">Jadwal keberangkatan ditambahkan melalui tab <span className="text-white font-bold">Keberangkatan</span> pada halaman kelola detail masing-masing paket.</p>
+                <div style={{ ...cardStyle, padding: '4rem', textAlign: 'center' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '48px', color: 'var(--color-primary)', display: 'block', marginBottom: '1rem' }}>flight_takeoff</span>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'white', margin: '0 0 0.5rem 0' }}>Belum Ada Jadwal</h3>
+                    <p style={{ fontSize: '0.875rem', color: '#888', margin: 0 }}>Jadwal keberangkatan ditambahkan melalui halaman kelola detail masing-masing paket.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem' }}>
                     {departures.map(dep => {
                         const progress = dep.totalSeats > 0 ? (dep.bookedSeats / dep.totalSeats) * 100 : 0;
+                        const statusInfo = getStatusLabel(dep.status);
+                        const siskoInfo = getSiskoLabel(dep.siskopatuhStatus);
+
                         return (
-                            <div key={dep.id} style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }} className="flex flex-col hover:border-white/20 transition-all">
-                                {/* Card Header */}
-                                <div className="p-6 border-b border-white/5 flex justify-between items-start gap-4">
+                            <div key={dep.id} style={cardStyle}>
+                                {/* Badges */}
+                                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                                    <span style={{
+                                        padding: '0.25rem 0.625rem', fontSize: '0.625rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em',
+                                        borderRadius: '0.375rem', background: statusInfo.bg, color: statusInfo.color, border: `1px solid ${statusInfo.color}33`,
+                                    }}>{statusInfo.label}</span>
+                                    <span style={{
+                                        padding: '0.25rem 0.625rem', fontSize: '0.625rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em',
+                                        borderRadius: '0.375rem', background: siskoInfo.bg, color: siskoInfo.color, display: 'flex', alignItems: 'center', gap: '0.25rem',
+                                    }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>
+                                            {dep.siskopatuhStatus === 'synced' ? 'check_circle' : dep.siskopatuhStatus === 'error' ? 'error' : 'schedule'}
+                                        </span>
+                                        Sisko: {siskoInfo.label}
+                                    </span>
+                                </div>
+
+                                {/* Title & Date */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
                                     <div>
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded-md border ${getStatusColor(dep.status)}`}>
-                                                {dep.status.replace('_', ' ')}
-                                            </span>
-                                            <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded-md flex items-center gap-1 ${getSiskoColor(dep.siskopatuhStatus)}`}>
-                                                {dep.siskopatuhStatus === 'synced' ? <CheckCircle className="w-3 h-3" /> : dep.siskopatuhStatus === 'error' ? <AlertCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                                                Sisko: {dep.siskopatuhStatus}
-                                            </span>
-                                        </div>
-                                        <h3 className="text-lg font-bold text-white leading-tight mb-1">{dep.tripName || dep.package?.name || 'Paket Reguler'}</h3>
-                                        <div className="flex items-center gap-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
-                                            <span className="flex items-center gap-1">
-                                                <Calendar className="w-3.5 h-3.5" />
+                                        <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'white', margin: '0 0 0.35rem 0' }}>{dep.tripName || dep.package?.name || 'Paket Reguler'}</h3>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.75rem', color: '#888' }}>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>calendar_month</span>
                                                 {new Date(dep.departureDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
                                             </span>
                                             {dep.departureAirline && (
-                                                <span className="flex items-center gap-1">
-                                                    <Plane className="w-3.5 h-3.5" />
+                                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>flight</span>
                                                     {dep.departureAirline.name}
                                                 </span>
                                             )}
                                         </div>
                                     </div>
-                                    <div className="text-right shrink-0">
-                                        <div className="text-sm font-black text-white">{dep.departureAirport?.code || dep.airport}</div>
-                                        <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">({dep.departureAirport?.city || 'CGK'})</div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ fontSize: '0.875rem', fontWeight: 800, color: 'white' }}>{dep.departureAirport?.code || dep.airport}</div>
+                                        <div style={{ fontSize: '0.625rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' }}>({dep.departureAirport?.city || 'CGK'})</div>
                                     </div>
                                 </div>
 
-                                {/* Body / Detailed info */}
-                                <div className="p-6 bg-[#131210]/30 flex-1 space-y-5">
-                                    {/* Progress Bar */}
-                                    <div>
-                                        <div className="flex justify-between items-end mb-2">
-                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Keterisian Kuota</span>
-                                            <span className="text-sm font-black text-white">{dep.bookedSeats} <span className="text-gray-500">/ {dep.totalSeats} Pax</span></span>
-                                        </div>
-                                        <div className="h-2.5 bg-white/5 rounded-full overflow-hidden w-full">
-                                            <div
-                                                className={`h-full rounded-full transition-all duration-1000 ${progress >= 100 ? 'bg-red-500' : progress > 75 ? 'bg-yellow-500' : 'bg-primary'}`}
-                                                style={{ width: `${Math.min(progress, 100)}%` }}
-                                            />
+                                {/* Progress Bar */}
+                                <div style={{ marginBottom: '1rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                        <span style={labelStyle}>Keterisian Kuota</span>
+                                        <span style={{ fontSize: '0.8125rem', fontWeight: 800, color: 'white' }}>
+                                            {dep.bookedSeats} <span style={{ color: '#888' }}>/ {dep.totalSeats} Pax</span>
+                                        </span>
+                                    </div>
+                                    <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '999px', overflow: 'hidden' }}>
+                                        <div style={{
+                                            height: '100%', borderRadius: '999px', transition: 'width 1s ease',
+                                            width: `${Math.min(progress, 100)}%`,
+                                            background: progress >= 100 ? '#ef4444' : progress > 75 ? '#eab308' : 'var(--color-primary)',
+                                        }} />
+                                    </div>
+                                </div>
+
+                                {/* Room Badges */}
+                                {dep.roomTypes && dep.roomTypes.length > 0 && (
+                                    <div style={{ marginBottom: '1rem' }}>
+                                        <span style={{ ...labelStyle, display: 'block', marginBottom: '0.375rem' }}>Opsi Kamar Aktif</span>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+                                            {dep.roomTypes.map((room: any) => (
+                                                <span key={room.id} style={{
+                                                    padding: '0.25rem 0.5rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                                                    borderRadius: '0.375rem', fontSize: '0.6875rem', fontWeight: 600, color: '#ccc',
+                                                }}>{room.name} ({room.capacity} Pax)</span>
+                                            ))}
                                         </div>
                                     </div>
-
-                                    {/* Room Badges */}
-                                    {dep.roomTypes && dep.roomTypes.length > 0 && (
-                                        <div>
-                                            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Opsi Kamar Aktif</span>
-                                            <div className="flex flex-wrap gap-2">
-                                                {dep.roomTypes.map((room: any) => (
-                                                    <span key={room.id} className="px-2 py-1 bg-white/5 border border-white/10 rounded-md text-[10px] font-bold text-gray-300">
-                                                        {room.name} ({room.capacity} Pax)
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
+                                )}
 
                                 {/* Footer Actions */}
-                                <div className="p-4 border-t border-white/5 bg-[#131210] flex justify-between items-center gap-2">
-                                    <div className="flex gap-2">
-                                        <a
-                                            href={`${import.meta.env.VITE_API_URL || 'http://localhost:8787'}/api/export/siskopatuh/${dep.id}`}
-                                            className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 rounded-lg border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
-                                            onClick={(e) => { e.preventDefault(); alert('Modul Export Siskopatuh belum aktif di env ini.'); }}
-                                        >
-                                            <BarChart3 className="w-3.5 h-3.5" /> SISKO
-                                        </a>
-                                        <a
-                                            href={`${import.meta.env.VITE_API_URL || 'http://localhost:8787'}/api/export/manifest/${dep.id}`}
-                                            className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 rounded-lg border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
-                                            onClick={(e) => { e.preventDefault(); alert('Modul Export Manifest belum aktif di env ini.'); }}
-                                        >
-                                            <Users className="w-3.5 h-3.5" /> Manifest
-                                        </a>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '1rem' }}>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button onClick={() => alert('Modul Export Siskopatuh belum aktif.')} style={{
+                                            padding: '0.375rem 0.75rem', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em',
+                                            background: 'transparent', border: '1px solid #333', borderRadius: '0.5rem', color: '#888', cursor: 'pointer',
+                                            display: 'flex', alignItems: 'center', gap: '0.375rem',
+                                        }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>bar_chart</span>
+                                            SISKO
+                                        </button>
+                                        <button onClick={() => alert('Modul Export Manifest belum aktif.')} style={{
+                                            padding: '0.375rem 0.75rem', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em',
+                                            background: 'transparent', border: '1px solid #333', borderRadius: '0.5rem', color: '#888', cursor: 'pointer',
+                                            display: 'flex', alignItems: 'center', gap: '0.375rem',
+                                        }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>group</span>
+                                            Manifest
+                                        </button>
                                     </div>
-                                    <Link
-                                        to={`/admin/packages/${dep.packageId}`}
-                                        className="px-4 py-2 bg-[var(--color-primary-bg)] text-primary hover:bg-[#a88a36]/20 hover:scale-105 active:scale-95 transition-all text-xs font-bold rounded-lg flex items-center gap-2"
-                                    >
-                                        <Eye className="w-4 h-4" /> Kelola Detail
+                                    <Link to={`/admin/packages/${dep.packageId}`} style={{
+                                        padding: '0.5rem 1rem', fontSize: '0.8125rem', fontWeight: 700,
+                                        background: 'var(--color-primary-bg)', color: 'var(--color-primary)', borderRadius: '0.5rem',
+                                        textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.375rem',
+                                    }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>visibility</span>
+                                        Kelola Detail
                                     </Link>
                                 </div>
                             </div>
