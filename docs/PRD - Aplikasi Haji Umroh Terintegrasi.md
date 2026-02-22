@@ -160,9 +160,9 @@ flowchart TD
 | Role | Bisa Membuat | Kemampuan Khusus |
 |------|-------------|-----------------|
 | **Pusat** | Cabang | Super Admin: CRUD semua paket, set harga dasar, kelola semua cabang, laporan global, ekspor SISKOPATUH, konfigurasi sistem. |
-| **Cabang** | Mitra | Kelola Mitra di wilayahnya, laporan wilayah, manage kamar & seat alokasi. |
+| **Cabang** | Mitra **atau Agen** | Kelola Mitra/Agen di wilayahnya, laporan wilayah, manage kamar & seat alokasi. Untuk area kecil yang tidak butuh layer Mitra, Cabang bisa langsung buat Agen. |
 | **Mitra** | Agen | Kelola Agen downline, set komisi Agen, laporan regional. |
-| **Agen** | Reseller | Kelola Reseller downline, set komisi Reseller, lihat performa tim. |
+| **Agen** | Reseller | Kelola Reseller downline, set komisi Reseller, lihat performa tim. **Follow-up officer**: melihat & memverifikasi kelengkapan data jamaah, memastikan status pembayaran, follow-up calon jamaah via WA sebelum data di-approve oleh Cabang. |
 | **Reseller** | — | Generate link affiliate, lihat jamaah referral sendiri, lihat saldo komisi, request pencairan. |
 
 #### 2.2.1. Self-Service Downline Creation (Setiap Jenjang Buat Bawahan Sendiri)
@@ -173,13 +173,16 @@ Setiap level di atas Reseller **dapat membuat akun downline langsung** dari dash
 flowchart TD
     A[Login Dashboard] --> B{Role Saya?}
     B -->|Pusat| C[Buat Cabang Baru]
-    B -->|Cabang| D[Buat Mitra Baru]
+    B -->|Cabang| D{Area Besar / Kecil?}
+    D -->|Area Besar| D1[Buat Mitra Baru]
+    D -->|Area Kecil| D2[Buat Agen Langsung]
     B -->|Mitra| E[Buat Agen Baru]
     B -->|Agen| F[Buat Reseller Baru]
     B -->|Reseller| G[Tidak Bisa Buat Downline]
     
     C --> H[Isi Form: Nama, Email, No HP, Password]
-    D --> H
+    D1 --> H
+    D2 --> H
     E --> H
     F --> H
     
@@ -191,10 +194,10 @@ flowchart TD
 
 **Aturan hierarki:**
 
-| Upline | Hanya bisa buat | Validasi |
+| Upline | Bisa buat | Validasi |
 |--------|----------------|----------|
 | Pusat | Cabang | Email unik, max cabang configurable |
-| Cabang | Mitra | Email unik, parent_id = cabang.id |
+| Cabang | Mitra **atau Agen** | Email unik, parent_id = cabang.id. Cabang memilih role downline saat membuat (dropdown: Mitra / Agen). Untuk area kecil tanpa layer Mitra. |
 | Mitra | Agen | Email unik, parent_id = mitra.id |
 | Agen | Reseller | Email unik, parent_id = agen.id |
 | Reseller | — | Tidak bisa membuat siapapun |
@@ -210,7 +213,220 @@ flowchart TD
 | Kode Affiliate | `affiliate_code` | Text (auto-generate) | Ya |
 
 > [!IMPORTANT]
-> **Validasi Backend**: API `POST /api/users` akan **otomatis menentukan role downline** berdasarkan role upline yang login. Cabang tidak bisa membuat Agen langsung — harus lewat Mitra. Setiap user yang dibuat otomatis masuk ke Closure Table `hierarchy_paths`.
+> **Validasi Backend**: API `POST /api/users` akan **otomatis menentukan role downline** berdasarkan role upline yang login. Khusus Cabang, bisa memilih membuat Mitra **atau** Agen langsung (untuk area kecil tanpa layer Mitra). Setiap user yang dibuat otomatis masuk ke Closure Table `hierarchy_paths`.
+
+#### 2.2.2. Peran Agen sebagai Follow-Up Officer
+
+Agen bertanggung jawab sebagai **petugas follow-up data jamaah** sebelum data di-approve oleh Cabang. Ini memastikan kualitas data dan mempercepat proses verifikasi.
+
+```mermaid
+flowchart TD
+    A[Jamaah Mendaftar] --> B[Data Masuk ke Sistem]
+    B --> C[Agen Melihat Data Jamaah di Dashboard]
+    C --> D{Data Lengkap?}
+    D -->|Belum| E[Agen Follow-up via WhatsApp]
+    E -->|Minta Dokumen/Data| F[Jamaah Melengkapi]
+    F --> C
+    D -->|Sudah| G{Pembayaran?}
+    G -->|Belum Bayar| H[Agen Reminder Pembayaran via WA]
+    H --> G
+    G -->|Sudah Bayar DP| I[Agen Tandai: Siap Review]
+    I --> J[Cabang Review & Approve Final]
+```
+
+**Jobdesk Follow-Up Agen:**
+
+| Tugas | Deskripsi |
+|-------|-----------|
+| **Lihat Data Jamaah** | Agen bisa melihat detail data jamaah yang mendaftar melalui link affiliate miliknya atau Reseller di bawahnya. |
+| **Cek Kelengkapan Dokumen** | Verifikasi apakah KTP, paspor, vaksin, foto sudah di-upload. Jika belum, follow-up via WA. |
+| **Cek Status Pembayaran** | Pantau apakah jamaah sudah bayar DP, cicilan berjalan, atau belum bayar sama sekali. |
+| **Follow-up via WhatsApp** | Kirim reminder manual atau otomatis ke jamaah untuk melengkapi data atau melakukan pembayaran. |
+| **Tandai Siap Review** | Setelah data lengkap & DP terbayar, Agen menandai jamaah sebagai "Siap Review" agar Cabang bisa melakukan approval final. |
+| **Re-engagement Alumni** | Agen punya riwayat jamaah yang pernah berangkat. Bisa follow-up untuk umroh berikutnya. |
+
+#### 2.2.3. Isolasi Data Jamaah & Jejak Hierarki
+
+Data jamaah **ter-isolasi** ke masing-masing cabang dalam hierarki. Setiap jamaah memiliki **riwayat jejak (audit trail)** lengkap dari Reseller/Affiliator yang merujuk sampai ke Cabang.
+
+```mermaid
+flowchart TD
+    subgraph "Cabang Jakarta"
+        CJ[Cabang Jakarta]
+        CJ --> MJ1[Mitra Bekasi]
+        CJ --> AJ1[Agen Tangerang - langsung]
+        MJ1 --> AJ2[Agen Cikarang]
+        AJ2 --> RJ1[Reseller A]
+        AJ1 --> RJ2[Reseller B]
+        RJ1 -.->|referral| J1["Jamaah 1 👤"]
+        RJ2 -.->|referral| J2["Jamaah 2 👤"]
+    end
+    
+    subgraph "Cabang Surabaya"
+        CS[Cabang Surabaya]
+        CS --> MS1[Mitra Sidoarjo]
+        MS1 --> AS1[Agen Gresik]
+        AS1 --> RS1[Reseller C]
+        RS1 -.->|referral| J3["Jamaah 3 👤"]
+    end
+    
+    style J1 fill:#e8f5e9
+    style J2 fill:#e8f5e9
+    style J3 fill:#fff3e0
+```
+
+**Aturan Isolasi Data:**
+
+| Aturan | Deskripsi |
+|--------|-----------|
+| **Isolasi per Cabang** | Cabang Jakarta **tidak bisa melihat** jamaah milik Cabang Surabaya, dan sebaliknya. Data ter-silo per hierarki cabang. |
+| **Jejak Referral** | Setiap jamaah menyimpan `affiliate_user_id` di booking. Sistem bisa trace: Jamaah ← Reseller ← Agen ← Mitra ← Cabang via Closure Table. |
+| **Visibility Cascading** | Setiap tier hanya bisa melihat jamaah yang berasal dari jaringan di bawahnya (downline). Pusat bisa lihat semua. |
+| **Agen = Pemilik Data** | Agen memiliki akses penuh (read + follow-up) terhadap data jamaah dari link miliknya atau Reseller di bawahnya. Ini adalah CRM mini milik Agen. |
+| **Cabang & Mitra = View Only** | Cabang dan Mitra bisa **melihat** data jamaah di bawah jaringannya, tetapi **tidak bisa edit atau follow-up langsung**. Approval final tetap di Cabang. |
+| **Pusat = Global View** | Pusat bisa melihat **semua data jamaah dari seluruh cabang**. Tersedia filter per cabang, dan dashboard perbandingan performa antar cabang (jumlah jamaah, revenue, konversi rate). |
+
+> [!IMPORTANT]
+> **Query isolasi** menggunakan Closure Table: `SELECT * FROM bookings b JOIN hierarchy_paths hp ON hp.descendant_id = b.affiliate_user_id WHERE hp.ancestor_id = :current_user_id`. Ini memastikan setiap user hanya melihat data dari jaringan bawahnya. Pusat (tanpa filter) mendapatkan seluruh data.
+
+#### 2.2.6. Mitigasi Jamaah Duplikat Lintas Agen
+
+Skenario: Jamaah pernah berangkat umroh di **Agen A** (Cabang Jakarta), lalu mendaftar lagi di **Agen B** (Cabang Surabaya). Tanpa mitigasi, data jamaah akan terpecah dan perebutan komisi bisa terjadi.
+
+```mermaid
+flowchart TD
+    A[Jamaah Mendaftar] --> B{Cek NIK / No. HP / Paspor}
+    B -->|Sudah Ada di Sistem| C["Alert: Jamaah Sudah Terdaftar ⚠️"]
+    C --> D{Di Cabang yang Sama?}
+    D -->|Ya, Agen Berbeda| E["Tampilkan info: Jamaah ini alumni Agen X"]
+    E --> F[Agen baru bisa lanjut daftarkan - booking baru terbuat]
+    D -->|Beda Cabang| G["Tampilkan info: Jamaah pernah di Cabang Y"]
+    G --> F
+    B -->|Belum Ada| H[Lanjut Pendaftaran Normal]
+    F --> I["Riwayat perjalanan jamaah tetap terhubung via NIK"]
+```
+
+**Aturan Mitigasi Duplikat:**
+
+| Aturan | Deskripsi |
+|--------|-----------|
+| **Deteksi via NIK/HP/Paspor** | Saat pendaftaran, sistem cek apakah NIK, nomor HP, atau nomor paspor sudah ada di tabel `pilgrims`. Jika ya, tampilkan alert. |
+| **Bukan Blocker** | Jamaah **tetap boleh mendaftar ulang** di Agen/Cabang yang berbeda — ini adalah repeat customer, bukan error. Booking baru tetap terbuat. |
+| **Riwayat Terhubung** | Semua booking jamaah (lintas cabang) tetap terhubung ke record `pilgrims` yang sama via NIK. Agen bisa lihat riwayat perjalanan sebelumnya. |
+| **Alert ke Agen Baru** | Agen yang mendaftarkan diberi info: "Jamaah ini pernah berangkat Umroh (Juni 2025) via Agen X, Cabang Jakarta". Berguna untuk konteks follow-up. |
+| **Komisi Tetap ke Agen Pendaftar** | Komisi dihitung berdasarkan `affiliate_user_id` di booking baru. Agen lama yang pernah handle tidak mendapat komisi dari trip baru ini. |
+| **Dashboard Alumni Global (Pusat)** | Pusat bisa melihat daftar jamaah yang pernah berangkat >1x lintas cabang. Insight: berapa % repeat customer. |
+
+> [!NOTE]
+> Secara teknis, tabel `pilgrims` menyimpan data master jamaah (1 record per NIK). Tabel `bookings` menyimpan setiap pemesanan. Seorang jamaah bisa punya banyak booking dari Agen/Cabang berbeda, tetapi record `pilgrims` tetap satu.
+
+#### 2.2.7. Pencegahan Bypass Hierarki (Anti-Serobot)
+
+Skenario: Mitra atau Cabang langsung mem-follow-up calon jamaah agar mendapat porsi komisi lebih besar, padahal seharusnya jamaah ditangani oleh Agen di bawahnya. Ini merusak ekosistem dan demotivasi Agen.
+
+```mermaid
+flowchart TD
+    A["Calon Jamaah Hubungi Cabang/Mitra"] --> B{"Cabang/Mitra Mau Follow-up Langsung?"}
+    B -->|"Tidak Boleh ❌"| C["Sistem Enforce: Cabang/Mitra Tidak Punya Tombol Follow-up"]
+    C --> D["Cabang/Mitra Rekomendasikan Agen"]
+    D --> E["Assign Calon Jamaah ke Agen via Sistem"]
+    E --> F["Agen Menerima Notifikasi WA + Dashboard"]
+    F --> G["Agen Follow-up & Closing"]
+```
+
+**Aturan Anti-Serobot:**
+
+| Aturan | Implementasi |
+|--------|-------------|
+| **Cabang & Mitra = No Follow-Up Tools** | Dashboard Cabang dan Mitra **tidak memiliki** tombol "Kirim WA", template follow-up, atau CRM pipeline. Mereka hanya bisa *view* data jamaah. |
+| **Assign ke Agen** | Jika Cabang/Mitra menerima inquiry dari calon jamaah (misalnya via WA langsung), mereka bisa **assign lead ke Agen** melalui fitur "Teruskan ke Agen". Sistem akan notifikasi Agen via WA. |
+| **Komisi Mengikuti Affiliate Link** | Komisi **selalu** berdasarkan `affiliate_user_id` di booking. Bahkan jika Cabang yang dihubungi duluan, begitu jamaah didaftarkan via link Agen, komisi tetap ke Agen. |
+| **Audit Log** | Setiap aksi follow-up (kirim WA, tandai siap review, dsb) tercatat dengan `user_id` pelaku. Pusat bisa audit apakah ada Mitra/Cabang yang bypass. |
+| **Cabang Punya Link Affiliate Sendiri** | Jika Cabang memang ingin mendaftarkan jamaah langsung (tanpa Agen), boleh — tapi komisi Agen tidak ada karena memang tidak ada Agen yang handle. Ini trade-off yang transparan. |
+
+> [!WARNING]
+> **Prinsip utama**: Cabang fokus pada **marketing & approval**, bukan sales langsung. Agen fokus pada **follow-up & closing**. Pembagian ini menjaga ekosistem tetap sehat dan Agen tetap termotivasi.
+
+#### 2.2.4. Pembagian Peran Operasional Harian
+
+Setiap tier memiliki fokus **aktivitas harian** yang berbeda:
+
+| Role | Aktivitas Utama | Frekuensi Login | Dashboard Focus |
+|------|----------------|-----------------|------------------|
+| **Pusat** | Konfigurasi global, monitor keuangan, cairkan komisi, ekspor compliance | Harian (admin) | KPI global, laporan keuangan |
+| **Cabang** | Approve final data jamaah, **siapkan materi marketing** (poster, copywriting), monitor performa wilayah | Harian | Antrian approval, upload materi promosi |
+| **Mitra** | Monitor performa Agen, set komisi, **view data jamaah** (read only) | Mingguan | Performa tim, rekap penjualan |
+| **Agen** | **Follow-up jamaah**, cek kelengkapan data, reminder pembayaran, tandai siap review, **jualan langsung** | **Sangat sering** (utama) | CRM jamaah, pipeline follow-up, materi marketing |
+| **Reseller** | Bagikan link affiliate, promosi di sosmed/WA, **jualan langsung** | Sering | Link generator, materi marketing, komisi |
+
+> [!NOTE]
+> **Yang paling aktif login = Agen.** Dashboard Agen harus didesain dengan prioritas UX tertinggi — cepat, informatif, mobile-friendly.
+
+#### 2.2.5. Cabang sebagai Penyedia Materi Marketing
+
+Cabang bertanggung jawab menyiapkan **amunisi marketing** yang bisa diakses oleh Agen dan Reseller di bawahnya.
+
+```mermaid
+flowchart LR
+    CB[Cabang] -->|Upload| MK["Marketing Kit 📁"]
+    MK --> P["Poster Promosi 🖼️"]
+    MK --> CW["Copywriting Template 📝"]
+    MK --> VD["Video Promosi 🎥"]
+    MK --> BR["Brosur Digital 📄"]
+    
+    P --> AG[Agen Download & Share]
+    P --> RS[Reseller Download & Share]
+    CW --> AG
+    CW --> RS
+```
+
+**Fitur Marketing Kit:**
+
+| Fitur | Deskripsi |
+|-------|-----------|
+| **Upload Materi** | Cabang upload poster, copywriting, video ke R2. Bisa set per paket atau umum. |
+| **Perpustakaan Materi** | Agen & Reseller akses library materi dari dashboard → download / share langsung ke WA. |
+| **Kategori** | Filter by: Poster, Copywriting, Video, Brosur. Filter by: Paket tertentu atau Umum. |
+| **Share-Ready** | Materi sudah diformat siap share — ukuran optimal WA/IG Story. Agen tinggal tap "Share ke WhatsApp". |
+
+---
+
+### 2.4. Sales Enablement — Fitur Penjualan untuk Agen & Reseller
+
+Karena Agen dan Reseller adalah **ujung tombak penjualan**, mereka butuh fitur khusus yang memudahkan closing:
+
+#### A. Fitur untuk Agen
+
+| Fitur | Deskripsi |
+|-------|-----------|
+| **CRM Pipeline Jamaah** | Kanban board: Lead → Terdaftar → DP Bayar → Cicilan → Lunas → Berangkat. Agen drag card jamaah antar kolom. |
+| **Quick WhatsApp Templates** | Template pesan siap pakai: "Reminder DP", "Dokumen Belum Lengkap", "Promo Paket Baru". Tap → langsung buka WA dengan pesan ter-isi. |
+| **Alumni Jamaah (Re-engagement)** | List jamaah yang sudah pernah berangkat. Agen bisa follow-up untuk trip berikutnya. Badge: "Sudah 2x Umroh". |
+| **Booking Cepat (Quick Register)** | Form ringkas untuk daftarkan jamaah on-the-spot saat ketemu langsung. Data minimal dulu, lengkapi nanti. |
+| **Kalkulator Harga** | Hitung harga real-time: pilih paket → pilih kamar → masukkan jumlah pax → total harga + simulasi cicilan. Bisa share screenshot ke jamaah. |
+| **Target & Progress Penjualan** | Target bulanan (set oleh Mitra/Cabang). Progress bar: "8/15 jamaah bulan ini". Motivasi visual. |
+| **Notifikasi Real-time** | Push notification: "Jamaah X baru daftar via link Reseller Y", "Jamaah Z sudah bayar DP". |
+| **📝 Target Calon Jamaah (Prospect List)** | List prospek potensial yang belum mendaftar. Seperti task list berisi: nama, alamat, kontak, catatan, status follow-up. Agen input manual dari kenalan atau leads offline. |
+
+#### B. Fitur untuk Reseller
+
+| Fitur | Deskripsi |
+|-------|-----------|
+| **Link Generator + QR Code** | Generate link affiliate per paket. QR code otomatis — bisa di-print untuk brosur fisik. |
+| **Share-Ready Package Cards** | Kartu paket siap share ke WA/sosmed — satu tap langsung share dengan gambar + caption + link affiliate. |
+| **Materi Marketing dari Cabang** | Akses perpustakaan poster & copywriting yang disediakan Cabang. Download/share langsung. |
+| **Tracking Dashboard Simpel** | Tampilan sederhana: Berapa klik, berapa daftar, berapa yang sudah bayar, total komisi. |
+| **Kalkulator Komisi** | Simulasi: "Jika saya referral 10 jamaah paket X, komisi saya = Rp Y". Motivasi untuk jualan lebih giat. |
+| **Kartu Nama Digital** | Landing page mini berisi profil Reseller + link affiliate + tombol WA. Bisa di-share sebagai "toko online" pribadi. |
+
+#### C. Fitur Bersama (Agen & Reseller)
+
+| Fitur | Deskripsi |
+|-------|-----------|
+| **Leaderboard** | Ranking penjualan per bulan di level Cabang. Top 3 dapat badge/reward. Gamifikasi memotivasi kompetisi sehat. |
+| **Katalog Paket Terkini** | Selalu up-to-date: paket mana yang masih buka, kuota tersisa, harga terbaru. Tidak perlu tanya Cabang lagi. |
+| **WhatsApp Broadcast List** | Simpan daftar kontak prospek. Kirim broadcast promo paket baru ke semua kontak sekaligus (via WAHA). |
+| **Testimonial Gallery** | Kumpulan foto & video testimoni jamaah sebelumnya. Bisa share ke prospek sebagai social proof. |
 
 ---
 
@@ -616,6 +832,63 @@ CREATE TABLE affiliate_clicks (
 );
 ```
 
+#### Q. `prospects` — Target Calon Jamaah (Prospect List)
+
+```sql
+CREATE TABLE prospects (
+  id            TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+  owner_id      TEXT NOT NULL REFERENCES users(id),  -- Agen/Reseller pemilik prospek
+  full_name     TEXT NOT NULL,           -- Nama calon jamaah
+  phone         TEXT,                    -- No. HP / WhatsApp
+  address       TEXT,                    -- Alamat
+  notes         TEXT,                    -- Catatan (misal: "tertarik paket Ramadhan")
+  source        TEXT,                    -- Sumber lead: "Kenalan", "Event", "Sosmed", "Referral"
+  status        TEXT DEFAULT 'new' CHECK(status IN (
+    'new',              -- baru ditambahkan
+    'contacted',        -- sudah dihubungi
+    'interested',       -- tertarik / warm lead
+    'not_interested',   -- tidak minat
+    'converted'         -- sudah jadi jamaah terdaftar
+  )),
+  follow_up_date TEXT,                   -- tanggal reminder follow-up berikutnya
+  converted_booking_id TEXT REFERENCES bookings(id), -- jika sudah dikonversi
+  created_at    TEXT DEFAULT (datetime('now')),
+  updated_at    TEXT DEFAULT (datetime('now'))
+);
+```
+
+#### R. `marketing_materials` — Materi Marketing dari Cabang
+
+```sql
+CREATE TABLE marketing_materials (
+  id            TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+  uploaded_by   TEXT NOT NULL REFERENCES users(id),  -- Cabang yang upload
+  title         TEXT NOT NULL,           -- "Poster Promo Ramadhan 2026"
+  category      TEXT NOT NULL CHECK(category IN ('poster','copywriting','video','brosur','other')),
+  package_id    TEXT REFERENCES packages(id),  -- NULL = materi umum
+  r2_key        TEXT NOT NULL,           -- object key di R2 bucket
+  file_name     TEXT,
+  mime_type     TEXT,
+  description   TEXT,
+  is_active     INTEGER DEFAULT 1,
+  created_at    TEXT DEFAULT (datetime('now'))
+);
+```
+
+#### S. `audit_log` — Log Aksi Penting (Anti-Bypass)
+
+```sql
+CREATE TABLE audit_log (
+  id            TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+  user_id       TEXT NOT NULL REFERENCES users(id),  -- pelaku aksi
+  action        TEXT NOT NULL,           -- "follow_up", "assign_lead", "approve_jamaah", "send_wa"
+  target_type   TEXT,                    -- "booking", "pilgrim", "prospect"
+  target_id     TEXT,                    -- ID objek target
+  details       TEXT,                    -- JSON detail aksi
+  created_at    TEXT DEFAULT (datetime('now'))
+);
+```
+
 ---
 
 ### 3.3. Query Kunci: Hitung Komisi
@@ -772,6 +1045,19 @@ ENVIRONMENT = "production"
 | **Kamar** | | | |
 | GET | `/api/rooming/:departure_id` | Rooming list per keberangkatan | Admin |
 | PATCH | `/api/rooming/assign` | Assign jamaah ke kamar | Admin |
+| **Prospek** | | | |
+| GET | `/api/prospects` | List prospek (filtered by owner) | Agen/Reseller |
+| POST | `/api/prospects` | Tambah prospek baru | Agen/Reseller |
+| PATCH | `/api/prospects/:id` | Update status/catatan prospek | Agen/Reseller |
+| DELETE | `/api/prospects/:id` | Hapus prospek | Owner |
+| POST | `/api/prospects/:id/convert` | Konversi prospek → mulai booking | Agen/Reseller |
+| **Marketing Kit** | | | |
+| GET | `/api/marketing-kit` | List materi marketing (filtered by cabang hierarchy) | Agen/Reseller |
+| POST | `/api/marketing-kit` | Upload materi marketing | Cabang |
+| DELETE | `/api/marketing-kit/:id` | Hapus materi | Cabang |
+| **Lead Assignment** | | | |
+| POST | `/api/leads/assign` | Cabang/Mitra assign lead ke Agen | Cabang/Mitra |
+| GET | `/api/leads/incoming` | List lead yang di-assign ke saya | Agen |
 
 ---
 
@@ -846,24 +1132,57 @@ Step 5: Pembayaran DP        → Midtrans Snap ATAU Transfer Manual
 - **Checklist Dokumen**: Centang hijau (✅ KTP, ✅ Paspor, ❌ Vaksin — Upload)
 - **Checklist Perlengkapan**: Read-only, diupdate admin (✅ Koper diterima, ❌ Kain Ihram)
 
-#### E. Dashboard Affiliator
+#### E. Dashboard Agen (Follow-Up & Sales Hub)
 
-- **Stat Cards** (atas): Total Klik, Total Registrasi, Total Komisi, Konversi Rate
-- **Grafik**: Line chart komisi per bulan
-- **Tabel Jamaah Referral**: Nama, status booking, tanggal, komisi earned
+> Dashboard yang paling sering diakses. Desain prioritas UX tertinggi, mobile-first.
+
+- **Stat Cards** (atas): Total Jamaah Aktif, Jamaah Perlu Follow-up, Total Komisi, Target Bulan Ini (%), Prospek Belum Di-follow-up
+- **CRM Pipeline**: Kanban board horizontal — Lead | Terdaftar | DP Bayar | Cicilan | Lunas | Berangkat. Drag card jamaah.
+- **📝 Target Calon Jamaah (Prospect List)**: Tab khusus berisi daftar prospek potensial yang belum mendaftar. Task list dengan: nama, alamat, no. HP, catatan, status (Baru / Sudah Dihubungi / Tertarik / Tidak Minat). Agen bisa tambah prospek manual, lalu konversi menjadi jamaah terdaftar saat closing.
+- **Antrian Follow-Up**: List jamaah yang data belum lengkap / belum bayar. Badge merah "⚠️ Dokumen Kurang" atau "💰 Belum Bayar DP". Tombol WA langsung.
+- **Lead Masuk**: Daftar calon jamaah yang di-assign oleh Cabang/Mitra. Notifikasi: "Cabang Jakarta assign 1 lead baru untuk Anda".
+- **Quick Actions**: Tombol cepat — "Daftarkan Jamaah Baru", "Tambah Prospek", "Buka Kalkulator Harga", "Lihat Materi Marketing"
+- **Alumni Jamaah**: Tab khusus jamaah yang sudah pernah berangkat → re-engagement untuk trip berikutnya.
+- **Quick WA Templates**: 1-tap kirim pesan template ke jamaah (reminder, promo, follow-up data).
+- **Grafik**: Line chart komisi per bulan + bar chart jumlah jamaah per bulan.
 - **Generate Link**: Input slug → copy link affiliate. QR code otomatis.
-- **Downline Management** (Agen ke atas): Tabel downline, performa, set komisi
+- **Downline Reseller**: Tabel performa Reseller, set komisi.
 
-#### F. Dashboard Admin (Pusat/Cabang)
+#### E2. Dashboard Reseller (Sales & Tracking)
 
-- **Sidebar navigasi**: Beranda, Paket, Keberangkatan, Jamaah, Pembayaran, Komisi, Afiliasi, Perlengkapan, Ekspor, **Pengaturan**
+- **Stat Cards**: Total Klik, Total Registrasi, Total Komisi, Konversi Rate
+- **Link Generator**: Pilih paket → generate link + QR code → share langsung ke WA.
+- **Share-Ready Cards**: Kartu paket visual siap share — 1-tap ke WhatsApp/IG Story.
+- **Materi Marketing**: Perpustakaan poster, copywriting, video dari Cabang. Download / share langsung.
+- **Tracking Jamaah**: Tabel jamaah yang daftar via link Reseller. Status booking & komisi earned.
+- **Kalkulator Komisi**: Simulasi penghasilan berdasarkan jumlah referral.
+- **Kartu Nama Digital**: Landing page mini + link affiliate + tombol WA.
+- **Leaderboard**: Ranking penjualan per bulan di level Cabang.
+
+#### F. Dashboard Cabang
+
+- **Sidebar navigasi**: Beranda, Paket, Keberangkatan, Jamaah *(view only)*, Pembayaran, Komisi, Afiliasi, Perlengkapan, Ekspor, **Marketing Kit**, **Pengaturan**
 - **Beranda**: KPI cards (total jamaah bulan ini, revenue, kuota terisi, komisi terdistribusi)
+- **Antrian Approval**: Jamaah yang sudah ditandai "Siap Review" oleh Agen → Cabang bisa Approve / Reject.
+- **Marketing Kit Manager**: Upload poster, copywriting, video, brosur. Set kategori per paket. Agen & Reseller bisa akses.
 - **Manajemen Keberangkatan**: Tabel dengan filter status + **progress bar kuota** per baris. Klik → detail rooming list.
 - **Verifikasi Pembayaran** (mode manual): Tabel invoice "Menunggu Verifikasi" → klik → lihat bukti transfer → Approve/Reject.
 - **Rooming List**: Drag-and-drop jamaah ke kamar. Visual kamar (Quad: 4 slot, Triple: 3 slot, Double: 2 slot).
 - **Ekspor SISKOPATUH**: Pilih keberangkatan → preview data → Download Excel
 - **Manajemen Perlengkapan**: Per keberangkatan → checklist massal (centang koper untuk 30 jamaah sekaligus)
-- **Pengaturan**: Konfigurasi rekening bank tujuan transfer, toggle mode pembayaran (jika Midtrans key tersedia)
+- **Pengaturan**: Konfigurasi rekening bank tujuan transfer, toggle mode pembayaran
+
+#### G. Dashboard Pusat (Super Admin)
+
+- **Sidebar navigasi**: Beranda, Paket, Keberangkatan, **Jamaah (Semua Cabang)**, Pembayaran, Komisi, Afiliasi, Cabang Management, Perlengkapan, Ekspor, **Pengaturan Global**
+- **Beranda**: KPI global — seluruh cabang. **Perbandingan performa antar cabang** (tabel ranking + bar chart): jumlah jamaah, revenue, konversi rate, Agen terbaik.
+- **Jamaah Global View**: Data jamaah dari seluruh cabang. **Filter dropdown per Cabang**. Bisa drill down: Cabang → Mitra → Agen → individual jamaah.
+- **Alumni & Repeat Customer Report**: Laporan jamaah yang pernah berangkat >1x. Insight repeat rate per cabang.
+- **Pencairan Komisi**: Approve request pencairan dari seluruh jaringan.
+- **CRUD Paket**: Buat/edit paket, keberangkatan, harga dasar.
+- **Compliance**: Ekspor SISKOPATUH, manifest maskapai, data jamaah.
+- **Audit Log**: Riwayat semua aksi penting (follow-up, approval, assign lead) — untuk memastikan tidak ada bypass hierarki.
+- **Monitor seluruh cabang**: Drill-down per cabang → per mitra → per agen.
 
 ### 5.3. Komponen UI Kunci
 

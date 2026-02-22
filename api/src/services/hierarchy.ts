@@ -1,5 +1,5 @@
-import { eq, and, sql } from 'drizzle-orm';
-import { hierarchyPaths, users } from '../db/schema.js';
+import { eq, and, or, sql, inArray } from 'drizzle-orm';
+import { hierarchyPaths, users, pilgrims, bookings } from '../db/schema.js';
 import type { D1Database } from '@cloudflare/workers-types';
 import { getDb } from '../db/index.js';
 
@@ -65,4 +65,37 @@ export async function getDownlineTree(d1: D1Database, userId: string) {
 export async function getDirectChildren(d1: D1Database, userId: string) {
     const db = getDb(d1);
     return await db.select().from(users).where(eq(users.parentId, userId));
+}
+
+export async function getVisibleBookingIds(d1: D1Database, userId: string, role: string) {
+    if (role === 'pusat') return null; // Pusat sees all
+    const db = getDb(d1);
+
+    // Get all descendant users (affiliators in my tree), including myself (path_length >= 0)
+    const descendants = await db.select({ id: hierarchyPaths.descendantId })
+        .from(hierarchyPaths)
+        .where(eq(hierarchyPaths.ancestorId, userId));
+
+    if (descendants.length === 0) return [];
+
+    const descendantIds = descendants.map(d => d.id);
+
+    const visibleBookings = await db.select({ id: bookings.id })
+        .from(bookings)
+        .where(inArray(bookings.affiliatorId, descendantIds));
+
+    return visibleBookings.map(b => b.id);
+}
+
+export async function checkDuplicatePilgrim(d1: D1Database, nik?: string, phone?: string, passport?: string) {
+    const db = getDb(d1);
+    const conditions = [];
+    if (nik) conditions.push(eq(pilgrims.noKtp, nik));
+    if (phone) conditions.push(eq(pilgrims.phone, phone));
+    if (passport) conditions.push(eq(pilgrims.noPassport, passport));
+
+    if (conditions.length === 0) return null;
+
+    const existing = await db.select().from(pilgrims).where(or(...conditions)).limit(1);
+    return existing.length > 0 ? existing[0] : null;
 }

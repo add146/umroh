@@ -13,6 +13,7 @@ export const DownlineManagePage: React.FC = () => {
         email: '',
         phone: '',
         password: '',
+        targetRole: '',
     });
 
     const fetchDownlines = async () => {
@@ -43,7 +44,7 @@ export const DownlineManagePage: React.FC = () => {
             });
             if (res.ok) {
                 setIsModalOpen(false);
-                setFormData({ name: '', email: '', phone: '', password: '' });
+                setFormData({ name: '', email: '', phone: '', password: '', targetRole: '' });
                 fetchDownlines();
                 alert('Downline added successfully');
             } else {
@@ -56,7 +57,7 @@ export const DownlineManagePage: React.FC = () => {
     };
 
     const downlineLabel = user?.role === 'pusat' ? 'Cabang' :
-        user?.role === 'cabang' ? 'Mitra' :
+        user?.role === 'cabang' ? 'Mitra/Agen' :
             user?.role === 'mitra' ? 'Agen' : 'Reseller';
 
     return (
@@ -120,6 +121,21 @@ export const DownlineManagePage: React.FC = () => {
                     <div style={{ backgroundColor: 'var(--color-bg-card)', border: '1px solid var(--color-border)', padding: '2rem', borderRadius: 'var(--radius)', width: '400px' }}>
                         <h3 style={{ marginBottom: '1.5rem' }}>Add New {downlineLabel}</h3>
                         <form onSubmit={handleCreateDownline}>
+                            {user?.role === 'cabang' && (
+                                <div style={{ marginBottom: '1rem' }}>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Role</label>
+                                    <select
+                                        value={formData.targetRole}
+                                        onChange={(e) => setFormData({ ...formData, targetRole: e.target.value })}
+                                        style={{ width: '100%', padding: '0.5rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }}
+                                        required
+                                    >
+                                        <option value="">-- Select Role --</option>
+                                        <option value="mitra">Mitra</option>
+                                        <option value="agen">Agen</option>
+                                    </select>
+                                </div>
+                            )}
                             <div style={{ marginBottom: '1rem' }}>
                                 <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Full Name</label>
                                 <input

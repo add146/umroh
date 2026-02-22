@@ -1,11 +1,13 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql, inArray } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
 import { bookings, pilgrims, departures, roomTypes } from '../db/schema.js';
 import { useLock, checkAvailability } from '../services/seats.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { getVisibleBookingIds, checkDuplicatePilgrim } from '../services/hierarchy.js';
+import { logAction } from '../services/audit.js';
 import { Env } from '../index.js';
 
 const api = new Hono<{ Bindings: Env }>();
@@ -149,10 +151,46 @@ api.post('/', zValidator('json', bookingSchema), async (c) => {
 api.get('/', authMiddleware, async (c) => {
     const user = c.get('user');
     const db = getDb(c.env.DB);
+    const cabangId = c.req.query('cabang_id'); // Optional filter for pusat
 
-    // In Fase 4, we will filter this by hierarchy/affiliatorId
-    const data = await db.select().from(bookings);
+    let targetUserId = user.id;
+    let targetRole = user.role;
+
+    // If Pusat wants to filter by cabang
+    if (user.role === 'pusat' && cabangId) {
+        targetUserId = cabangId;
+        // Assume the target is a cabang for query purposes
+        targetRole = 'cabang';
+    }
+
+    const visibleBookingIds = await getVisibleBookingIds(c.env.DB, targetUserId, targetRole);
+
+    let conditions = undefined;
+    if (visibleBookingIds !== null) {
+        if (visibleBookingIds.length === 0) {
+            return c.json({ bookings: [] });
+        }
+        conditions = inArray(bookings.id, visibleBookingIds);
+    }
+
+    const data = await db.select().from(bookings).where(conditions);
     return c.json({ bookings: data });
+});
+
+api.get('/check-duplicate', async (c) => {
+    const nik = c.req.query('nik');
+    const phone = c.req.query('phone');
+    const passport = c.req.query('passport');
+
+    if (!nik && !phone && !passport) {
+        return c.json({ isDuplicate: false });
+    }
+
+    const existing = await checkDuplicatePilgrim(c.env.DB, nik, phone, passport);
+    if (existing) {
+        return c.json({ isDuplicate: true, pilgrim: existing });
+    }
+    return c.json({ isDuplicate: false });
 });
 
 // 3. GET BOOKING STATUS (Public)
@@ -175,6 +213,42 @@ api.get('/:id/status', async (c) => {
 
     if (!data) return c.json({ error: 'Booking not found' }, 404);
     return c.json(data);
+});
+
+// Follow up WA action
+api.post('/:id/follow-up', authMiddleware, async (c) => {
+    const id = c.req.param('id');
+    const user = c.get('user');
+    await logAction(c.env.DB, user.id, 'FOLLOW_UP_WA', 'booking', id);
+    return c.json({ message: 'Follow up logged' });
+});
+
+// Agent marking ready for review
+api.post('/:id/ready-for-review', authMiddleware, async (c) => {
+    const id = c.req.param('id');
+    const user = c.get('user');
+    const db = getDb(c.env.DB);
+
+    // Can optionally check if payment is at least partially paid and docs are complete
+    await db.update(bookings).set({ bookingStatus: 'pending' }).where(eq(bookings.id, id));
+    await logAction(c.env.DB, user.id, 'MARK_READY_REVIEW', 'booking', id);
+
+    return c.json({ message: 'Marked ready for review' });
+});
+
+// Cabang approving booking
+api.post('/:id/approve', authMiddleware, async (c) => {
+    const id = c.req.param('id');
+    const user = c.get('user');
+    if (user.role !== 'cabang' && user.role !== 'pusat') {
+        return c.json({ error: 'Unauthorized' }, 403);
+    }
+
+    const db = getDb(c.env.DB);
+    await db.update(bookings).set({ bookingStatus: 'confirmed' }).where(eq(bookings.id, id));
+    await logAction(c.env.DB, user.id, 'APPROVE_BOOKING', 'booking', id);
+
+    return c.json({ message: 'Booking approved' });
 });
 
 export default api;

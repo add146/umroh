@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuthStore } from './stores/authStore';
 import ErrorBoundary from './components/ErrorBoundary';
 import NotFound from './pages/NotFound';
 import { LoginPage } from './pages/Login';
@@ -24,6 +25,25 @@ import LogisticsChecklist from './pages/admin/LogisticsChecklist';
 import DocumentScanner from './pages/admin/DocumentScanner';
 import { MasterDataPage } from './pages/admin/masters/MasterDataPage';
 
+import { AgentDashboard } from './pages/AgentDashboard';
+import { ProspectList } from './pages/ProspectList';
+import { AgentJamaahView } from './pages/AgentJamaahView';
+import { IncomingLeads } from './pages/IncomingLeads';
+import { ResellerDashboard } from './pages/ResellerDashboard';
+import { MarketingKitView } from './pages/MarketingKitView';
+import { CabangApproval } from './pages/admin/CabangApproval';
+import { MarketingKitManage } from './pages/admin/MarketingKitManage';
+import { CabangJamaahView } from './pages/admin/CabangJamaahView';
+import { AssignLead } from './pages/admin/AssignLead';
+import { CabangPerformance } from './pages/admin/CabangPerformance';
+import { AuditLogView } from './pages/admin/AuditLogView';
+
+const DashboardRouter = () => {
+  const { user } = useAuthStore();
+  if (user?.role === 'agen') return <AgentDashboard />;
+  if (user?.role === 'reseller') return <ResellerDashboard />;
+  return <DashboardPage />;
+};
 
 function App() {
   return (
@@ -37,10 +57,24 @@ function App() {
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <DashboardLayout>
-                <DashboardPage />
+                <DashboardRouter />
               </DashboardLayout>
             </ProtectedRoute>
           } />
+
+          {/* New Sales & CRM Routes */}
+          <Route path="/prospects" element={<ProtectedRoute allowedRoles={['agen', 'reseller']}><DashboardLayout><ProspectList /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/agent/leads" element={<ProtectedRoute allowedRoles={['agen']}><DashboardLayout><IncomingLeads /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/agent/jamaah" element={<ProtectedRoute allowedRoles={['agen']}><DashboardLayout><AgentJamaahView /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/marketing-kit" element={<ProtectedRoute allowedRoles={['cabang', 'mitra', 'agen', 'reseller']}><DashboardLayout><MarketingKitView /></DashboardLayout></ProtectedRoute>} />
+
+          <Route path="/cabang/approval" element={<ProtectedRoute allowedRoles={['cabang']}><DashboardLayout><CabangApproval /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/cabang/jamaah" element={<ProtectedRoute allowedRoles={['cabang']}><DashboardLayout><CabangJamaahView /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/cabang/marketing-kit" element={<ProtectedRoute allowedRoles={['cabang']}><DashboardLayout><MarketingKitManage /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/cabang/assign-lead" element={<ProtectedRoute allowedRoles={['cabang', 'mitra']}><DashboardLayout><AssignLead /></DashboardLayout></ProtectedRoute>} />
+
+          <Route path="/admin/performance" element={<ProtectedRoute allowedRoles={['pusat']}><DashboardLayout><CabangPerformance /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/admin/audit" element={<ProtectedRoute allowedRoles={['pusat']}><DashboardLayout><AuditLogView /></DashboardLayout></ProtectedRoute>} />
 
           <Route path="/downline" element={
             <ProtectedRoute allowedRoles={['pusat', 'cabang', 'mitra', 'agen']}>

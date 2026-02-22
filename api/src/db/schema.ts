@@ -293,6 +293,47 @@ export const roomAssignments = sqliteTable('room_assignments', {
     createdAt: text('created_at').default(sql`(datetime('now'))`),
 });
 
+// --- FASE 8: PROSPECT & MARKETING ---
+
+export const prospects = sqliteTable('prospects', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    ownerId: text('owner_id').notNull().references(() => users.id),
+    fullName: text('full_name').notNull(),
+    phone: text('phone'),
+    address: text('address'),
+    notes: text('notes'),
+    source: text('source'),
+    status: text('status', { enum: ['new', 'contacted', 'interested', 'not_interested', 'converted'] }).default('new'),
+    followUpDate: text('follow_up_date'),
+    convertedBookingId: text('converted_booking_id').references(() => bookings.id),
+    createdAt: text('created_at').default(sql`(datetime('now'))`),
+    updatedAt: text('updated_at').default(sql`(datetime('now'))`),
+});
+
+export const marketingMaterials = sqliteTable('marketing_materials', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    uploadedBy: text('uploaded_by').notNull().references(() => users.id),
+    title: text('title').notNull(),
+    category: text('category', { enum: ['poster', 'copywriting', 'video', 'brosur', 'other'] }).notNull(),
+    packageId: text('package_id').references(() => packages.id),
+    r2Key: text('r2_key').notNull(),
+    fileName: text('file_name'),
+    mimeType: text('mime_type'),
+    description: text('description'),
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    createdAt: text('created_at').default(sql`(datetime('now'))`),
+});
+
+export const auditLog = sqliteTable('audit_log', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text('user_id').notNull().references(() => users.id),
+    action: text('action').notNull(),
+    targetType: text('target_type'),
+    targetId: text('target_id'),
+    details: text('details'),
+    createdAt: text('created_at').default(sql`(datetime('now'))`),
+});
+
 // relations.ts - merged into schema.ts for simplicity in this environment
 
 import { relations } from 'drizzle-orm';
@@ -312,6 +353,9 @@ export const usersRelations = relations(users, ({ many, one }) => ({
     }),
     verifiedDocuments: many(documents),
     receivedEquipment: many(equipmentChecklist),
+    prospects: many(prospects, { relationName: 'owner' }),
+    marketingMaterials: many(marketingMaterials, { relationName: 'uploader' }),
+    auditLogs: many(auditLog),
 }));
 
 export const packagesRelations = relations(packages, ({ many, one }) => ({

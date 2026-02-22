@@ -6,7 +6,7 @@ import { users } from '../db/schema.js';
 import { hashPassword } from '../lib/password.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { requireRole } from '../middleware/rbac.js';
-import { canCreateRole, getDownlineRole, UserRole } from '../lib/roleHierarchy.js';
+import { canCreateRole, getAllowedDownlineRoles, getDefaultDownlineRole, UserRole } from '../lib/roleHierarchy.js';
 import { insertUserWithHierarchy, getDownlineTree } from '../services/hierarchy.js';
 import { Env } from '../index.js';
 
@@ -26,6 +26,7 @@ const createUserSchema = z.object({
     phone: z.string().optional(),
     password: z.string().min(6),
     affiliateCode: z.string().optional(),
+    targetRole: z.string().optional(),
 });
 
 // Any role except Reseller can create their direct downline
@@ -33,9 +34,14 @@ userStore.post('/', authMiddleware, zValidator('json', createUserSchema), async 
     const currentUser = c.get('user');
     const body = c.req.valid('json');
 
-    const targetRole = getDownlineRole(currentUser.role as UserRole);
-    if (!targetRole) {
+    const allowed = getAllowedDownlineRoles(currentUser.role);
+    if (allowed.length === 0) {
         return c.json({ error: 'You cannot create downlines' }, 403);
+    }
+
+    let targetRole = body.targetRole;
+    if (!targetRole || !allowed.includes(targetRole)) {
+        targetRole = allowed[0];
     }
 
     const db = getDb(c.env.DB);
@@ -47,7 +53,7 @@ userStore.post('/', authMiddleware, zValidator('json', createUserSchema), async 
             password: hashedPassword,
             name: body.name,
             phone: body.phone,
-            role: targetRole,
+            role: targetRole as 'pusat' | 'cabang' | 'mitra' | 'agen' | 'reseller',
             parentId: currentUser.id,
             affiliateCode: body.affiliateCode || `AFF-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
         }).returning({ id: users.id });

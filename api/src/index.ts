@@ -114,6 +114,11 @@ import communicationRoutes from './routes/communication.js';
 import exportRoutes from './routes/export.js';
 import mastersRoutes from './routes/masters.js';
 
+import prospectRoutes from './routes/prospects.js';
+import marketingKitRoutes from './routes/marketing-kit.js';
+import leadsRoutes from './routes/leads.js';
+import auditRoutes from './routes/audit.js';
+
 app.route('/api/auth', authRoutes);
 app.route('/api/users', userRoutes);
 app.route('/api/packages', packageRoutes);
@@ -127,6 +132,11 @@ app.route('/api/documents', documentRoutes);
 app.route('/api/operations', operationRoutes);
 app.route('/api/comm', communicationRoutes);
 app.route('/api/export', exportRoutes);
+
+app.route('/api/prospects', prospectRoutes);
+app.route('/api/marketing-kit', marketingKitRoutes);
+app.route('/api/leads', leadsRoutes);
+app.route('/api/audit-log', auditRoutes);
 
 export default app;
 

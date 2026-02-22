@@ -30,6 +30,26 @@ const menuGroups = [
             { name: 'Data Hotel', path: '/admin/masters/hotels', icon: 'apartment', roles: ['pusat'] },
             { name: 'Data Pesawat', path: '/admin/masters/airlines', icon: 'airlines', roles: ['pusat'] },
             { name: 'Data Bandara', path: '/admin/masters/airports', icon: 'connecting_airports', roles: ['pusat'] },
+            { name: 'Audit Log', path: '/admin/audit', icon: 'security', roles: ['pusat'] },
+        ]
+    },
+    {
+        label: 'Sales & CRM',
+        items: [
+            { name: 'Prospek', path: '/prospects', icon: 'contact_mail', roles: ['agen', 'reseller'] },
+            { name: 'Inbox Lead', path: '/agent/leads', icon: 'call_received', roles: ['agen'] },
+            { name: 'Marketing Kit', path: '/marketing-kit', icon: 'imagesmode', roles: ['mitra', 'agen', 'reseller', 'cabang'] },
+            { name: 'Upload Banner', path: '/cabang/marketing-kit', icon: 'upload', roles: ['cabang'] },
+            { name: 'Assign Lead', path: '/cabang/assign-lead', icon: 'assignment_ind', roles: ['cabang', 'mitra'] },
+        ]
+    },
+    {
+        label: 'Monitoring Jamaah',
+        items: [
+            { name: 'Approval Jamaah', path: '/cabang/approval', icon: 'rule', roles: ['cabang'] },
+            { name: 'Data Jamaah Server', path: '/cabang/jamaah', icon: 'dns', roles: ['cabang'] },
+            { name: 'Performa Cabang', path: '/admin/performance', icon: 'leaderboard', roles: ['pusat'] },
+            { name: 'Data Jamaahku', path: '/agent/jamaah', icon: 'group', roles: ['agen'] },
         ]
     },
     {
