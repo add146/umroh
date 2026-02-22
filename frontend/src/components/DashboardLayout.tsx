@@ -19,7 +19,7 @@ const menuGroups = [
     {
         label: 'Hotel & Operasional',
         items: [
-            { name: 'Rooming Board', path: '/admin/rooming', icon: 'bed', roles: ['pusat'] },
+            // Rooming Board hidden — impractical for umroh ops (room assignments change on the day)
             { name: 'Logistik', path: '/admin/logistics', icon: 'inventory_2', roles: ['pusat'] },
             { name: 'Dokumen & OCR', path: '/admin/documents', icon: 'document_scanner', roles: ['pusat'] },
         ]
