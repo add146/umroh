@@ -123,22 +123,33 @@ export const DownlineManagePage: React.FC = () => {
                 )}
             </div>
 
-            {/* Modal Placeholder */}
+            {/* Modal */}
             {isModalOpen && (
                 <div style={{
                     position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-                    backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
+                    backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
                 }}>
-                    <div style={{ backgroundColor: 'var(--color-bg-card)', border: '1px solid var(--color-border)', padding: '2rem', borderRadius: 'var(--radius)', width: '400px' }}>
-                        <h3 style={{ marginBottom: '1.5rem' }}>Add New {downlineLabel}</h3>
+                    <div style={{ backgroundColor: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', padding: '2rem', borderRadius: '1rem', width: '400px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>Add New {downlineLabel}</h3>
+                            <button
+                                type="button"
+                                onClick={() => setIsModalOpen(false)}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', padding: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'color 0.2s' }}
+                                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text)'}
+                                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
+                            >
+                                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>close</span>
+                            </button>
+                        </div>
                         <form onSubmit={handleCreateDownline}>
                             {user?.role === 'cabang' && (
                                 <div style={{ marginBottom: '1rem' }}>
-                                    <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Role</label>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-light)', marginBottom: '0.375rem' }}>Role</label>
                                     <select
                                         value={formData.targetRole}
                                         onChange={(e) => setFormData({ ...formData, targetRole: e.target.value })}
-                                        style={{ width: '100%', padding: '0.5rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }}
+                                        style={{ width: '100%', padding: '0.75rem', background: '#0a0907', border: '1px solid var(--color-border)', color: 'white', borderRadius: '0.5rem', outline: 'none' }}
                                         required
                                     >
                                         <option value="">-- Select Role --</option>
@@ -148,35 +159,35 @@ export const DownlineManagePage: React.FC = () => {
                                 </div>
                             )}
                             <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Full Name</label>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-light)', marginBottom: '0.375rem' }}>Full Name</label>
                                 <input
-                                    type="text" required
+                                    type="text" required placeholder="Full Name"
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    style={{ width: '100%', padding: '0.5rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }}
+                                    style={{ width: '100%', padding: '0.75rem', background: '#0a0907', border: '1px solid var(--color-border)', color: 'white', borderRadius: '0.5rem', outline: 'none' }}
                                 />
                             </div>
                             <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Email</label>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-light)', marginBottom: '0.375rem' }}>Email</label>
                                 <input
-                                    type="email" required
+                                    type="email" required placeholder="email@example.com"
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    style={{ width: '100%', padding: '0.5rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }}
+                                    style={{ width: '100%', padding: '0.75rem', background: '#0a0907', border: '1px solid var(--color-border)', color: 'white', borderRadius: '0.5rem', outline: 'none' }}
                                 />
                             </div>
                             <div style={{ marginBottom: '1.5rem' }}>
-                                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Initial Password</label>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-light)', marginBottom: '0.375rem' }}>Initial Password</label>
                                 <input
-                                    type="password" required
+                                    type="password" required placeholder="Min. 6 characters"
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    style={{ width: '100%', padding: '0.5rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }}
+                                    style={{ width: '100%', padding: '0.75rem', background: '#0a0907', border: '1px solid var(--color-border)', color: 'white', borderRadius: '0.5rem', outline: 'none' }}
                                 />
                             </div>
-                            <div style={{ display: 'flex', gap: '1rem' }}>
-                                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>Save</button>
-                                <button type="button" onClick={() => setIsModalOpen(false)} style={{ flex: 1 }}>Cancel</button>
+                            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                                <button type="button" onClick={() => setIsModalOpen(false)} style={{ flex: 1, padding: '0.75rem', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: '0.5rem', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+                                <button type="submit" className="btn btn-primary" style={{ flex: 1, padding: '0.75rem', border: 'none', borderRadius: '0.5rem', fontWeight: 700, cursor: 'pointer' }}>Save</button>
                             </div>
                         </form>
                     </div>
