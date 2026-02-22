@@ -62,17 +62,19 @@ export const DownlineManagePage: React.FC = () => {
 
     return (
         <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-primary)' }}>Manage Downline</h1>
-                    <p style={{ color: 'var(--color-text-light)' }}>View and add direct {downlineLabel}s</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Manage Downline</h1>
+                    <p className="text-gray-500">View and add direct {downlineLabel}s</p>
                 </div>
-                <button
-                    className="btn btn-secondary"
-                    onClick={() => setIsModalOpen(true)}
-                >
-                    Add {downlineLabel}
-                </button>
+                {(user?.role === 'pusat' || user?.role === 'cabang' || user?.role === 'mitra' || user?.role === 'agen') && (
+                    <button
+                        className="bg-black hover:bg-gray-800 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                        onClick={() => setIsModalOpen(true)}
+                    >
+                        Add {downlineLabel}
+                    </button>
+                )}
             </div>
 
             <div style={{ backgroundColor: 'var(--color-bg-card)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
