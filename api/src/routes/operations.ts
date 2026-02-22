@@ -30,6 +30,14 @@ api.post('/equipment', authMiddleware, requireRole('pusat'), zValidator('json', 
     return c.json(item);
 });
 
+// 2b. DELETE Master Equipment (Admin Pusat)
+api.delete('/equipment/:id', authMiddleware, requireRole('pusat'), async (c) => {
+    const id = c.req.param('id');
+    const db = getDb(c.env.DB);
+    await db.delete(equipmentItems).where(eq(equipmentItems.id, id));
+    return c.json({ success: true });
+});
+
 // 3. GET Checklist for a Booking
 api.get('/equipment/checklist/:bookingId', authMiddleware, async (c) => {
     const bookingId = c.req.param('bookingId');

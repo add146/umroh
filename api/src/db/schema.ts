@@ -8,7 +8,7 @@ export const users = sqliteTable('users', {
     name: text('name').notNull(),
     phone: text('phone'),
     nik: text('nik').unique(),
-    role: text('role', { enum: ['pusat', 'cabang', 'mitra', 'agen', 'reseller'] }).notNull(),
+    role: text('role', { enum: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'teknisi'] }).notNull(),
     affiliateCode: text('affiliate_code').unique(),
     parentId: text('parent_id').references((): any => users.id),
     isActive: integer('is_active', { mode: 'boolean' }).default(true),

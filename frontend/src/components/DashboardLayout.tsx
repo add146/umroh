@@ -20,7 +20,7 @@ const menuGroups = [
         label: 'Hotel & Operasional',
         items: [
             // Rooming Board hidden — impractical for umroh ops (room assignments change on the day)
-            { name: 'Logistik', path: '/admin/logistics', icon: 'inventory_2', roles: ['pusat'] },
+            { name: 'Logistik', path: '/admin/logistics', icon: 'inventory_2', roles: ['pusat', 'teknisi'] },
             { name: 'Dokumen & OCR', path: '/admin/documents', icon: 'document_scanner', roles: ['pusat'] },
         ]
     },
@@ -30,6 +30,7 @@ const menuGroups = [
             { name: 'Data Hotel', path: '/admin/masters/hotels', icon: 'apartment', roles: ['pusat'] },
             { name: 'Data Pesawat', path: '/admin/masters/airlines', icon: 'airlines', roles: ['pusat'] },
             { name: 'Data Bandara', path: '/admin/masters/airports', icon: 'connecting_airports', roles: ['pusat'] },
+            { name: 'Master Perlengkapan', path: '/admin/masters/equipment', icon: 'backpack', roles: ['pusat'] },
             { name: 'Audit Log', path: '/admin/audit', icon: 'security', roles: ['pusat'] },
         ]
     },

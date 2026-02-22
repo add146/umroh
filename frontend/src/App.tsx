@@ -23,6 +23,7 @@ import AffiliateDashboard from './pages/AffiliateDashboard';
 import CommissionManage from './pages/admin/CommissionManage';
 import RoomingBoard from './pages/admin/RoomingBoard';
 import LogisticsChecklist from './pages/admin/LogisticsChecklist';
+import EquipmentMaster from './pages/admin/EquipmentMaster';
 import DocumentScanner from './pages/admin/DocumentScanner';
 import { MasterDataPage } from './pages/admin/masters/MasterDataPage';
 
@@ -43,6 +44,11 @@ const DashboardRouter = () => {
   const { user } = useAuthStore();
   if (user?.role === 'agen') return <AgentDashboard />;
   if (user?.role === 'reseller') return <ResellerDashboard />;
+  if (user?.role === 'teknisi') {
+    // Teknisi langsung diarahkan ke Logistik
+    window.location.href = '/admin/logistics';
+    return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Mengarahkan ke Logistik...</div>;
+  }
   return <DashboardPage />;
 };
 
@@ -169,7 +175,7 @@ function App() {
           } />
 
           <Route path="/admin/logistics" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'teknisi']}>
               <DashboardLayout>
                 <LogisticsChecklist />
               </DashboardLayout>
@@ -217,6 +223,13 @@ function App() {
             </ProtectedRoute>
           } />
 
+          <Route path="/admin/masters/equipment" element={
+            <ProtectedRoute allowedRoles={['pusat']}>
+              <DashboardLayout>
+                <EquipmentMaster />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
