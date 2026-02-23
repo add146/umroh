@@ -69,13 +69,14 @@ export default function PackageForm() {
     const [loadingPackage, setLoadingPackage] = useState(false);
     const [saving, setSaving] = useState(false);
 
-    const [masters, setMasters] = useState({ hotels: [] as any[], airlines: [] as any[], airports: [] as any[] });
+    const [masters, setMasters] = useState({ hotels: [] as any[], airlines: [] as any[], airports: [] as any[], packageTypes: [] as any[] });
     const [equipmentItems, setEquipmentItems] = useState<{ id: string; name: string; description?: string }[]>([]);
     const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<string[]>([]);
 
     const [form, setForm] = useState({
         name: '', basePrice: '', packageType: '', isPromo: false, serviceType: '', duration: '', description: '',
         makkahHotelId: '', madinahHotelId: '',
+        currency: 'IDR', dpAmount: '',
         departureAirlineId: '', returnAirlineId: '', departureAirportId: '', arrivalAirportId: '',
         termsConditions: '', requirements: '',
         itinerary: '<ol><li>Persiapan</li><li>...</li></ol>',
@@ -85,18 +86,23 @@ export default function PackageForm() {
     const [images, setImages] = useState<string[]>(['', '', '', '', '']);
     const [departures, setDepartures] = useState<DepartureConfig[]>([]);
     const [rooms, setRooms] = useState<RoomConfig[]>([]);
+    const [hotels, setHotels] = useState<{ location: string; hotelId: string }[]>([
+        { location: 'Makkah', hotelId: '' },
+        { location: 'Madinah', hotelId: '' }
+    ]);
     const [mainAirportId, setMainAirportId] = useState('');
 
     useEffect(() => {
         (async () => {
             try {
-                const [h, al, ap, eq] = await Promise.all([
+                const [h, al, ap, eq, ptRes] = await Promise.all([
                     apiFetch<any>('/api/masters/hotels'),
                     apiFetch<any>('/api/masters/airlines'),
                     apiFetch<any>('/api/masters/airports'),
                     apiFetch<any[]>('/api/operations/equipment'),
+                    apiFetch<any>('/api/package-types'),
                 ]);
-                setMasters({ hotels: h.hotels, airlines: al.airlines, airports: ap.airports });
+                setMasters({ hotels: h.hotels, airlines: al.airlines, airports: ap.airports, packageTypes: ptRes.data || [] });
                 setEquipmentItems(eq || []);
             } catch { toast.error('Gagal memuat master data.'); }
             finally { setLoadingMasters(false); }
@@ -114,10 +120,19 @@ export default function PackageForm() {
                     name: pkg.name || '', basePrice: String(pkg.basePrice || ''), packageType: pkg.packageType || '',
                     isPromo: pkg.isPromo || false, serviceType: pkg.serviceType || '', duration: pkg.duration || '',
                     description: pkg.description || '', makkahHotelId: pkg.makkahHotelId || '', madinahHotelId: pkg.madinahHotelId || '',
+                    currency: pkg.currency || 'IDR', dpAmount: String(pkg.dpAmount || ''),
                     departureAirlineId: '', returnAirlineId: '', departureAirportId: '', arrivalAirportId: '',
                     termsConditions: pkg.termsConditions || '', requirements: pkg.requirements || '',
                     itinerary: pkg.itinerary || '<ol><li></li></ol>', facilities: pkg.facilities || '<ol><li></li></ol>',
                 });
+                if (pkg.hotels) {
+                    try { setHotels(JSON.parse(pkg.hotels)); } catch { }
+                } else {
+                    setHotels([
+                        { location: 'Makkah', hotelId: pkg.makkahHotelId || '' },
+                        { location: 'Madinah', hotelId: pkg.madinahHotelId || '' }
+                    ]);
+                }
                 if (pkg.images) { try { const p = JSON.parse(pkg.images); setImages([...p, ...Array(5 - p.length).fill('')].slice(0, 5)); } catch { } }
                 if (pkg.image) { setImages(prev => { const n = [...prev]; n[0] = pkg.image; return n; }); }
                 if (pkg.equipmentIds) { try { setSelectedEquipmentIds(JSON.parse(pkg.equipmentIds)); } catch { } }
@@ -145,7 +160,10 @@ export default function PackageForm() {
                 packageType: form.packageType || undefined, isPromo: form.isPromo,
                 serviceType: form.serviceType || undefined, duration: form.duration || undefined,
                 description: form.description || undefined,
-                makkahHotelId: form.makkahHotelId || null, madinahHotelId: form.madinahHotelId || null,
+                currency: form.currency, dpAmount: form.dpAmount ? parseInt(form.dpAmount) : 0,
+                hotels: JSON.stringify(hotels),
+                makkahHotelId: hotels.find(h => h.location.toLowerCase() === 'makkah')?.hotelId || null,
+                madinahHotelId: hotels.find(h => h.location.toLowerCase() === 'madinah')?.hotelId || null,
                 itinerary: form.itinerary || undefined, facilities: form.facilities || undefined,
                 termsConditions: form.termsConditions || undefined, requirements: form.requirements || undefined,
                 image: validImages[0] || undefined,
@@ -250,22 +268,33 @@ export default function PackageForm() {
                                 onChange={e => setForm({ ...form, name: e.target.value })} style={inputStyle} required />
                             <p style={helpStyle}>Berikan nama yang menarik agar jamaah butuh untuk melihat</p>
                         </div>
-                        <div>
-                            <label style={labelStyle}>Harga <span style={{ color: '#ef4444' }}>*</span></label>
-                            <input type="number" placeholder="Contoh: 35000000" value={form.basePrice}
-                                onChange={e => setForm({ ...form, basePrice: e.target.value })} style={inputStyle} required />
-                            <p style={helpStyle}>Berikan harga yang sesuai dan layanan harga</p>
+                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
+                            <div>
+                                <label style={labelStyle}>Harga Paket <span style={{ color: '#ef4444' }}>*</span></label>
+                                <div style={{ display: 'flex' }}>
+                                    <select value={form.currency} onChange={e => setForm({ ...form, currency: e.target.value })} style={{ ...selectStyle, width: '90px', borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 'none', background: '#222' }}>
+                                        <option value="IDR">Rp</option>
+                                        <option value="USD">$</option>
+                                    </select>
+                                    <input type="number" placeholder="Contoh: 35000000" value={form.basePrice}
+                                        onChange={e => setForm({ ...form, basePrice: e.target.value })} style={{ ...inputStyle, borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }} required />
+                                </div>
+                                <p style={helpStyle}>Berikan harga yang sesuai untuk layanan paket</p>
+                            </div>
+                            <div>
+                                <label style={labelStyle}>Booking Fee (DP)</label>
+                                <input type="number" placeholder="opsional" value={form.dpAmount}
+                                    onChange={e => setForm({ ...form, dpAmount: e.target.value })} style={inputStyle} />
+                            </div>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                             <div>
                                 <label style={labelStyle}>Jenis Paket</label>
                                 <select value={form.packageType} onChange={e => setForm({ ...form, packageType: e.target.value })} style={selectStyle}>
                                     <option value="">Pilih Jenis Paket</option>
-                                    <option value="Bintang 5">Bintang 5</option>
-                                    <option value="Bintang 4">Bintang 4</option>
-                                    <option value="Bintang 3">Bintang 3</option>
-                                    <option value="VIP Premium">VIP Premium</option>
-                                    <option value="Reguler">Reguler</option>
+                                    {masters.packageTypes.map(pt => (
+                                        <option key={pt.id} value={pt.name}>{pt.name}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div>
@@ -287,12 +316,13 @@ export default function PackageForm() {
                     </div>
                 </div>
 
-                {/* ====== KEBERANGKATAN ====== */}
+                {/* ====== JADWAL & TRANSPORTASI ====== */}
                 <div style={cardStyle}>
                     <h2 style={sectionTitleStyle}>
                         <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>flight_takeoff</span>
-                        Setup Keberangkatan
+                        Jadwal & Transportasi
                     </h2>
+                    <p style={{ ...helpStyle, marginTop: '-0.75rem', marginBottom: '1rem' }}>Tentukan tanggal keberangkatan dan maskapai yang di gunakan.</p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <div>
                             <label style={labelStyle}>Tanggal Keberangkatan</label>
@@ -306,55 +336,38 @@ export default function PackageForm() {
                             ))}
                             <button type="button" onClick={addDeparture} style={{
                                 padding: '0.5rem 1rem', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', fontSize: '0.8125rem', marginTop: '0.25rem',
-                            }}>+ Tambah</button>
-                            <p style={helpStyle}>Tentukan tanggal keberangkatan</p>
+                            }}>+ Tambah Keberangkatan</button>
                         </div>
-                        <div>
-                            <label style={labelStyle}>Bandara Keberangkatan</label>
-                            <select value={mainAirportId} onChange={e => setMainAirportId(e.target.value)} style={selectStyle}>
-                                <option value="">Pilih bandara keberangkatan pilihan</option>
-                                {masters.airports.map(a => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
-                            </select>
-                            <p style={helpStyle}>Tentukan bandara paling sesuai pilihan</p>
-                        </div>
-                    </div>
-                </div>
 
-                {/* ====== TRANSPORTASI ====== */}
-                <div style={cardStyle}>
-                    <h2 style={sectionTitleStyle}>
-                        <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>flight</span>
-                        Setup Transportasi
-                    </h2>
-                    <p style={{ ...helpStyle, marginTop: '-0.75rem', marginBottom: '1rem' }}>Tentukan maskapai sebagai transportasi utama untuk dalam setiap paket layanan</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                        <div>
-                            <label style={labelStyle}>Pesawat Keberangkatan</label>
-                            <select value={form.departureAirlineId} onChange={e => setForm({ ...form, departureAirlineId: e.target.value })} style={selectStyle}>
-                                <option value="">Pilih Pesawat</option>
-                                {masters.airlines.map(a => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
-                            </select>
-                        </div>
-                        <div>
-                            <label style={labelStyle}>Pesawat Kepulangan</label>
-                            <select value={form.returnAirlineId} onChange={e => setForm({ ...form, returnAirlineId: e.target.value })} style={selectStyle}>
-                                <option value="">Pilih Pesawat</option>
-                                {masters.airlines.map(a => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
-                            </select>
-                        </div>
-                        <div>
-                            <label style={labelStyle}>Bandara Keberangkatan</label>
-                            <select value={form.departureAirportId} onChange={e => setForm({ ...form, departureAirportId: e.target.value })} style={selectStyle}>
-                                <option value="">Pilih Bandara</option>
-                                {masters.airports.map(a => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
-                            </select>
-                        </div>
-                        <div>
-                            <label style={labelStyle}>Bandara Kedatangan</label>
-                            <select value={form.arrivalAirportId} onChange={e => setForm({ ...form, arrivalAirportId: e.target.value })} style={selectStyle}>
-                                <option value="">Pilih Bandara</option>
-                                {masters.airports.map(a => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
-                            </select>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.5rem' }}>
+                            <div>
+                                <label style={labelStyle}>Bandara Keberangkatan Indonesia</label>
+                                <select value={mainAirportId} onChange={e => setMainAirportId(e.target.value)} style={selectStyle}>
+                                    <option value="">Pilih Bandara Asal</option>
+                                    {masters.airports.map(a => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label style={labelStyle}>Bandara Kedatangan (Tujuan)</label>
+                                <select value={form.arrivalAirportId} onChange={e => setForm({ ...form, arrivalAirportId: e.target.value })} style={selectStyle}>
+                                    <option value="">Pilih Bandara Tujuan</option>
+                                    {masters.airports.map(a => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label style={labelStyle}>Maskapai Keberangkatan</label>
+                                <select value={form.departureAirlineId} onChange={e => setForm({ ...form, departureAirlineId: e.target.value })} style={selectStyle}>
+                                    <option value="">Pilih Maskapai</option>
+                                    {masters.airlines.map(a => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label style={labelStyle}>Maskapai Kepulangan</label>
+                                <select value={form.returnAirlineId} onChange={e => setForm({ ...form, returnAirlineId: e.target.value })} style={selectStyle}>
+                                    <option value="">Pilih Maskapai</option>
+                                    {masters.airlines.map(a => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -365,22 +378,33 @@ export default function PackageForm() {
                         <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>hotel</span>
                         Setup Data Hotel
                     </h2>
-                    <p style={{ ...helpStyle, marginTop: '-0.75rem', marginBottom: '1rem' }}>Berikan data hotel sebagai referensi dari kontrak layanan</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                        <div>
-                            <label style={labelStyle}>Hotel Makkah</label>
-                            <select value={form.makkahHotelId} onChange={e => setForm({ ...form, makkahHotelId: e.target.value })} style={selectStyle}>
-                                <option value="">Pilih Hotel</option>
-                                {masters.hotels.map(h => <option key={h.id} value={h.id}>{h.name} (Bintang {h.starRating})</option>)}
-                            </select>
-                        </div>
-                        <div>
-                            <label style={labelStyle}>Hotel Madinah</label>
-                            <select value={form.madinahHotelId} onChange={e => setForm({ ...form, madinahHotelId: e.target.value })} style={selectStyle}>
-                                <option value="">Pilih Hotel</option>
-                                {masters.hotels.map(h => <option key={h.id} value={h.id}>{h.name} (Bintang {h.starRating})</option>)}
-                            </select>
-                        </div>
+                    <p style={{ ...helpStyle, marginTop: '-0.75rem', marginBottom: '1rem' }}>Tambahkan akomodasi hotel untuk paket perjalanan (Makkah, Madinah, Singapura, Turki, dll.)</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        {hotels.map((h, idx) => (
+                            <div key={idx} style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                                <div style={{ flex: 1 }}>
+                                    <label style={labelStyle}>Lokasi / Kota</label>
+                                    <input placeholder="Contoh: Makkah, Singapura..." value={h.location} onChange={e => {
+                                        const n = [...hotels]; n[idx].location = e.target.value; setHotels(n);
+                                    }} style={inputStyle} />
+                                </div>
+                                <div style={{ flex: 2 }}>
+                                    <label style={labelStyle}>Pilih Hotel</label>
+                                    <select value={h.hotelId} onChange={e => {
+                                        const n = [...hotels]; n[idx].hotelId = e.target.value; setHotels(n);
+                                    }} style={selectStyle}>
+                                        <option value="">Pilih Hotel dari Master Data</option>
+                                        {masters.hotels.map(hotel => <option key={hotel.id} value={hotel.id}>{hotel.name} (Bintang {hotel.starRating}) - {hotel.city}</option>)}
+                                    </select>
+                                </div>
+                                <button type="button" onClick={() => setHotels(hotels.filter((_, i) => i !== idx))} style={{ marginTop: '1.75rem', padding: '0.875rem', color: 'var(--color-error)', background: 'rgba(239,68,68,0.1)', borderRadius: '0.5rem', border: 'none', cursor: 'pointer' }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '18px', display: 'block' }}>delete</span>
+                                </button>
+                            </div>
+                        ))}
+                        <button type="button" onClick={() => setHotels([...hotels, { location: '', hotelId: '' }])} style={{
+                            alignSelf: 'flex-start', padding: '0.5rem 1rem', background: 'transparent', color: 'var(--color-primary)', border: '1px solid var(--color-primary)', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', fontSize: '0.8125rem'
+                        }}>+ Tambah Hotel Tujuan</button>
                     </div>
                 </div>
 

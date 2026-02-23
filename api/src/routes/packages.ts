@@ -45,6 +45,10 @@ const packageSchema = z.object({
     serviceType: z.string().optional(), // jenis layanan
     equipmentIds: z.string().optional(), // JSON array of equipment item IDs
 
+    hotels: z.string().optional(), // JSON array of dynamic hotels
+    currency: z.string().optional(),
+    dpAmount: z.number().optional(),
+
     isActive: z.boolean().default(true),
 });
 

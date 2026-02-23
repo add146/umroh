@@ -31,6 +31,7 @@ const menuGroups = [
             { name: 'Data Pesawat', path: '/admin/masters/airlines', icon: 'airlines', roles: ['pusat'] },
             { name: 'Data Bandara', path: '/admin/masters/airports', icon: 'connecting_airports', roles: ['pusat'] },
             { name: 'Master Perlengkapan', path: '/admin/masters/equipment', icon: 'backpack', roles: ['pusat'] },
+            { name: 'Data Jenis Paket', path: '/admin/masters/package-types', icon: 'category', roles: ['pusat'] },
             { name: 'Audit Log', path: '/admin/audit', icon: 'security', roles: ['pusat'] },
         ]
     },

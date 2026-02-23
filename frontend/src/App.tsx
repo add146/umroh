@@ -26,6 +26,7 @@ import LogisticsChecklist from './pages/admin/LogisticsChecklist';
 import EquipmentMaster from './pages/admin/EquipmentMaster';
 import DocumentScanner from './pages/admin/DocumentScanner';
 import { MasterDataPage } from './pages/admin/masters/MasterDataPage';
+import { MasterDataPackageTypes } from './pages/admin/MasterDataPackageTypes';
 
 import { AgentDashboard } from './pages/AgentDashboard';
 import { ProspectList } from './pages/ProspectList';
@@ -196,10 +197,19 @@ function App() {
           } />
 
           {/* Master Data Routes */}
-          <Route path="/admin/masters/hotels" element={
+          <Route path="/admin/masters/:type" element={
             <ProtectedRoute allowedRoles={['pusat']}>
               <DashboardLayout>
-                <MasterDataPage type="hotels" />
+                {/** The type param is parsed inside MasterDataPage so we don't strictly need it as prop in newer react-router, but we'll cast it to any here to satisfy TS lint for the current implementation */}
+                <MasterDataPage type={null as any} />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/masters/package-types" element={
+            <ProtectedRoute allowedRoles={['pusat']}>
+              <DashboardLayout>
+                <MasterDataPackageTypes />
               </DashboardLayout>
             </ProtectedRoute>
           } />

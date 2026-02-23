@@ -91,6 +91,13 @@ export const airports = sqliteTable('airports', {
     createdAt: text('created_at').default(sql`(datetime('now'))`),
 });
 
+export const packageTypes = sqliteTable('package_types', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    name: text('name').notNull(),
+    description: text('description'),
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+});
+
 
 export const packages = sqliteTable('packages', {
     id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -119,6 +126,11 @@ export const packages = sqliteTable('packages', {
     duration: text('duration'), // e.g. "12 Hari", "9 Hari + Turki"
     serviceType: text('service_type'), // jenis layanan
     equipmentIds: text('equipment_ids'), // JSON array of equipment item IDs
+
+    // Opsi B: Fleksibilitas Hotel & Harga
+    hotels: text('hotels'), // JSON array of { location: string, hotelId: string }
+    currency: text('currency').default('IDR'), // IDR or USD
+    dpAmount: integer('dp_amount').default(0), // Minimum DP/Booking Fee
 
     isActive: integer('is_active', { mode: 'boolean' }).default(true),
     createdAt: text('created_at').default(sql`(datetime('now'))`),

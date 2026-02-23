@@ -103,6 +103,7 @@ import authRoutes from './routes/auth.js';
 
 import userRoutes from './routes/users.js';
 import packageRoutes from './routes/packages.js';
+import packageTypesRoutes from './routes/package-types.js';
 import departureRoutes from './routes/departures.js';
 import bookingRoutes from './routes/bookings.js';
 import seatRoutes from './routes/seats.js';
@@ -122,6 +123,7 @@ import auditRoutes from './routes/audit.js';
 app.route('/api/auth', authRoutes);
 app.route('/api/users', userRoutes);
 app.route('/api/packages', packageRoutes);
+app.route('/api/package-types', packageTypesRoutes);
 app.route('/api/departures', departureRoutes);
 app.route('/api/masters', mastersRoutes);
 app.route('/api/bookings', bookingRoutes);
