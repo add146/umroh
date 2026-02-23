@@ -42,37 +42,42 @@ export const LoginPage: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'center',
             minHeight: '100vh',
-            backgroundColor: 'var(--color-bg-alt)'
+            backgroundColor: '#0a0907',
+            padding: '1rem'
         }}>
             <div style={{
                 width: '100%',
-                maxWidth: '400px',
-                padding: '2.5rem',
-                backgroundColor: 'white',
-                borderRadius: 'var(--radius)',
-                boxShadow: 'var(--shadow-md)'
+                maxWidth: '420px',
+                padding: '3rem 2.5rem',
+                backgroundColor: '#1a1917',
+                borderRadius: '1.5rem',
+                border: '1px solid var(--color-border)',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
             }}>
-                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                    <h1 style={{ color: 'var(--color-primary)', fontSize: '1.875rem', fontWeight: 700 }}>Al Madinah</h1>
-                    <p style={{ color: 'var(--color-text-light)', marginTop: '0.5rem' }}>Management System login</p>
+                <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+                    <h1 style={{ color: 'var(--color-primary)', fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.025em' }}>Al Madinah</h1>
+                    <p style={{ color: 'var(--color-text-muted)', marginTop: '0.5rem', fontSize: '0.875rem', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Management System Login</p>
                 </div>
 
                 {error && (
                     <div style={{
-                        padding: '0.75rem',
+                        padding: '1rem',
                         marginBottom: '1.5rem',
-                        backgroundColor: '#fee2e2',
-                        color: 'var(--color-error)',
-                        borderRadius: 'var(--radius)',
-                        fontSize: '0.875rem'
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                        color: '#ef4444',
+                        borderRadius: '0.75rem',
+                        fontSize: '0.875rem',
+                        fontWeight: 500,
+                        textAlign: 'center'
                     }}>
                         {error}
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit}>
-                    <div style={{ marginBottom: '1.25rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-light)' }}>
                             Email / No. WhatsApp
                         </label>
                         <input
@@ -82,17 +87,20 @@ export const LoginPage: React.FC = () => {
                             required
                             style={{
                                 width: '100%',
-                                padding: '0.75rem',
+                                padding: '0.875rem 1rem',
+                                backgroundColor: '#0a0907',
                                 border: '1px solid var(--color-border)',
-                                borderRadius: 'var(--radius)',
-                                outline: 'none'
+                                color: 'var(--color-text)',
+                                borderRadius: '0.75rem',
+                                outline: 'none',
+                                fontSize: '0.95rem'
                             }}
                             placeholder="email@contoh.com atau 0812..."
                         />
                     </div>
 
-                    <div style={{ marginBottom: '2rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                    <div style={{ marginBottom: '2.5rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-light)' }}>
                             Password
                         </label>
                         <input
@@ -102,10 +110,13 @@ export const LoginPage: React.FC = () => {
                             required
                             style={{
                                 width: '100%',
-                                padding: '0.75rem',
+                                padding: '0.875rem 1rem',
+                                backgroundColor: '#0a0907',
                                 border: '1px solid var(--color-border)',
-                                borderRadius: 'var(--radius)',
-                                outline: 'none'
+                                color: 'var(--color-text)',
+                                borderRadius: '0.75rem',
+                                outline: 'none',
+                                fontSize: '0.95rem'
                             }}
                             placeholder="••••••••"
                         />
@@ -115,9 +126,9 @@ export const LoginPage: React.FC = () => {
                         type="submit"
                         disabled={isLoading}
                         className="btn btn-primary"
-                        style={{ width: '100%', padding: '0.875rem' }}
+                        style={{ width: '100%', padding: '1rem', borderRadius: '0.75rem', fontSize: '1rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}
                     >
-                        {isLoading ? 'Logging in...' : 'Sign In'}
+                        {isLoading ? 'MENGHUBUNGKAN...' : 'SIGN IN'}
                     </button>
                 </form>
             </div>
