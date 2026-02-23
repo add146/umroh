@@ -180,8 +180,12 @@ api.get('/jamaah-overview/:departureId', authMiddleware, async (c) => {
     const allChecklists = await db.select().from(equipmentChecklist).where(inArray(equipmentChecklist.bookingId, bookingIds));
     const allItems = await db.select().from(equipmentItems);
 
-    // Also fetch equipment_delivered status for each booking via raw query
-    const rawBookings = await db.select({ id: bookings.id, equipmentDelivered: (bookings as any).equipmentDelivered }).from(bookings).where(inArray(bookings.id, bookingIds));
+    // Also fetch equipment_delivered status for each booking via D1 directly
+    const placeholders = bookingIds.map(() => '?').join(',');
+    const rawResult = await c.env.DB.prepare(`SELECT id, equipment_delivered FROM bookings WHERE id IN (${placeholders})`)
+        .bind(...bookingIds)
+        .all<{ id: string; equipment_delivered: number }>();
+    const rawBookings = rawResult.results || [];
 
     const result = departureBookings.map(b => {
         let relevantItemIds: string[] | null = null;
@@ -191,7 +195,7 @@ api.get('/jamaah-overview/:departureId', authMiddleware, async (c) => {
         const bookingChecklist = allChecklists.filter(cl => cl.bookingId === b.id);
         const totalItems = relevantItems.length;
         const receivedItems = bookingChecklist.filter(cl => cl.status === 'received').length;
-        const rawBooking = rawBookings.find(rb => rb.id === b.id);
+        const rawBooking = rawBookings.find((rb: any) => rb.id === b.id);
 
         return {
             bookingId: b.id,
@@ -200,7 +204,7 @@ api.get('/jamaah-overview/:departureId', authMiddleware, async (c) => {
             receivedItems,
             allAssigned: totalItems > 0 && receivedItems >= totalItems,
             allReceived: totalItems > 0 && receivedItems >= totalItems,
-            equipmentDelivered: !!(rawBooking?.equipmentDelivered),
+            equipmentDelivered: !!rawBooking?.equipment_delivered,
         };
     });
 
@@ -210,18 +214,18 @@ api.get('/jamaah-overview/:departureId', authMiddleware, async (c) => {
 // 8. TOGGLE equipment_delivered on a booking (manual "Diserahkan" action)
 api.post('/deliver-equipment/:bookingId', authMiddleware, async (c) => {
     const bookingId = c.req.param('bookingId');
-    const db = getDb(c.env.DB);
 
-    // Get current value via raw SQL since schema type doesn't know about the new column
-    const result = await db.run(
-        sql`SELECT equipment_delivered FROM bookings WHERE id = ${bookingId}`
-    );
-    const current = (result as any)?.results?.[0]?.equipment_delivered ?? 0;
+    // Use D1 directly since equipment_delivered is not in the Drizzle schema
+    const row = await c.env.DB.prepare(
+        'SELECT equipment_delivered FROM bookings WHERE id = ?'
+    ).bind(bookingId).first<{ equipment_delivered: number }>();
+
+    const current = row?.equipment_delivered ?? 0;
     const newVal = current ? 0 : 1;
 
-    await db.run(
-        sql`UPDATE bookings SET equipment_delivered = ${newVal} WHERE id = ${bookingId}`
-    );
+    await c.env.DB.prepare(
+        'UPDATE bookings SET equipment_delivered = ? WHERE id = ?'
+    ).bind(newVal, bookingId).run();
 
     return c.json({ bookingId, equipmentDelivered: !!newVal });
 });

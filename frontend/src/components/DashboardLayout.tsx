@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 
@@ -10,7 +10,7 @@ const menuGroups = [
     {
         label: 'Main',
         items: [
-            { name: 'Dashboard', path: '/dashboard', icon: 'dashboard', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller'] },
+            { name: 'Dashboard', path: '/dashboard', icon: 'dashboard', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'teknisi'] },
         ]
     },
     {
@@ -85,133 +85,180 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     const { user, logout } = useAuthStore();
     const navigate = useNavigate();
     const location = useLocation();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
+    // Close sidebar on route change (mobile navigation)
+    useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
+
+    // Close sidebar on ESC key
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setSidebarOpen(false); };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+    }, []);
+
+    const handleLogout = () => { logout(); navigate('/login'); };
+
+    const SidebarContent = () => (
+        <>
+            {/* Logo */}
+            <div style={{ padding: '1.25rem 1.25rem', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{ width: '38px', height: '38px', background: 'var(--color-primary)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#0a0907', fontVariationSettings: "'FILL' 1" }}>mosque</span>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontWeight: 900, fontSize: '0.875rem', letterSpacing: '-0.02em', textTransform: 'uppercase', lineHeight: 1, margin: 0 }}>
+                        AL<span style={{ color: 'var(--color-primary)' }}>MADINAH</span>
+                    </p>
+                    <p style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', textTransform: 'capitalize', marginTop: '2px', margin: '2px 0 0 0' }}>
+                        {user?.role === 'pusat' ? 'Admin Platform' : `${user?.role} Portal`}
+                    </p>
+                </div>
+                {/* Close button on mobile only */}
+                <button onClick={() => setSidebarOpen(false)} className="mobile-close-btn" style={{ color: 'var(--color-text-muted)', display: 'none' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>close</span>
+                </button>
+            </div>
+
+            {/* Nav */}
+            <nav style={{ flex: 1, padding: '1rem 0.75rem', overflowY: 'auto' }}>
+                {menuGroups.map(group => {
+                    const visible = group.items.filter(item => user && item.roles.includes(user.role));
+                    if (visible.length === 0) return null;
+                    return (
+                        <div key={group.label} style={{ marginBottom: '1.25rem' }}>
+                            <p style={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--color-text-light)', padding: '0 0.5rem', marginBottom: '0.375rem', margin: '0 0 0.375rem 0' }}>
+                                {group.label}
+                            </p>
+                            {visible.map(item => {
+                                const isActive = location.pathname === item.path;
+                                return (
+                                    <NavLink key={item.path} to={item.path} style={{
+                                        display: 'flex', alignItems: 'center', gap: '0.75rem',
+                                        padding: '0.625rem 0.75rem', borderRadius: '0.5rem',
+                                        marginBottom: '0.125rem', textDecoration: 'none',
+                                        fontWeight: 600, fontSize: '0.875rem', transition: 'all 0.2s',
+                                        background: isActive ? 'rgba(200, 168, 81, 0.15)' : 'transparent',
+                                        color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                    }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0", color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)' }}>{item.icon}</span>
+                                        {item.name}
+                                    </NavLink>
+                                );
+                            })}
+                        </div>
+                    );
+                })}
+            </nav>
+
+            {/* User */}
+            <div style={{ padding: '1rem 0.75rem', borderTop: '1px solid var(--color-border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', borderRadius: '0.75rem', background: 'rgba(255,255,255,0.04)' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '9999px', background: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.875rem', color: 'var(--color-bg)', flexShrink: 0 }}>
+                        {user?.name?.charAt(0)?.toUpperCase()}
+                    </div>
+                    <div style={{ flex: 1, overflow: 'hidden' }}>
+                        <p style={{ fontWeight: 700, fontSize: '0.8125rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>{user?.name}</p>
+                        <p style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', textTransform: 'capitalize', margin: '2px 0 0 0' }}>{user?.role}</p>
+                    </div>
+                    <button onClick={handleLogout} title="Logout" style={{ color: 'var(--color-text-muted)', transition: 'color 0.2s', flexShrink: 0 }}
+                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-error)')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>logout</span>
+                    </button>
+                </div>
+            </div>
+        </>
+    );
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg)' }}>
 
-            {/* ===== SIDEBAR ===== */}
-            <aside style={{
-                width: '256px', minHeight: '100vh',
-                background: '#131210',
-                borderRight: '1px solid var(--color-border)',
-                display: 'flex', flexDirection: 'column',
-                position: 'sticky', top: 0
+            {/* Mobile overlay backdrop */}
+            {sidebarOpen && (
+                <div onClick={() => setSidebarOpen(false)} style={{
+                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 40,
+                    backdropFilter: 'blur(2px)',
+                }} />
+            )}
+
+            {/* ===== SIDEBAR DESKTOP ===== */}
+            <aside className="sidebar-desktop" style={{
+                width: '256px', minHeight: '100vh', background: '#131210',
+                borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column',
+                position: 'sticky', top: 0, flexShrink: 0,
             }}>
-                {/* Logo */}
-                <div style={{ padding: '1.5rem 1.25rem', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{
-                        width: '38px', height: '38px', background: 'var(--color-primary)',
-                        borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-                    }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#0a0907', fontVariationSettings: "'FILL' 1" }}>mosque</span>
-                    </div>
-                    <div>
-                        <p style={{ fontWeight: 900, fontSize: '0.875rem', letterSpacing: '-0.02em', textTransform: 'uppercase', lineHeight: 1 }}>
-                            AL<span style={{ color: 'var(--color-primary)' }}>MADINAH</span>
-                        </p>
-                        <p style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', textTransform: 'capitalize', marginTop: '2px' }}>
-                            {user?.role === 'pusat' ? 'Admin Platform' : `${user?.role} Portal`}
-                        </p>
-                    </div>
-                </div>
+                <SidebarContent />
+            </aside>
 
-                {/* Nav */}
-                <nav style={{ flex: 1, padding: '1rem 0.75rem', overflowY: 'auto' }}>
-                    {menuGroups.map(group => {
-                        const visible = group.items.filter(item => user && item.roles.includes(user.role));
-                        if (visible.length === 0) return null;
-                        return (
-                            <div key={group.label} style={{ marginBottom: '1.5rem' }}>
-                                <p style={{
-                                    fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase',
-                                    letterSpacing: '0.12em', color: 'var(--color-text-light)',
-                                    padding: '0 0.5rem', marginBottom: '0.375rem'
-                                }}>{group.label}</p>
-                                {visible.map(item => {
-                                    const isActive = location.pathname === item.path;
-                                    return (
-                                        <NavLink key={item.path} to={item.path} style={{
-                                            display: 'flex', alignItems: 'center', gap: '0.75rem',
-                                            padding: '0.625rem 0.75rem', borderRadius: '0.5rem',
-                                            marginBottom: '0.125rem', textDecoration: 'none',
-                                            fontWeight: 600, fontSize: '0.875rem', transition: 'all 0.2s',
-                                            background: isActive ? 'rgba(200, 168, 81, 0.15)' : 'transparent',
-                                            color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                        }}>
-                                            <span className="material-symbols-outlined" style={{
-                                                fontSize: '20px',
-                                                fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
-                                                color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)'
-                                            }}>{item.icon}</span>
-                                            {item.name}
-                                        </NavLink>
-                                    );
-                                })}
-                            </div>
-                        );
-                    })}
-                </nav>
-
-                {/* User */}
-                <div style={{ padding: '1rem 0.75rem', borderTop: '1px solid var(--color-border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', borderRadius: '0.75rem', background: 'rgba(255,255,255,0.04)' }}>
-                        <div style={{
-                            width: '36px', height: '36px', borderRadius: '9999px',
-                            background: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontWeight: 900, fontSize: '0.875rem', color: 'var(--color-bg)', flexShrink: 0
-                        }}>
-                            {user?.name?.charAt(0)?.toUpperCase()}
-                        </div>
-                        <div style={{ flex: 1, overflow: 'hidden' }}>
-                            <p style={{ fontWeight: 700, fontSize: '0.8125rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name}</p>
-                            <p style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', textTransform: 'capitalize' }}>{user?.role}</p>
-                        </div>
-                        <button onClick={handleLogout} title="Logout" style={{ color: 'var(--color-text-muted)', transition: 'color 0.2s', flexShrink: 0 }}
-                            onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-error)')}
-                            onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>logout</span>
-                        </button>
-                    </div>
-                </div>
+            {/* ===== SIDEBAR MOBILE (slide-in) ===== */}
+            <aside className="sidebar-mobile" style={{
+                position: 'fixed', top: 0, left: 0, bottom: 0, width: '280px',
+                background: '#131210', borderRight: '1px solid var(--color-border)',
+                display: 'flex', flexDirection: 'column', zIndex: 50,
+                transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+                transition: 'transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
+                overflowY: 'auto',
+            }}>
+                <SidebarContent />
             </aside>
 
             {/* ===== MAIN CONTENT ===== */}
             <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                 {/* Top Header */}
                 <header style={{
-                    height: '64px', background: '#131210',
+                    height: '56px', background: '#131210',
                     borderBottom: '1px solid var(--color-border)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                    padding: '0 2rem', gap: '1rem', position: 'sticky', top: 0, zIndex: 30
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '0 1rem 0 1.25rem', gap: '0.75rem', position: 'sticky', top: 0, zIndex: 30
                 }}>
-                    <button style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    {/* Hamburger button — only visible on mobile */}
+                    <button className="hamburger-btn" onClick={() => setSidebarOpen(true)} style={{
+                        display: 'none', alignItems: 'center', justifyContent: 'center',
                         width: '38px', height: '38px', borderRadius: '0.5rem',
-                        background: 'rgba(255,255,255,0.05)', color: 'var(--color-text-muted)'
+                        background: 'rgba(255,255,255,0.05)', color: 'var(--color-text-muted)',
+                        border: '1px solid var(--color-border)', flexShrink: 0
                     }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>notifications</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>menu</span>
                     </button>
-                    <a href="/" style={{
-                        display: 'flex', alignItems: 'center', gap: '0.375rem',
-                        fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)',
-                        padding: '0.375rem 0.75rem', borderRadius: '0.5rem',
-                        border: '1px solid var(--color-border)', textDecoration: 'none'
-                    }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>open_in_new</span>
-                        Lihat Website
-                    </a>
+
+                    {/* Brand name — only on mobile */}
+                    <p className="mobile-brand" style={{ display: 'none', fontWeight: 900, fontSize: '0.875rem', letterSpacing: '-0.02em', textTransform: 'uppercase', margin: 0, flex: 1 }}>
+                        AL<span style={{ color: 'var(--color-primary)' }}>MADINAH</span>
+                    </p>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginLeft: 'auto' }}>
+                        <button style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.05)', color: 'var(--color-text-muted)' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>notifications</span>
+                        </button>
+                        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', padding: '0.375rem 0.625rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>open_in_new</span>
+                            <span className="hide-xs">Lihat Website</span>
+                        </a>
+                    </div>
                 </header>
 
-                {/* Page */}
-                <div style={{ flex: 1, padding: '3rem 3rem 4rem', background: 'var(--color-bg)', overflowX: 'hidden' }}>
+                {/* Page content */}
+                <div style={{ flex: 1, padding: 'clamp(1.25rem, 4vw, 3rem)', background: 'var(--color-bg)', overflowX: 'hidden' }}>
                     {children}
                 </div>
             </main>
+
+            {/* Responsive CSS */}
+            <style>{`
+                @media (max-width: 768px) {
+                    .sidebar-desktop { display: none !important; }
+                    .hamburger-btn { display: flex !important; }
+                    .mobile-brand { display: block !important; }
+                    .mobile-close-btn { display: flex !important; }
+                }
+                @media (min-width: 769px) {
+                    .sidebar-mobile { display: none !important; }
+                }
+                @media (max-width: 400px) {
+                    .hide-xs { display: none; }
+                }
+            `}</style>
         </div>
     );
 };
