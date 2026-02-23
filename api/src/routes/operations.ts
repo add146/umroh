@@ -169,57 +169,61 @@ api.get('/jamaah-overview/:departureId', authMiddleware, async (c) => {
     const departureId = c.req.param('departureId');
     const db = getDb(c.env.DB);
 
-    // Get all bookings with pilgrim info
     const departureBookings = await db.query.bookings.findMany({
         where: eq(bookings.departureId, departureId),
-        with: {
-            pilgrim: true,
-            departure: { with: { package: true } }
-        }
+        with: { pilgrim: true, departure: { with: { package: true } } }
     });
 
     if (departureBookings.length === 0) return c.json([]);
 
     const bookingIds = departureBookings.map(b => b.id);
-
-    // Get all equipment checklist rows for these bookings
-    const allChecklists = await db.select()
-        .from(equipmentChecklist)
-        .where(inArray(equipmentChecklist.bookingId, bookingIds));
-
-    // Get all master equipment items
+    const allChecklists = await db.select().from(equipmentChecklist).where(inArray(equipmentChecklist.bookingId, bookingIds));
     const allItems = await db.select().from(equipmentItems);
 
+    // Also fetch equipment_delivered status for each booking via raw query
+    const rawBookings = await db.select({ id: bookings.id, equipmentDelivered: (bookings as any).equipmentDelivered }).from(bookings).where(inArray(bookings.id, bookingIds));
+
     const result = departureBookings.map(b => {
-        // Determine relevant item count (from package equipmentIds or all items)
         let relevantItemIds: string[] | null = null;
-        try {
-            if (b.departure?.package?.equipmentIds) {
-                relevantItemIds = JSON.parse(b.departure.package.equipmentIds);
-            }
-        } catch { }
+        try { if (b.departure?.package?.equipmentIds) relevantItemIds = JSON.parse(b.departure.package.equipmentIds); } catch { }
 
-        const relevantItems = relevantItemIds
-            ? allItems.filter(i => relevantItemIds!.includes(i.id))
-            : allItems;
-
+        const relevantItems = relevantItemIds ? allItems.filter(i => relevantItemIds!.includes(i.id)) : allItems;
         const bookingChecklist = allChecklists.filter(cl => cl.bookingId === b.id);
         const totalItems = relevantItems.length;
         const receivedItems = bookingChecklist.filter(cl => cl.status === 'received').length;
+        const rawBooking = rawBookings.find(rb => rb.id === b.id);
 
         return {
             bookingId: b.id,
             pilgrim: b.pilgrim,
             totalItems,
             receivedItems,
-            // "allAssigned" means every item has at least a checklist row
-            allAssigned: totalItems > 0 && bookingChecklist.length >= totalItems,
-            // "allReceived" means every item is "received"
+            allAssigned: totalItems > 0 && receivedItems >= totalItems,
             allReceived: totalItems > 0 && receivedItems >= totalItems,
+            equipmentDelivered: !!(rawBooking?.equipmentDelivered),
         };
     });
 
     return c.json(result);
+});
+
+// 8. TOGGLE equipment_delivered on a booking (manual "Diserahkan" action)
+api.post('/deliver-equipment/:bookingId', authMiddleware, async (c) => {
+    const bookingId = c.req.param('bookingId');
+    const db = getDb(c.env.DB);
+
+    // Get current value via raw SQL since schema type doesn't know about the new column
+    const result = await db.run(
+        sql`SELECT equipment_delivered FROM bookings WHERE id = ${bookingId}`
+    );
+    const current = (result as any)?.results?.[0]?.equipment_delivered ?? 0;
+    const newVal = current ? 0 : 1;
+
+    await db.run(
+        sql`UPDATE bookings SET equipment_delivered = ${newVal} WHERE id = ${bookingId}`
+    );
+
+    return c.json({ bookingId, equipmentDelivered: !!newVal });
 });
 
 export default api;
