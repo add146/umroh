@@ -40,11 +40,8 @@ export const ProspectList: React.FC = () => {
     const fetchProspects = async () => {
         setIsLoading(true);
         try {
-            const res = await apiFetch('/api/prospects');
-            if (res.ok) {
-                const data = await res.json();
-                setProspects(data.prospects || []);
-            }
+            const data = await apiFetch('/api/prospects');
+            setProspects(data.prospects || []);
         } catch (err) {
             console.error(err);
         } finally {
@@ -93,16 +90,11 @@ export const ProspectList: React.FC = () => {
         try {
             const url = editingId ? `/api/prospects/${editingId}` : '/api/prospects';
             const method = editingId ? 'PATCH' : 'POST';
-            const res = await apiFetch(url, { method, body: JSON.stringify(form) });
-            if (res.ok) {
-                setShowModal(false);
-                fetchProspects();
-            } else {
-                const err = await res.json();
-                alert(err.error || 'Gagal menyimpan');
-            }
-        } catch (err) {
-            console.error(err);
+            await apiFetch(url, { method, body: JSON.stringify(form) });
+            setShowModal(false);
+            fetchProspects();
+        } catch (err: any) {
+            alert(err.message || 'Gagal menyimpan');
         } finally {
             setIsSaving(false);
         }
@@ -133,7 +125,6 @@ export const ProspectList: React.FC = () => {
     const filtered = filterStatus === 'all' ? prospects : prospects.filter(p => p.status === filterStatus);
     const getStatusStyle = (status: string) => STATUS_OPTIONS.find(s => s.value === status) || STATUS_OPTIONS[0];
 
-    // Counters for tabs
     const counts = {
         all: prospects.length,
         new: prospects.filter(p => p.status === 'new').length,
@@ -301,13 +292,6 @@ export const ProspectList: React.FC = () => {
                     </tbody>
                 </table>
             </div>
-
-            {/* Notes summary */}
-            {filtered.some(p => p.notes) && (
-                <div style={{ marginTop: '1rem', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                    Klik <b>Edit</b> untuk melihat/mengedit catatan prospek.
-                </div>
-            )}
 
             {/* Add/Edit Modal */}
             {showModal && (

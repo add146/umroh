@@ -8,11 +8,8 @@ export const IncomingLeads: React.FC = () => {
     const fetchLeads = async () => {
         setIsLoading(true);
         try {
-            const res = await apiFetch('/api/leads/incoming');
-            if (res.ok) {
-                const data = await res.json();
-                setLeads(data.incomingLeads || []);
-            }
+            const data = await apiFetch('/api/leads/incoming');
+            setLeads(data.incomingLeads || []);
         } catch (err) {
             console.error(err);
         } finally {
@@ -24,13 +21,11 @@ export const IncomingLeads: React.FC = () => {
 
     const handleAcceptLead = async (id: string) => {
         try {
-            const res = await apiFetch(`/api/prospects/${id}`, {
+            await apiFetch(`/api/prospects/${id}`, {
                 method: 'PATCH',
                 body: JSON.stringify({ status: 'contacted' })
             });
-            if (res.ok) {
-                fetchLeads();
-            }
+            fetchLeads();
         } catch (err) {
             console.error(err);
         }
@@ -82,7 +77,6 @@ export const IncomingLeads: React.FC = () => {
                         background: 'rgb(19, 18, 16)', padding: '1.5rem',
                         borderRadius: '0.3rem', border: '1px solid var(--color-border)',
                     }}>
-                        {/* Lead Header */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                             <div>
                                 <h3 style={{ fontWeight: 700, fontSize: '1.0625rem', margin: '0 0 0.25rem 0' }}>{l.fullName}</h3>
@@ -95,7 +89,6 @@ export const IncomingLeads: React.FC = () => {
                             }}>BARU</span>
                         </div>
 
-                        {/* Notes */}
                         <div style={{
                             backgroundColor: 'rgba(255,255,255,0.04)', padding: '0.75rem',
                             borderRadius: '4px', fontSize: '0.8125rem', marginBottom: '1.25rem',
@@ -105,7 +98,6 @@ export const IncomingLeads: React.FC = () => {
                             {l.notes || '-'}
                         </div>
 
-                        {/* Actions */}
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <button
                                 onClick={() => handleAcceptLead(l.id)}

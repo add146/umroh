@@ -18,11 +18,8 @@ export const AssignLead: React.FC = () => {
         const fetchAgents = async () => {
             setIsLoadingAgents(true);
             try {
-                const res = await apiFetch('/api/users');
-                if (res.ok) {
-                    const data = await res.json();
-                    setAgents(data.users?.filter((u: any) => u.role === 'agen' || u.role === 'mitra') || []);
-                }
+                const data = await apiFetch('/api/users');
+                setAgents(data.users?.filter((u: any) => u.role === 'agen' || u.role === 'mitra') || []);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -37,20 +34,15 @@ export const AssignLead: React.FC = () => {
         setIsAssigning(true);
         setSuccess(false);
         try {
-            const res = await apiFetch('/api/leads/assign', {
+            await apiFetch('/api/leads/assign', {
                 method: 'POST',
                 body: JSON.stringify(form)
             });
-            if (res.ok) {
-                setSuccess(true);
-                setForm({ targetAgentId: '', fullName: '', phone: '', notes: '' });
-                setTimeout(() => setSuccess(false), 4000);
-            } else {
-                const err = await res.json();
-                alert(`Gagal: ${err.error || 'Terjadi kesalahan'}`);
-            }
-        } catch (err) {
-            console.error(err);
+            setSuccess(true);
+            setForm({ targetAgentId: '', fullName: '', phone: '', notes: '' });
+            setTimeout(() => setSuccess(false), 4000);
+        } catch (err: any) {
+            alert(`Gagal: ${err.message || 'Terjadi kesalahan'}`);
         } finally {
             setIsAssigning(false);
         }
@@ -69,7 +61,6 @@ export const AssignLead: React.FC = () => {
 
     return (
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-            {/* Header */}
             <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
                 <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Assign Lead ke Agen</h1>
                 <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>
@@ -77,7 +68,6 @@ export const AssignLead: React.FC = () => {
                 </p>
             </div>
 
-            {/* Success Banner */}
             {success && (
                 <div style={{
                     padding: '0.875rem 1.25rem', borderRadius: '0.3rem', marginBottom: '1.5rem',
@@ -90,7 +80,6 @@ export const AssignLead: React.FC = () => {
                 </div>
             )}
 
-            {/* Form Card */}
             <div style={{
                 background: 'rgb(19, 18, 16)', padding: '2rem', borderRadius: '0.3rem',
                 border: '1px solid var(--color-border)',
@@ -107,6 +96,8 @@ export const AssignLead: React.FC = () => {
                             <option value="" disabled>-- Pilih Agen / Mitra --</option>
                             {isLoadingAgents ? (
                                 <option disabled>Loading...</option>
+                            ) : agents.length === 0 ? (
+                                <option disabled>Tidak ada Agen/Mitra ditemukan</option>
                             ) : agents.map(a => (
                                 <option key={a.id} value={a.id}>{a.name} ({a.role.toUpperCase()})</option>
                             ))}

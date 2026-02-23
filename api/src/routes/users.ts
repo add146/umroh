@@ -83,4 +83,12 @@ userStore.get('/downline', authMiddleware, async (c) => {
     return c.json({ downlines });
 });
 
+// GET /api/users — returns all users visible to current user (downline tree)
+// Used by AssignLead dropdown and other pages that need user lists
+userStore.get('/', authMiddleware, async (c) => {
+    const currentUser = c.get('user');
+    const downlines = await getDownlineTree(c.env.DB, currentUser.id);
+    return c.json({ users: downlines });
+});
+
 export default userStore;

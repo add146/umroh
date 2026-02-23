@@ -19,11 +19,8 @@ export const DownlineManagePage: React.FC = () => {
     const fetchDownlines = async () => {
         setIsLoading(true);
         try {
-            const res = await apiFetch('/api/users/downline');
-            if (res.ok) {
-                const data = await res.json();
-                setDownlines(data.downlines || []);
-            }
+            const data = await apiFetch('/api/users/downline');
+            setDownlines(data.downlines || []);
         } catch (err) {
             console.error(err);
         } finally {
@@ -38,21 +35,15 @@ export const DownlineManagePage: React.FC = () => {
     const handleCreateDownline = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const res = await apiFetch('/api/users', {
+            await apiFetch('/api/users', {
                 method: 'POST',
                 body: JSON.stringify(formData),
             });
-            if (res.ok) {
-                setIsModalOpen(false);
-                setFormData({ name: '', email: '', phone: '', password: '', targetRole: '' });
-                fetchDownlines();
-                alert('Downline added successfully');
-            } else {
-                const data = await res.json();
-                alert(data.error || 'Failed to add downline');
-            }
-        } catch (err) {
-            alert('Connection error');
+            setIsModalOpen(false);
+            setFormData({ name: '', email: '', phone: '', password: '', targetRole: '' });
+            fetchDownlines();
+        } catch (err: any) {
+            alert(err.message || 'Failed to add downline');
         }
     };
 
