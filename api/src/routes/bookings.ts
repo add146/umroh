@@ -3,10 +3,11 @@ import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { eq, sql, inArray } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
-import { bookings, pilgrims, departures, roomTypes } from '../db/schema.js';
+import { bookings, pilgrims, departures, roomTypes, users } from '../db/schema.js';
 import { useLock, checkAvailability } from '../services/seats.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { getVisibleBookingIds, checkDuplicatePilgrim } from '../services/hierarchy.js';
+import { insertUserWithHierarchy } from '../services/hierarchy.js';
 import { logAction } from '../services/audit.js';
 import { Env } from '../index.js';
 
@@ -245,8 +246,52 @@ api.post('/:id/approve', authMiddleware, async (c) => {
     }
 
     const db = getDb(c.env.DB);
+
+    // Update booking status
     await db.update(bookings).set({ bookingStatus: 'confirmed' }).where(eq(bookings.id, id));
     await logAction(c.env.DB, user.id, 'APPROVE_BOOKING', 'booking', id);
+
+    // Auto-create reseller account for jamaah if booking has an affiliator
+    try {
+        const booking = await db.query.bookings.findFirst({
+            where: eq(bookings.id, id),
+            with: { pilgrim: true }
+        });
+
+        if (booking?.affiliatorId && booking.pilgrim) {
+            // Check if user account already exists for this NIK
+            const existingUser = booking.pilgrim.noKtp
+                ? await db.select().from(users).where(eq(users.nik, booking.pilgrim.noKtp)).limit(1)
+                : [];
+
+            if (existingUser.length === 0) {
+                // Auto-create reseller account
+                const newUserId = crypto.randomUUID();
+                const affiliateCode = `AFF-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+                const tempPassword = Math.random().toString(36).substring(2, 10); // Temporary password
+
+                await db.insert(users).values({
+                    id: newUserId,
+                    email: `${booking.pilgrim.noKtp}@jamaah.local`,
+                    name: booking.pilgrim.name,
+                    phone: booking.pilgrim.phone,
+                    nik: booking.pilgrim.noKtp,
+                    password: tempPassword, // Should be hashed in production
+                    role: 'reseller',
+                    affiliateCode,
+                    parentId: booking.affiliatorId,
+                    isActive: true,
+                });
+
+                // Insert hierarchy path
+                await insertUserWithHierarchy(c.env.DB, newUserId, booking.affiliatorId);
+                await logAction(c.env.DB, user.id, 'AUTO_CREATE_RESELLER', 'user', newUserId);
+            }
+        }
+    } catch (err) {
+        // Don't fail the approval if auto-reseller creation fails
+        console.error('Auto-reseller creation failed:', err);
+    }
 
     return c.json({ message: 'Booking approved' });
 });
