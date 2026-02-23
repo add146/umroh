@@ -5,6 +5,7 @@ export const AssignLead: React.FC = () => {
     const [agents, setAgents] = useState<any[]>([]);
     const [isLoadingAgents, setIsLoadingAgents] = useState(true);
     const [isAssigning, setIsAssigning] = useState(false);
+    const [success, setSuccess] = useState(false);
 
     const [form, setForm] = useState({
         targetAgentId: '',
@@ -17,8 +18,6 @@ export const AssignLead: React.FC = () => {
         const fetchAgents = async () => {
             setIsLoadingAgents(true);
             try {
-                // Fetch downlines. Cabangs can assign to Mitras/Agents.
-                // Assuming GET /api/users returns users downlines (as per our past structure)
                 const res = await apiFetch('/api/users');
                 if (res.ok) {
                     const data = await res.json();
@@ -36,14 +35,16 @@ export const AssignLead: React.FC = () => {
     const handleAssign = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsAssigning(true);
+        setSuccess(false);
         try {
             const res = await apiFetch('/api/leads/assign', {
                 method: 'POST',
                 body: JSON.stringify(form)
             });
             if (res.ok) {
-                alert('Lead berhasil didistribusikan ke Agen!');
+                setSuccess(true);
                 setForm({ targetAgentId: '', fullName: '', phone: '', notes: '' });
+                setTimeout(() => setSuccess(false), 4000);
             } else {
                 const err = await res.json();
                 alert(`Gagal: ${err.error || 'Terjadi kesalahan'}`);
@@ -55,22 +56,53 @@ export const AssignLead: React.FC = () => {
         }
     };
 
+    const inputStyle: React.CSSProperties = {
+        width: '100%', padding: '0.75rem', borderRadius: '0.3rem',
+        border: '1px solid var(--color-border)', backgroundColor: 'rgb(30, 29, 27)',
+        color: 'var(--color-text)', fontSize: '0.875rem',
+    };
+
+    const labelStyle: React.CSSProperties = {
+        display: 'block', fontSize: '0.8125rem', marginBottom: '0.375rem',
+        fontWeight: 600, color: 'var(--color-text-muted)',
+    };
+
     return (
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+            {/* Header */}
             <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-primary)' }}>Assign Lead ke Agen</h1>
-                <p style={{ color: 'var(--color-text-light)' }}>Terima calon jamaah? Distribusikan ke Agen terbaik Anda untuk difollow-up.</p>
+                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Assign Lead ke Agen</h1>
+                <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>
+                    Terima calon jamaah? Distribusikan ke Agen terbaik Anda untuk di-follow-up.
+                </p>
             </div>
 
-            <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '2rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+            {/* Success Banner */}
+            {success && (
+                <div style={{
+                    padding: '0.875rem 1.25rem', borderRadius: '0.3rem', marginBottom: '1.5rem',
+                    background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)',
+                    color: '#22c55e', fontWeight: 600, fontSize: '0.875rem',
+                    display: 'flex', alignItems: 'center', gap: '0.5rem'
+                }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>check_circle</span>
+                    Lead berhasil didistribusikan ke Agen! Agen akan menerima notifikasi.
+                </div>
+            )}
+
+            {/* Form Card */}
+            <div style={{
+                background: 'rgb(19, 18, 16)', padding: '2rem', borderRadius: '0.3rem',
+                border: '1px solid var(--color-border)',
+            }}>
                 <form onSubmit={handleAssign}>
                     <div style={{ marginBottom: '1.25rem' }}>
-                        <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>Pilih Agen / Mitra Tujuan</label>
+                        <label style={labelStyle}>Pilih Agen / Mitra Tujuan *</label>
                         <select
                             required
                             value={form.targetAgentId}
                             onChange={e => setForm({ ...form, targetAgentId: e.target.value })}
-                            style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid var(--color-border)', backgroundColor: '#f8fafc' }}
+                            style={inputStyle}
                         >
                             <option value="" disabled>-- Pilih Agen / Mitra --</option>
                             {isLoadingAgents ? (
@@ -82,41 +114,52 @@ export const AssignLead: React.FC = () => {
                     </div>
 
                     <div style={{ marginBottom: '1.25rem' }}>
-                        <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>Nama Lengkap Prospek</label>
+                        <label style={labelStyle}>Nama Lengkap Prospek *</label>
                         <input
-                            type="text"
-                            required
+                            type="text" required
                             value={form.fullName}
                             onChange={e => setForm({ ...form, fullName: e.target.value })}
-                            style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                            style={inputStyle}
                             placeholder="Contoh: Bpk. H. Ahmad"
                         />
                     </div>
 
                     <div style={{ marginBottom: '1.25rem' }}>
-                        <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>No. WhatsApp / HP</label>
+                        <label style={labelStyle}>No. WhatsApp / HP</label>
                         <input
                             type="text"
                             value={form.phone}
                             onChange={e => setForm({ ...form, phone: e.target.value })}
-                            style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                            style={inputStyle}
                             placeholder="08123456789"
                         />
                     </div>
 
                     <div style={{ marginBottom: '2rem' }}>
-                        <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>Catatan Internal</label>
+                        <label style={labelStyle}>Catatan Internal</label>
                         <textarea
                             rows={3}
                             value={form.notes}
                             onChange={e => setForm({ ...form, notes: e.target.value })}
-                            style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                            style={inputStyle}
                             placeholder="Tertarik paket Plus Turki keberangkatan Desember."
-                        ></textarea>
+                        />
                     </div>
 
-                    <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.875rem', fontSize: '1rem' }} disabled={isAssigning || isLoadingAgents}>
-                        {isAssigning ? 'Mengirim Data...' : 'Assign Lead Sekarang'}
+                    <button type="submit" disabled={isAssigning || isLoadingAgents} style={{
+                        width: '100%', padding: '0.875rem', borderRadius: '0.3rem', border: 'none',
+                        background: 'var(--color-primary)', color: 'white', fontWeight: 700,
+                        fontSize: '0.9375rem', cursor: 'pointer', opacity: isAssigning ? 0.6 : 1,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                    }}>
+                        {isAssigning ? (
+                            'Mengirim Data...'
+                        ) : (
+                            <>
+                                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>send</span>
+                                Assign Lead Sekarang
+                            </>
+                        )}
                     </button>
                 </form>
             </div>

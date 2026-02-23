@@ -20,9 +20,7 @@ export const IncomingLeads: React.FC = () => {
         }
     };
 
-    useEffect(() => {
-        fetchLeads();
-    }, []);
+    useEffect(() => { fetchLeads(); }, []);
 
     const handleAcceptLead = async (id: string) => {
         try {
@@ -31,7 +29,6 @@ export const IncomingLeads: React.FC = () => {
                 body: JSON.stringify({ status: 'contacted' })
             });
             if (res.ok) {
-                alert('Lead diterima dan masuk ke daftar Prospek.');
                 fetchLeads();
             }
         } catch (err) {
@@ -39,40 +36,103 @@ export const IncomingLeads: React.FC = () => {
         }
     };
 
+    const handleWhatsApp = (phone: string, name: string) => {
+        if (!phone) return;
+        const msg = encodeURIComponent(`Assalamualaikum Bapak/Ibu ${name}, saya agen yang ditugaskan untuk membantu Anda terkait rencana ibadah umroh. Apakah bisa kita diskusikan lebih lanjut?`);
+        window.open(`https://wa.me/${phone.replace(/^0/, '62')}?text=${msg}`, '_blank');
+    };
+
     return (
         <div>
-            <div style={{ marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-primary)' }}>Inbox Lead Masuk</h1>
-                <p style={{ color: 'var(--color-text-light)' }}>Lead jamaah yang di-assign oleh Cabang/Mitra kepada Anda.</p>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <div>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Inbox Lead Masuk</h1>
+                    <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Lead jamaah yang di-assign oleh Cabang/Mitra kepada Anda.</p>
+                </div>
+                {leads.length > 0 && (
+                    <span style={{
+                        padding: '0.375rem 0.75rem', borderRadius: '999px', fontSize: '0.8125rem',
+                        fontWeight: 700, backgroundColor: '#dc2626', color: 'white'
+                    }}>
+                        {leads.length} baru
+                    </span>
+                )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
+            {/* Lead Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
                 {isLoading ? (
-                    <p>Loading...</p>
+                    <div style={{
+                        padding: '3rem', gridColumn: '1 / -1', textAlign: 'center',
+                        color: 'var(--color-text-muted)', background: 'rgb(19, 18, 16)',
+                        borderRadius: '0.3rem', border: '1px solid var(--color-border)'
+                    }}>Loading...</div>
                 ) : leads.length === 0 ? (
-                    <div style={{ padding: '2rem', backgroundColor: 'var(--color-bg-card)', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', gridColumn: '1 / -1', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-                        Belum ada lead masuk baru.
+                    <div style={{
+                        padding: '3rem', gridColumn: '1 / -1', textAlign: 'center',
+                        background: 'rgb(19, 18, 16)', borderRadius: '0.3rem',
+                        border: '1px solid var(--color-border)', color: 'var(--color-text-muted)'
+                    }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '48px', display: 'block', marginBottom: '0.75rem', opacity: 0.3 }}>inbox</span>
+                        Belum ada lead masuk baru. Cabang/Mitra akan mengassign lead ke Anda.
                     </div>
                 ) : leads.map(l => (
-                    <div key={l.id} style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <div key={l.id} style={{
+                        background: 'rgb(19, 18, 16)', padding: '1.5rem',
+                        borderRadius: '0.3rem', border: '1px solid var(--color-border)',
+                    }}>
+                        {/* Lead Header */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                             <div>
-                                <h3 style={{ fontWeight: 700, fontSize: '1.125rem' }}>{l.fullName}</h3>
-                                <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>{l.phone || 'No phone'}</p>
+                                <h3 style={{ fontWeight: 700, fontSize: '1.0625rem', margin: '0 0 0.25rem 0' }}>{l.fullName}</h3>
+                                <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', margin: 0 }}>{l.phone || 'Tidak ada nomor HP'}</p>
                             </div>
-                            <span style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>BARU</span>
+                            <span style={{
+                                backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444',
+                                padding: '0.25rem 0.625rem', borderRadius: '4px',
+                                fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em'
+                            }}>BARU</span>
                         </div>
-                        <div style={{ backgroundColor: '#f8fafc', padding: '0.75rem', borderRadius: '4px', fontSize: '0.875rem', marginBottom: '1.5rem', borderLeft: '3px solid var(--color-primary)' }}>
-                            <span style={{ fontWeight: 600 }}>Catatan Pusat:</span><br />
+
+                        {/* Notes */}
+                        <div style={{
+                            backgroundColor: 'rgba(255,255,255,0.04)', padding: '0.75rem',
+                            borderRadius: '4px', fontSize: '0.8125rem', marginBottom: '1.25rem',
+                            borderLeft: '3px solid var(--color-primary)', color: 'var(--color-text-muted)'
+                        }}>
+                            <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>Catatan:</span><br />
                             {l.notes || '-'}
                         </div>
-                        <button
-                            className="btn btn-primary"
-                            style={{ width: '100%' }}
-                            onClick={() => handleAcceptLead(l.id)}
-                        >
-                            Terima & Follow-up
-                        </button>
+
+                        {/* Actions */}
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button
+                                onClick={() => handleAcceptLead(l.id)}
+                                style={{
+                                    flex: 1, padding: '0.625rem', borderRadius: '0.3rem', border: 'none',
+                                    background: 'var(--color-primary)', color: 'white',
+                                    cursor: 'pointer', fontWeight: 600, fontSize: '0.8125rem',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem'
+                                }}
+                            >
+                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check_circle</span>
+                                Terima & Follow-up
+                            </button>
+                            {l.phone && (
+                                <button
+                                    onClick={() => handleWhatsApp(l.phone, l.fullName)}
+                                    title="WhatsApp"
+                                    style={{
+                                        padding: '0.625rem 0.75rem', borderRadius: '0.3rem', border: 'none',
+                                        backgroundColor: '#25D366', color: 'white', cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center',
+                                    }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>chat</span>
+                                </button>
+                            )}
+                        </div>
                     </div>
                 ))}
             </div>

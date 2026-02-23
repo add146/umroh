@@ -96,6 +96,14 @@ const Registration = () => {
         }
     });
 
+    // Prefill from prospect conversion (?prospect=id&name=X&phone=Y)
+    useEffect(() => {
+        const prospectName = searchParams.get('name');
+        const prospectPhone = searchParams.get('phone');
+        if (prospectName) methods.setValue('pilgrim.name', prospectName);
+        if (prospectPhone) methods.setValue('pilgrim.phone', prospectPhone);
+    }, [searchParams, methods]);
+
     // Resolve affiliate code from ?ref= param
     useEffect(() => {
         const refCode = searchParams.get('ref');

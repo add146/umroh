@@ -73,6 +73,29 @@ api.patch('/:id', authMiddleware, zValidator('json', prospectSchema.partial().ex
     }
 });
 
+// Convert prospect -> mark as converted, optionally link to booking
+api.post('/:id/convert', authMiddleware, zValidator('json', z.object({ bookingId: z.string().optional() })), async (c) => {
+    const id = c.req.param('id');
+    const user = c.get('user');
+    const body = c.req.valid('json');
+    const db = getDb(c.env.DB);
+
+    const existing = await db.select().from(prospects).where(and(eq(prospects.id, id), eq(prospects.ownerId, user.id)));
+    if (existing.length === 0) return c.json({ error: 'Not found' }, 404);
+
+    try {
+        const updated = await db.update(prospects).set({
+            status: 'converted',
+            convertedBookingId: body.bookingId || null,
+            updatedAt: new Date().toISOString()
+        }).where(eq(prospects.id, id)).returning();
+
+        return c.json({ message: 'Prospect converted successfully', prospect: updated[0] });
+    } catch (e: any) {
+        return c.json({ error: 'Failed to convert prospect' }, 500);
+    }
+});
+
 api.delete('/:id', authMiddleware, async (c) => {
     const id = c.req.param('id');
     const user = c.get('user');
