@@ -58,19 +58,19 @@ export const ResellerDashboard: React.FC = () => {
                 <p style={{ color: 'var(--color-text-light)' }}>Selamat datang, {user?.name}. Pantau trafik link dan prospek Anda.</p>
             </div>
 
-            <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', marginBottom: '2rem' }}>
+            <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid var(--color-border)', marginBottom: '2rem' }}>
                 <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-text-muted)' }}>Link Affiliate Anda</h3>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <input
                         type="text"
                         readOnly
                         value={fullAffiliateUrl}
-                        style={{ flex: 1, padding: '0.75rem', borderRadius: '4px', border: '1px solid var(--color-border)', backgroundColor: '#f8fafc', fontWeight: 500, color: 'var(--color-text)' }}
+                        style={{ flex: 1, padding: '0.875rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: '#0a0907', fontWeight: 500, color: 'var(--color-text)' }}
                     />
-                    <button className="btn btn-primary" onClick={copyToClipboard} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <button className="btn btn-primary" onClick={copyToClipboard} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.875rem 1.5rem', borderRadius: '0.75rem' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>content_copy</span> Copy
                     </button>
-                    <button className="btn btn-secondary" onClick={() => window.open(fullAffiliateUrl, '_blank')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid var(--color-border)' }}>
+                    <button onClick={() => window.open(fullAffiliateUrl, '_blank')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.875rem 1.5rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', cursor: 'pointer' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>open_in_new</span> Test
                     </button>
                 </div>
@@ -93,9 +93,9 @@ export const ResellerDashboard: React.FC = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
                 <Link to="/marketing-kit" style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem', transition: 'box-shadow 0.2s' }}>
-                        <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: 'rgba(200, 168, 81, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>imagesmode</span>
+                    <div className="hover:border-primary/30" style={{ backgroundColor: '#1a1917', padding: '1.5rem', borderRadius: '1rem', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem', transition: 'all 0.2s' }}>
+                        <div style={{ width: 48, height: 48, borderRadius: '0.75rem', backgroundColor: 'var(--color-primary-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>campaign</span>
                         </div>
                         <div>
                             <h3 style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Marketing Kit</h3>
@@ -105,9 +105,9 @@ export const ResellerDashboard: React.FC = () => {
                 </Link>
 
                 <Link to="/prospects" style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem', transition: 'box-shadow 0.2s' }}>
-                        <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: 'rgba(200, 168, 81, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>contact_mail</span>
+                    <div className="hover:border-primary/30" style={{ backgroundColor: '#1a1917', padding: '1.5rem', borderRadius: '1rem', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem', transition: 'all 0.2s' }}>
+                        <div style={{ width: 48, height: 48, borderRadius: '0.75rem', backgroundColor: 'var(--color-primary-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>group</span>
                         </div>
                         <div>
                             <h3 style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Prospek CRM</h3>
@@ -117,8 +117,8 @@ export const ResellerDashboard: React.FC = () => {
                 </Link>
 
                 <Link to="/affiliate" style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem', transition: 'box-shadow 0.2s' }}>
-                        <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: 'rgba(200, 168, 81, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="hover:border-primary/30" style={{ backgroundColor: '#1a1917', padding: '1.5rem', borderRadius: '1rem', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem', transition: 'all 0.2s' }}>
+                        <div style={{ width: 48, height: 48, borderRadius: '0.75rem', backgroundColor: 'var(--color-primary-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>account_balance_wallet</span>
                         </div>
                         <div>
