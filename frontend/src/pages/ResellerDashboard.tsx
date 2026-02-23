@@ -7,15 +7,16 @@ export const ResellerDashboard: React.FC = () => {
     const { user } = useAuthStore();
     const [stats, setStats] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [affiliateCode, setAffiliateCode] = useState<string | null>(null);
 
-    const fullAffiliateUrl = `${window.location.origin}/?ref=${user?.affiliateCode}`;
+    const fullAffiliateUrl = affiliateCode ? `${window.location.origin}/?ref=${affiliateCode}` : '';
 
     useEffect(() => {
         const load = async () => {
             try {
                 // Here we fetch basic affiliate stats + prospect stats
                 const [affiliateRes, prospectRes] = await Promise.all([
-                    apiFetch('/api/affiliate/stats'),
+                    apiFetch('/api/affiliate/dashboard'),
                     apiFetch('/api/prospects')
                 ]);
 
@@ -25,8 +26,13 @@ export const ResellerDashboard: React.FC = () => {
 
                 if (affiliateRes.ok) {
                     const data = await affiliateRes.json();
-                    totalClicks = data.totalClicks || 0;
-                    activeJamaah = data.totalReferrals || 0; // Or from custom endpoint
+                    if (data.stats) {
+                        totalClicks = data.stats.totalClicks || 0;
+                        activeJamaah = data.stats.totalReferrals || 0;
+                    }
+                    if (data.affiliateCode) {
+                        setAffiliateCode(data.affiliateCode);
+                    }
                 }
 
                 if (prospectRes.ok) {
@@ -45,6 +51,7 @@ export const ResellerDashboard: React.FC = () => {
     }, []);
 
     const copyToClipboard = () => {
+        if (!fullAffiliateUrl) return;
         navigator.clipboard.writeText(fullAffiliateUrl);
         alert('Link Affiliate disalin!');
     };
@@ -64,13 +71,13 @@ export const ResellerDashboard: React.FC = () => {
                     <input
                         type="text"
                         readOnly
-                        value={fullAffiliateUrl}
+                        value={fullAffiliateUrl || 'Memuat link...'}
                         style={{ flex: 1, padding: '0.875rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: '#0a0907', fontWeight: 500, color: 'var(--color-text)' }}
                     />
-                    <button className="btn btn-primary" onClick={copyToClipboard} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.875rem 1.5rem', borderRadius: '0.75rem' }}>
+                    <button className="btn btn-primary" onClick={copyToClipboard} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.875rem 1.5rem', borderRadius: '0.75rem' }} disabled={!fullAffiliateUrl}>
                         <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>content_copy</span> Copy
                     </button>
-                    <button onClick={() => window.open(fullAffiliateUrl, '_blank')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.875rem 1.5rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', cursor: 'pointer' }}>
+                    <button onClick={() => fullAffiliateUrl && window.open(fullAffiliateUrl, '_blank')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.875rem 1.5rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', cursor: fullAffiliateUrl ? 'pointer' : 'default', opacity: fullAffiliateUrl ? 1 : 0.5 }} disabled={!fullAffiliateUrl}>
                         <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>open_in_new</span> Test
                     </button>
                 </div>
