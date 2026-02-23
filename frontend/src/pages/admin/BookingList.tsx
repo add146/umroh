@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
+import { useAuthStore } from '../../stores/authStore';
 
 const thStyle: React.CSSProperties = {
     padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.875rem',
@@ -7,21 +8,30 @@ const thStyle: React.CSSProperties = {
 const tdStyle: React.CSSProperties = { padding: '1rem 1.5rem' };
 
 const BookingList: React.FC = () => {
+    const { user } = useAuthStore();
     const [bookings, setBookings] = useState<any[]>([]);
+    const [stats, setStats] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<'jamaah' | 'stats'>('jamaah');
 
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
     useEffect(() => {
-        const fetchBookings = async () => {
+        const fetchData = async () => {
             try {
-                const data = await apiFetch<{ bookings: any[] }>('/api/bookings');
-                setBookings(data.bookings || []);
+                const [bRes, sRes] = await Promise.all([
+                    apiFetch<{ bookings: any[] }>('/api/bookings'),
+                    (user?.role !== 'pusat' && user?.role !== 'reseller')
+                        ? apiFetch<{ stats: any[] }>('/api/bookings/stats/downline')
+                        : Promise.resolve({ stats: [] })
+                ]);
+                setBookings(bRes.bookings || []);
+                setStats(sRes.stats || []);
             } catch (error) { console.error(error); }
             finally { setLoading(false); }
         };
-        fetchBookings();
-    }, []);
+        fetchData();
+    }, [user?.role]);
 
     const getStatusStyle = (status: string): React.CSSProperties => {
         const base: React.CSSProperties = { padding: '0.25rem 0.625rem', borderRadius: '999px', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' };
@@ -37,49 +47,107 @@ const BookingList: React.FC = () => {
                 <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Kelola dan pantau seluruh pendaftaran paket umroh beserta statusnya.</p>
             </div>
 
+            {user?.role !== 'pusat' && user?.role !== 'reseller' && (
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)' }}>
+                    <button
+                        onClick={() => setActiveTab('jamaah')}
+                        style={{
+                            background: 'none', border: 'none', padding: '0.75rem 1rem', cursor: 'pointer',
+                            fontSize: '0.9375rem', fontWeight: 600, transition: 'all 0.2s',
+                            color: activeTab === 'jamaah' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                            borderBottom: activeTab === 'jamaah' ? '2px solid var(--color-primary)' : '2px solid transparent'
+                        }}
+                    >
+                        Jamaah Saya
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('stats')}
+                        style={{
+                            background: 'none', border: 'none', padding: '0.75rem 1rem', cursor: 'pointer',
+                            fontSize: '0.9375rem', fontWeight: 600, transition: 'all 0.2s',
+                            color: activeTab === 'stats' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                            borderBottom: activeTab === 'stats' ? '2px solid var(--color-primary)' : '2px solid transparent'
+                        }}
+                    >
+                        Statistik Downline
+                    </button>
+                </div>
+            )}
+
             <div style={{ background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-                    <thead>
-                        <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.02)' }}>
-                            <th style={thStyle}>Kode Booking</th>
-                            <th style={thStyle}>Jamaah</th>
-                            <th style={thStyle}>Paket</th>
-                            <th style={thStyle}>Total Harga</th>
-                            <th style={thStyle}>Status</th>
-                            <th style={thStyle}>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading ? (
-                            <tr><td colSpan={6} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Memuat data...</td></tr>
-                        ) : bookings.length === 0 ? (
-                            <tr><td colSpan={6} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Belum ada booking.</td></tr>
-                        ) : bookings.map((booking) => (
-                            <tr key={booking.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                                <td style={tdStyle}>
-                                    <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#888' }}>{booking.id.substring(0, 8).toUpperCase()}</span>
-                                </td>
-                                <td style={tdStyle}>
-                                    <p style={{ fontWeight: 700, color: 'white', margin: '0 0 0.125rem 0' }}>{booking.pilgrim?.name}</p>
-                                    <p style={{ fontSize: '0.75rem', color: '#888', margin: 0 }}>{booking.pilgrim?.phone}</p>
-                                </td>
-                                <td style={{ ...tdStyle, fontWeight: 600, color: 'white' }}>{booking.departure?.package?.name}</td>
-                                <td style={{ ...tdStyle, fontWeight: 800, color: 'var(--color-primary)' }}>Rp {(booking.totalPrice || 0).toLocaleString('id-ID')}</td>
-                                <td style={tdStyle}><span style={getStatusStyle(booking.paymentStatus)}>{booking.paymentStatus}</span></td>
-                                <td style={tdStyle}>
-                                    <button
-                                        onClick={() => setSelectedBooking(booking)}
-                                        style={{ background: 'none', border: '1px solid var(--color-primary)', padding: '0.25rem 0.75rem', borderRadius: '0.375rem', color: 'var(--color-primary)', fontWeight: 700, cursor: 'pointer', fontSize: '0.8125rem', transition: 'all 0.2s' }}
-                                        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-primary)'; e.currentTarget.style.color = 'black'; }}
-                                        onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--color-primary)'; }}
-                                    >
-                                        Detail
-                                    </button>
-                                </td>
+                {activeTab === 'jamaah' ? (
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                        <thead>
+                            <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.02)' }}>
+                                <th style={thStyle}>Kode Booking</th>
+                                <th style={thStyle}>Jamaah</th>
+                                <th style={thStyle}>Paket</th>
+                                <th style={thStyle}>Total Harga</th>
+                                <th style={thStyle}>Status</th>
+                                <th style={thStyle}>Aksi</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {loading ? (
+                                <tr><td colSpan={6} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Memuat data...</td></tr>
+                            ) : bookings.length === 0 ? (
+                                <tr><td colSpan={6} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Belum ada booking.</td></tr>
+                            ) : bookings.map((booking) => (
+                                <tr key={booking.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                                    <td style={tdStyle}>
+                                        <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#888' }}>{booking.id.substring(0, 8).toUpperCase()}</span>
+                                    </td>
+                                    <td style={tdStyle}>
+                                        <p style={{ fontWeight: 700, color: 'white', margin: '0 0 0.125rem 0' }}>{booking.pilgrim?.name}</p>
+                                        <p style={{ fontSize: '0.75rem', color: '#888', margin: 0 }}>{booking.pilgrim?.phone}</p>
+                                    </td>
+                                    <td style={{ ...tdStyle, fontWeight: 600, color: 'white' }}>{booking.departure?.package?.name}</td>
+                                    <td style={{ ...tdStyle, fontWeight: 800, color: 'var(--color-primary)' }}>Rp {(booking.totalPrice || 0).toLocaleString('id-ID')}</td>
+                                    <td style={tdStyle}><span style={getStatusStyle(booking.paymentStatus)}>{booking.paymentStatus}</span></td>
+                                    <td style={tdStyle}>
+                                        <button
+                                            onClick={() => setSelectedBooking(booking)}
+                                            style={{ background: 'none', border: '1px solid var(--color-primary)', padding: '0.25rem 0.75rem', borderRadius: '0.375rem', color: 'var(--color-primary)', fontWeight: 700, cursor: 'pointer', fontSize: '0.8125rem', transition: 'all 0.2s' }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-primary)'; e.currentTarget.style.color = 'black'; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--color-primary)'; }}
+                                        >
+                                            Detail
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : (
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                        <thead>
+                            <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.02)' }}>
+                                <th style={thStyle}>Nama Downline</th>
+                                <th style={thStyle}>Role</th>
+                                <th style={thStyle}>Total Jamaah</th>
+                                <th style={thStyle}>Total Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loading ? (
+                                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Memuat data...</td></tr>
+                            ) : stats.length === 0 ? (
+                                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Belum ada data statistik downline.</td></tr>
+                            ) : stats.map((st) => (
+                                <tr key={st.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                                    <td style={{ ...tdStyle, fontWeight: 600, color: 'white' }}>{st.name}</td>
+                                    <td style={tdStyle}>
+                                        <span style={{ padding: '0.25rem 0.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.25rem', fontSize: '0.75rem', textTransform: 'capitalize' }}>
+                                            {st.role}
+                                        </span>
+                                    </td>
+                                    <td style={{ ...tdStyle, fontWeight: 700 }}>{st.totalJamaah} Orang</td>
+                                    <td style={{ ...tdStyle, fontWeight: 700, color: 'var(--color-primary)' }}>Rp {(st.totalRevenue || 0).toLocaleString('id-ID')}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
             </div>
 
             {/* Modal Detail Booking */}
