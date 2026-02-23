@@ -55,63 +55,66 @@ export const AgentJamaahView: React.FC = () => {
                 </div>
             </div>
 
-            <div style={{ backgroundColor: 'var(--color-bg-card)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+            <div style={{ backgroundColor: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', overflow: 'hidden' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                    <thead style={{ backgroundColor: '#f1f5f9' }}>
+                    <thead style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--color-border)' }}>
                         <tr>
-                            <th style={{ padding: '1rem', fontSize: '0.875rem' }}>Jamaah</th>
-                            <th style={{ padding: '1rem', fontSize: '0.875rem' }}>Pembayaran</th>
-                            <th style={{ padding: '1rem', fontSize: '0.875rem' }}>Status</th>
-                            <th style={{ padding: '1rem', fontSize: '0.875rem', textAlign: 'right' }}>Aksi Follow-Up</th>
+                            <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Jamaah</th>
+                            <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pembayaran</th>
+                            <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
+                            <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Aksi Follow-Up</th>
                         </tr>
                     </thead>
                     <tbody>
                         {isLoading ? (
-                            <tr><td colSpan={4} style={{ padding: '2rem', textAlign: 'center' }}>Loading...</td></tr>
+                            <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-light)' }}>Memuat data jamaah...</td></tr>
                         ) : bookings.length === 0 ? (
-                            <tr><td colSpan={4} style={{ padding: '2rem', textAlign: 'center' }}>Belum ada jamaah.</td></tr>
+                            <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-light)' }}>Belum ada jamaah.</td></tr>
                         ) : bookings.map((b) => (
                             <tr key={b.id} style={{ borderTop: '1px solid var(--color-border)' }}>
-                                <td style={{ padding: '1rem' }}>
-                                    <p style={{ fontWeight: 600, fontSize: '0.875rem' }}>{b.pilgrim?.name || 'Anon'}</p>
-                                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{b.pilgrim?.phone || '-'}</p>
+                                <td style={{ padding: '1.25rem 1.5rem' }}>
+                                    <p style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-text)' }}>{b.pilgrim?.name || 'Anon'}</p>
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.125rem' }}>{b.pilgrim?.phone || '-'}</p>
                                 </td>
-                                <td style={{ padding: '1rem', fontSize: '0.875rem' }}>
+                                <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.875rem' }}>
                                     <span style={{
-                                        padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem',
-                                        backgroundColor: b.paymentStatus === 'paid' ? '#dcfce7' : b.paymentStatus === 'partial' ? '#fef08a' : '#fee2e2',
-                                        color: b.paymentStatus === 'paid' ? '#166534' : b.paymentStatus === 'partial' ? '#854d0e' : '#991b1b'
+                                        padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 700,
+                                        backgroundColor: b.paymentStatus === 'paid' ? 'rgba(22, 163, 74, 0.15)' : b.paymentStatus === 'partial' ? 'rgba(217, 119, 6, 0.15)' : 'rgba(220, 38, 38, 0.15)',
+                                        color: b.paymentStatus === 'paid' ? '#4ade80' : b.paymentStatus === 'partial' ? '#fbbf24' : '#f87171'
                                     }}>
                                         {b.paymentStatus.toUpperCase()}
                                     </span>
                                 </td>
-                                <td style={{ padding: '1rem', fontSize: '0.875rem' }}>
+                                <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.875rem' }}>
                                     <span style={{
-                                        padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem',
-                                        backgroundColor: '#e0f2fe', color: '#0369a1'
+                                        padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 700,
+                                        backgroundColor: 'rgba(12, 165, 233, 0.15)', color: '#38bdf8'
                                     }}>
                                         {b.bookingStatus.toUpperCase()}
                                     </span>
                                 </td>
-                                <td style={{ padding: '1rem', textAlign: 'right', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                                    {b.pilgrim?.phone && (
-                                        <button
-                                            className="btn btn-secondary"
-                                            style={{ padding: '0.375rem 0.75rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#25D366', color: 'white', border: 'none' }}
-                                            onClick={() => handleWhatsApp(b.id, b.pilgrim.phone, b.pilgrim.name)}
-                                        >
-                                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chat</span> WA
-                                        </button>
-                                    )}
-                                    {b.bookingStatus !== 'pending' && b.bookingStatus !== 'confirmed' && (
-                                        <button
-                                            className="btn btn-primary"
-                                            style={{ padding: '0.375rem 0.75rem', fontSize: '0.75rem' }}
-                                            onClick={() => handleReadyReview(b.id)}
-                                        >
-                                            Tandai Siap Review
-                                        </button>
-                                    )}
+                                <td style={{ padding: '1.25rem 1.5rem', textAlign: 'right' }}>
+                                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                        {b.pilgrim?.phone && (
+                                            <button
+                                                className="btn btn-secondary"
+                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', backgroundColor: 'rgba(37, 211, 102, 0.1)', color: '#25D366', border: 'none', cursor: 'pointer' }}
+                                                onClick={() => handleWhatsApp(b.id, b.pilgrim.phone, b.pilgrim.name)}
+                                                title="Hubungi WhatsApp"
+                                            >
+                                                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>chat</span>
+                                            </button>
+                                        )}
+                                        {b.bookingStatus !== 'pending' && b.bookingStatus !== 'confirmed' && (
+                                            <button
+                                                className="btn btn-primary"
+                                                style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', borderRadius: '0.5rem', textTransform: 'uppercase', fontWeight: 700 }}
+                                                onClick={() => handleReadyReview(b.id)}
+                                            >
+                                                Siap Review
+                                            </button>
+                                        )}
+                                    </div>
                                 </td>
                             </tr>
                         ))}
