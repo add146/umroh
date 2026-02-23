@@ -39,16 +39,13 @@ import { CabangJamaahView } from './pages/admin/CabangJamaahView';
 import { AssignLead } from './pages/admin/AssignLead';
 import { CabangPerformance } from './pages/admin/CabangPerformance';
 import { AuditLogView } from './pages/admin/AuditLogView';
+import TeknisiDashboard from './pages/TeknisiDashboard';
 
 const DashboardRouter = () => {
   const { user } = useAuthStore();
   if (user?.role === 'agen') return <AgentDashboard />;
   if (user?.role === 'reseller') return <ResellerDashboard />;
-  if (user?.role === 'teknisi') {
-    // Teknisi langsung diarahkan ke Logistik
-    window.location.href = '/admin/logistics';
-    return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Mengarahkan ke Logistik...</div>;
-  }
+  if (user?.role === 'teknisi') return <TeknisiDashboard />;
   return <DashboardPage />;
 };
 

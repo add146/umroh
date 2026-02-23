@@ -143,7 +143,7 @@ export const DownlineManagePage: React.FC = () => {
                             </button>
                         </div>
                         <form onSubmit={handleCreateDownline}>
-                            {user?.role === 'cabang' && (
+                            {(user?.role === 'pusat' || user?.role === 'cabang') && (
                                 <div style={{ marginBottom: '1rem' }}>
                                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-light)', marginBottom: '0.375rem' }}>Role</label>
                                     <select
@@ -152,9 +152,19 @@ export const DownlineManagePage: React.FC = () => {
                                         style={{ width: '100%', padding: '0.75rem', background: '#0a0907', border: '1px solid var(--color-border)', color: 'white', borderRadius: '0.5rem', outline: 'none' }}
                                         required
                                     >
-                                        <option value="">-- Select Role --</option>
-                                        <option value="mitra">Mitra</option>
-                                        <option value="agen">Agen</option>
+                                        <option value="">-- Pilih Role --</option>
+                                        {user?.role === 'pusat' && (
+                                            <>
+                                                <option value="cabang">Cabang</option>
+                                                <option value="teknisi">Teknisi</option>
+                                            </>
+                                        )}
+                                        {user?.role === 'cabang' && (
+                                            <>
+                                                <option value="mitra">Mitra</option>
+                                                <option value="agen">Agen</option>
+                                            </>
+                                        )}
                                     </select>
                                 </div>
                             )}
