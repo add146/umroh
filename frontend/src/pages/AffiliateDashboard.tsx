@@ -40,15 +40,14 @@ interface ReferralBooking {
 const formatCurrency = (n: number) =>
     new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
 
-const StatCard: React.FC<{ label: string; value: string | number; color?: string; sub?: string }> = ({ label, value, color = '#1a1a2e', sub }) => (
+const StatCard: React.FC<{ label: string; value: string | number; color?: string; sub?: string }> = ({ label, value, color = 'var(--color-primary)', sub }) => (
     <div style={{
-        background: 'var(--color-bg-card)',
+        background: '#1a1917',
         border: '1px solid var(--color-border)',
-        borderRadius: '16px',
+        borderRadius: '1rem',
         padding: '1.5rem',
         flex: 1,
-        minWidth: '200px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+        minWidth: '200px'
     }}>
         <p style={{ fontSize: '0.8rem', color: 'var(--color-text-light)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</p>
         <p style={{ fontSize: '1.75rem', fontWeight: 800, color }}>{value}</p>
@@ -115,13 +114,14 @@ const AffiliateDashboard: React.FC = () => {
     return (
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
             {/* Header */}
-            <div style={{ marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--color-primary)' }}>
-                    🌟 Dashboard Affiliasi
-                </h1>
-                <p style={{ color: 'var(--color-text-light)', marginTop: '0.25rem' }}>
-                    Kelola referral dan pantau komisi Anda secara real-time
-                </p>
+            <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ width: '48px', height: '48px', background: 'var(--color-primary-bg)', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)', fontSize: '24px' }}>account_balance_wallet</span>
+                </div>
+                <div>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>Dashboard Affiliasi</h1>
+                    <p style={{ color: 'var(--color-text-light)', margin: 0, fontSize: '0.875rem' }}>Kelola referral dan pantau komisi Anda secara real-time</p>
+                </div>
             </div>
 
             {/* Stats */}
@@ -131,88 +131,66 @@ const AffiliateDashboard: React.FC = () => {
                 <StatCard
                     label="Komisi Pending"
                     value={formatCurrency(stats?.stats.totalCommissionPending ?? 0)}
-                    color="#d97706"
                     sub="Menunggu pencairan"
                 />
                 <StatCard
                     label="Komisi Dibayar"
                     value={formatCurrency(stats?.stats.totalCommissionPaid ?? 0)}
-                    color="#16a34a"
                     sub="Total komisi diterima"
                 />
             </div>
 
             {/* Affiliate Link Card */}
-            <div style={{
-                background: 'linear-gradient(135deg, var(--color-primary) 0%, #2d2d6b 100%)',
-                borderRadius: '16px',
-                padding: '2rem',
-                marginBottom: '2rem',
-                color: 'white'
-            }}>
-                <p style={{ fontSize: '0.85rem', opacity: 0.7, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                    Link Referral Anda
+            <div style={{ background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', padding: '1.5rem', marginBottom: '2rem' }}>
+                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px', verticalAlign: 'text-bottom', marginRight: '4px' }}>link</span> Link Referral Anda
                 </p>
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <div style={{
-                        flex: 1,
-                        background: 'rgba(255,255,255,0.1)',
-                        borderRadius: '8px',
-                        padding: '0.75rem 1rem',
-                        fontFamily: 'monospace',
-                        fontSize: '0.9rem',
-                        wordBreak: 'break-all',
-                        border: '1px solid rgba(255,255,255,0.2)'
-                    }}>
-                        {affiliateLink || 'Kode affiliasi belum tersedia'}
-                    </div>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <input
+                        type="text"
+                        readOnly
+                        value={affiliateLink || 'Kode affiliasi belum tersedia'}
+                        style={{ flex: 1, background: '#0a0907', borderRadius: '0.75rem', padding: '0.875rem 1rem', fontFamily: 'monospace', fontSize: '0.9rem', border: '1px solid var(--color-border)', color: 'var(--color-text)', minWidth: 0 }}
+                    />
                     <button
                         onClick={handleCopy}
                         style={{
-                            background: copied ? '#16a34a' : 'var(--color-secondary)',
-                            color: 'white',
-                            padding: '0.75rem 1.5rem',
-                            borderRadius: '8px',
+                            background: copied ? 'var(--color-primary)' : 'var(--color-primary-bg)',
+                            color: copied ? '#0a0907' : 'var(--color-primary)',
+                            padding: '0.875rem 1.5rem',
+                            borderRadius: '0.75rem',
                             fontWeight: 700,
                             cursor: 'pointer',
-                            border: 'none',
-                            transition: 'background 0.2s',
-                            whiteSpace: 'nowrap'
+                            border: copied ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
+                            transition: 'all 0.2s',
+                            whiteSpace: 'nowrap',
+                            display: 'flex', alignItems: 'center', gap: '0.5rem'
                         }}
                     >
-                        {copied ? '✓ Tersalin!' : '📋 Salin Link'}
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{copied ? 'check' : 'content_copy'}</span> {copied ? 'Tersalin!' : 'Salin Link'}
+                    </button>
+                    <button onClick={() => affiliateLink && window.open(affiliateLink, '_blank')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.875rem 1.5rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', cursor: affiliateLink ? 'pointer' : 'default', opacity: affiliateLink ? 1 : 0.5 }} disabled={!affiliateLink}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>open_in_new</span> Test
                     </button>
                 </div>
-                <p style={{ marginTop: '0.75rem', fontSize: '0.8rem', opacity: 0.6 }}>
-                    Kode: <strong>{stats?.affiliateCode || '-'}</strong> • Bagikan ke calon jamaah, komisi otomatis dihitung saat pembayaran lunas
+                <p style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                    Kode: <strong style={{ color: 'var(--color-primary)' }}>{stats?.affiliateCode || '-'}</strong> • Bagikan ke calon jamaah, komisi otomatis dihitung saat pembayaran lunas
                 </p>
             </div>
 
             {/* Reseller Recruitment Link (Agen only) */}
             {stats?.role === 'agen' && (
-                <div style={{
-                    background: 'linear-gradient(135deg, #1B5E20 0%, #0a3d0a 100%)',
-                    borderRadius: '16px',
-                    padding: '2rem',
-                    marginBottom: '2rem',
-                    color: 'white'
-                }}>
-                    <p style={{ fontSize: '0.85rem', opacity: 0.7, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                        🤝 Link Rekrut Reseller
+                <div style={{ background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', padding: '1.5rem', marginBottom: '2rem' }}>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px', verticalAlign: 'text-bottom', marginRight: '4px' }}>handshake</span> Link Rekrut Reseller
                     </p>
-                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <div style={{
-                            flex: 1,
-                            background: 'rgba(255,255,255,0.1)',
-                            borderRadius: '8px',
-                            padding: '0.75rem 1rem',
-                            fontFamily: 'monospace',
-                            fontSize: '0.9rem',
-                            wordBreak: 'break-all',
-                            border: '1px solid rgba(255,255,255,0.2)'
-                        }}>
-                            {stats?.affiliateCode ? `${frontendUrl}/join/${stats.affiliateCode}` : 'Kode belum tersedia'}
-                        </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <input
+                            type="text"
+                            readOnly
+                            value={stats?.affiliateCode ? `${frontendUrl}/join/${stats.affiliateCode}` : 'Kode belum tersedia'}
+                            style={{ flex: 1, background: '#0a0907', borderRadius: '0.75rem', padding: '0.875rem 1rem', fontFamily: 'monospace', fontSize: '0.9rem', border: '1px solid var(--color-border)', color: 'var(--color-text)', minWidth: 0 }}
+                        />
                         <button
                             onClick={() => {
                                 if (stats?.affiliateCode) {
@@ -222,21 +200,22 @@ const AffiliateDashboard: React.FC = () => {
                                 }
                             }}
                             style={{
-                                background: copied ? '#16a34a' : '#2e7d32',
-                                color: 'white',
-                                padding: '0.75rem 1.5rem',
-                                borderRadius: '8px',
+                                background: copied ? 'var(--color-primary)' : 'var(--color-primary-bg)',
+                                color: copied ? '#0a0907' : 'var(--color-primary)',
+                                padding: '0.875rem 1.5rem',
+                                borderRadius: '0.75rem',
                                 fontWeight: 700,
                                 cursor: 'pointer',
-                                border: 'none',
-                                transition: 'background 0.2s',
-                                whiteSpace: 'nowrap'
+                                border: copied ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
+                                transition: 'all 0.2s',
+                                whiteSpace: 'nowrap',
+                                display: 'flex', alignItems: 'center', gap: '0.5rem'
                             }}
                         >
-                            {copied ? '✓ Tersalin!' : '📋 Salin Link'}
+                            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{copied ? 'check' : 'content_copy'}</span> {copied ? 'Tersalin!' : 'Salin Link'}
                         </button>
                     </div>
-                    <p style={{ marginTop: '0.75rem', fontSize: '0.8rem', opacity: 0.6 }}>
+                    <p style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
                         Bagikan link ini ke siapa saja. Mereka bisa langsung mendaftar sebagai reseller di bawah Anda.
                     </p>
                 </div>
@@ -260,25 +239,25 @@ const AffiliateDashboard: React.FC = () => {
                             fontSize: '0.95rem'
                         }}
                     >
-                        {tab === 'referrals' ? `📋 Daftar Referral (${referrals.length})` : `💰 Riwayat Komisi (${history.length})`}
+                        {tab === 'referrals' ? `Daftar Referral (${referrals.length})` : `Riwayat Komisi (${history.length})`}
                     </button>
                 ))}
             </div>
 
             {/* Referrals Table */}
             {activeTab === 'referrals' && (
-                <div style={{ background: 'var(--color-bg-card)', borderRadius: '16px', border: '1px solid var(--color-border)', overflow: 'hidden' }}>
+                <div style={{ background: '#1a1917', borderRadius: '1rem', border: '1px solid var(--color-border)', overflow: 'hidden' }}>
                     {referrals.length === 0 ? (
                         <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-light)' }}>
-                            <p style={{ fontSize: '3rem', marginBottom: '1rem' }}>👥</p>
+                            <span className="material-symbols-outlined" style={{ fontSize: '3rem', marginBottom: '1rem', color: 'var(--color-border)' }}>groups</span>
                             <p>Belum ada jamaah yang mendaftar via link Anda</p>
                         </div>
                     ) : (
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
-                                <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'var(--color-bg-alt)' }}>
+                                <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.02)' }}>
                                     {['Jamaah', 'Paket', 'Tgl Keberangkatan', 'Total Harga', 'Status Bayar', 'Tgl Booking'].map(h => (
-                                        <th key={h} style={{ padding: '0.875rem 1rem', textAlign: 'left', fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--color-text-light)', fontWeight: 600 }}>{h}</th>
+                                        <th key={h} style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--color-text-light)', fontWeight: 600 }}>{h}</th>
                                     ))}
                                 </tr>
                             </thead>
@@ -317,18 +296,18 @@ const AffiliateDashboard: React.FC = () => {
 
             {/* Commission History Table */}
             {activeTab === 'commissions' && (
-                <div style={{ background: 'var(--color-bg-card)', borderRadius: '16px', border: '1px solid var(--color-border)', overflow: 'hidden' }}>
+                <div style={{ background: '#1a1917', borderRadius: '1rem', border: '1px solid var(--color-border)', overflow: 'hidden' }}>
                     {history.length === 0 ? (
                         <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-light)' }}>
-                            <p style={{ fontSize: '3rem', marginBottom: '1rem' }}>💰</p>
+                            <span className="material-symbols-outlined" style={{ fontSize: '3rem', marginBottom: '1rem', color: 'var(--color-border)' }}>account_balance_wallet</span>
                             <p>Belum ada riwayat komisi</p>
                         </div>
                     ) : (
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
-                                <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'var(--color-bg-alt)' }}>
+                                <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.02)' }}>
                                     {['Jamaah', 'Jumlah Komisi', 'Tipe', 'Status', 'Tgl Komisi', 'Tgl Cair'].map(h => (
-                                        <th key={h} style={{ padding: '0.875rem 1rem', textAlign: 'left', fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--color-text-light)', fontWeight: 600 }}>{h}</th>
+                                        <th key={h} style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--color-text-light)', fontWeight: 600 }}>{h}</th>
                                     ))}
                                 </tr>
                             </thead>

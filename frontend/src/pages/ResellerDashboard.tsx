@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
-import { apiFetch } from '../lib/api';
+import { apiClient } from '../lib/api';
 import { Link } from 'react-router-dom';
 
 export const ResellerDashboard: React.FC = () => {
@@ -9,35 +9,32 @@ export const ResellerDashboard: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [affiliateCode, setAffiliateCode] = useState<string | null>(null);
 
-    const fullAffiliateUrl = affiliateCode ? `${window.location.origin}/?ref=${affiliateCode}` : '';
+    const fullAffiliateUrl = affiliateCode ? `${window.location.origin}/register?ref=${affiliateCode}` : '';
 
     useEffect(() => {
         const load = async () => {
             try {
-                // Here we fetch basic affiliate stats + prospect stats
-                const [affiliateRes, prospectRes] = await Promise.all([
-                    apiFetch('/api/affiliate/dashboard'),
-                    apiFetch('/api/prospects')
+                const [affiliateData, prospectData] = await Promise.all([
+                    apiClient.get('/affiliate/dashboard'),
+                    apiClient.get('/prospects')
                 ]);
 
                 let totalClicks = 0;
                 let activeJamaah = 0;
                 let prospectCount = 0;
 
-                if (affiliateRes.ok) {
-                    const data = await affiliateRes.json();
-                    if (data.stats) {
-                        totalClicks = data.stats.totalClicks || 0;
-                        activeJamaah = data.stats.totalReferrals || 0;
+                if (affiliateData) {
+                    if (affiliateData.stats) {
+                        totalClicks = affiliateData.stats.totalClicks || 0;
+                        activeJamaah = affiliateData.stats.totalReferrals || 0;
                     }
-                    if (data.affiliateCode) {
-                        setAffiliateCode(data.affiliateCode);
+                    if (affiliateData.affiliateCode) {
+                        setAffiliateCode(affiliateData.affiliateCode);
                     }
                 }
 
-                if (prospectRes.ok) {
-                    const pData = await prospectRes.json();
-                    prospectCount = pData.prospects?.length || 0;
+                if (prospectData && prospectData.prospects) {
+                    prospectCount = prospectData.prospects.length || 0;
                 }
 
                 setStats({ totalClicks, activeJamaah, prospectCount });
