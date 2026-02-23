@@ -118,6 +118,7 @@ export const packages = sqliteTable('packages', {
     requirements: text('requirements'),
     duration: text('duration'), // e.g. "12 Hari", "9 Hari + Turki"
     serviceType: text('service_type'), // jenis layanan
+    equipmentIds: text('equipment_ids'), // JSON array of equipment item IDs
 
     isActive: integer('is_active', { mode: 'boolean' }).default(true),
     createdAt: text('created_at').default(sql`(datetime('now'))`),

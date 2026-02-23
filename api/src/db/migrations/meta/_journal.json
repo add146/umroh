@@ -71,6 +71,13 @@
       "when": 1771800102485,
       "tag": "0009_cloudy_orphan",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1771804802121,
+      "tag": "0010_sleepy_gamora",
+      "breakpoints": true
     }
   ]
 }

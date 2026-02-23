@@ -70,6 +70,8 @@ export default function PackageForm() {
     const [saving, setSaving] = useState(false);
 
     const [masters, setMasters] = useState({ hotels: [] as any[], airlines: [] as any[], airports: [] as any[] });
+    const [equipmentItems, setEquipmentItems] = useState<{ id: string; name: string; description?: string }[]>([]);
+    const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<string[]>([]);
 
     const [form, setForm] = useState({
         name: '', basePrice: '', packageType: '', isPromo: false, serviceType: '', duration: '', description: '',
@@ -88,12 +90,14 @@ export default function PackageForm() {
     useEffect(() => {
         (async () => {
             try {
-                const [h, al, ap] = await Promise.all([
+                const [h, al, ap, eq] = await Promise.all([
                     apiFetch<any>('/api/masters/hotels'),
                     apiFetch<any>('/api/masters/airlines'),
                     apiFetch<any>('/api/masters/airports'),
+                    apiFetch<any[]>('/api/operations/equipment'),
                 ]);
                 setMasters({ hotels: h.hotels, airlines: al.airlines, airports: ap.airports });
+                setEquipmentItems(eq || []);
             } catch { toast.error('Gagal memuat master data.'); }
             finally { setLoadingMasters(false); }
         })();
@@ -116,6 +120,7 @@ export default function PackageForm() {
                 });
                 if (pkg.images) { try { const p = JSON.parse(pkg.images); setImages([...p, ...Array(5 - p.length).fill('')].slice(0, 5)); } catch { } }
                 if (pkg.image) { setImages(prev => { const n = [...prev]; n[0] = pkg.image; return n; }); }
+                if (pkg.equipmentIds) { try { setSelectedEquipmentIds(JSON.parse(pkg.equipmentIds)); } catch { } }
             })
             .catch(() => toast.error('Gagal memuat data paket'))
             .finally(() => setLoadingPackage(false));
@@ -145,6 +150,7 @@ export default function PackageForm() {
                 termsConditions: form.termsConditions || undefined, requirements: form.requirements || undefined,
                 image: validImages[0] || undefined,
                 images: validImages.length > 0 ? JSON.stringify(validImages) : undefined,
+                equipmentIds: selectedEquipmentIds.length > 0 ? JSON.stringify(selectedEquipmentIds) : undefined,
                 isActive: true,
             };
 
@@ -412,6 +418,52 @@ export default function PackageForm() {
                         width: '100%', padding: '0.75rem', background: 'transparent', border: '1px dashed #333',
                         borderRadius: '0.5rem', color: '#888', cursor: 'pointer', fontSize: '0.8125rem', fontWeight: 600,
                     }}>Tambahkan spesifikasi kamar</button>
+                </div>
+
+                {/* ====== PERLENGKAPAN ====== */}
+                <div style={cardStyle}>
+                    <h2 style={sectionTitleStyle}>
+                        <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>backpack</span>
+                        Perlengkapan Jamaah
+                    </h2>
+                    <p style={{ ...helpStyle, marginTop: '-0.75rem', marginBottom: '1rem' }}>Pilih item perlengkapan yang termasuk dalam paket ini. Teknisi akan mencentang item ini saat penyerahan ke jamaah.</p>
+                    {equipmentItems.length === 0 ? (
+                        <p style={{ color: '#888', fontSize: '0.875rem', fontStyle: 'italic' }}>Belum ada item perlengkapan. Tambahkan di <a href="/admin/masters/equipment" style={{ color: 'var(--color-primary)' }}>Master Perlengkapan</a>.</p>
+                    ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                            {equipmentItems.map(item => {
+                                const isChecked = selectedEquipmentIds.includes(item.id);
+                                return (
+                                    <div key={item.id}
+                                        onClick={() => {
+                                            setSelectedEquipmentIds(prev =>
+                                                isChecked ? prev.filter(id => id !== item.id) : [...prev, item.id]
+                                            );
+                                        }}
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem',
+                                            borderRadius: '0.5rem', cursor: 'pointer', transition: 'all 0.2s',
+                                            background: isChecked ? 'rgba(34,197,94,0.1)' : '#0a0907',
+                                            border: isChecked ? '1px solid rgba(34,197,94,0.3)' : '1px solid #333',
+                                        }}
+                                    >
+                                        <div style={{
+                                            width: '20px', height: '20px', borderRadius: '0.25rem', flexShrink: 0,
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            background: isChecked ? '#22c55e' : 'transparent',
+                                            border: isChecked ? '2px solid #22c55e' : '2px solid #555',
+                                        }}>
+                                            {isChecked && <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'white' }}>check</span>}
+                                        </div>
+                                        <div>
+                                            <p style={{ fontWeight: 600, color: isChecked ? '#22c55e' : 'white', margin: 0, fontSize: '0.875rem' }}>{item.name}</p>
+                                            {item.description && <p style={{ fontSize: '0.75rem', color: '#888', margin: 0 }}>{item.description}</p>}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
 
                 {/* ====== DESKRIPSI ====== */}

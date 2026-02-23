@@ -1,0 +1,1 @@
+ALTER TABLE `packages` ADD `equipment_ids` text;

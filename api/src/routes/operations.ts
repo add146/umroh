@@ -38,17 +38,33 @@ api.delete('/equipment/:id', authMiddleware, requireRole('pusat'), async (c) => 
     return c.json({ success: true });
 });
 
-// 3. GET Checklist for a Booking
+// 3. GET Checklist for a Booking (filtered by package equipment)
 api.get('/equipment/checklist/:bookingId', authMiddleware, async (c) => {
     const bookingId = c.req.param('bookingId');
     const db = getDb(c.env.DB);
 
-    // Initial check: get all master items and join with their status for this booking
+    // Lookup the booking's package to get its equipmentIds
+    const booking = await db.query.bookings.findFirst({
+        where: eq(bookings.id, bookingId),
+        with: { departure: { with: { package: true } } }
+    });
+
+    let packageEquipmentIds: string[] | null = null;
+    if (booking?.departure?.package?.equipmentIds) {
+        try { packageEquipmentIds = JSON.parse(booking.departure.package.equipmentIds); } catch { }
+    }
+
+    // Get all master items
     const allItems = await db.select().from(equipmentItems);
     const checkedItems = await db.select().from(equipmentChecklist).where(eq(equipmentChecklist.bookingId, bookingId));
 
-    // Merge: for each master item, find if it's already in the checklist
-    const result = allItems.map(item => {
+    // Filter items: use package-specific list if available, otherwise show all
+    const relevantItems = packageEquipmentIds
+        ? allItems.filter(item => packageEquipmentIds!.includes(item.id))
+        : allItems;
+
+    // Merge: for each item, find if it's already in the checklist
+    const result = relevantItems.map(item => {
         const found = checkedItems.find(ci => ci.equipmentItemId === item.id);
         return {
             ...item,

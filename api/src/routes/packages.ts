@@ -43,6 +43,7 @@ const packageSchema = z.object({
 
     duration: z.string().optional(), // e.g. "12 Hari + Turki"
     serviceType: z.string().optional(), // jenis layanan
+    equipmentIds: z.string().optional(), // JSON array of equipment item IDs
 
     isActive: z.boolean().default(true),
 });
