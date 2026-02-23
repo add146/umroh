@@ -48,43 +48,43 @@ export const CabangApproval: React.FC = () => {
                 <p style={{ color: 'var(--color-text-light)' }}>Daftar jamaah yang datanya telah diverifikasi (Siap Review) oleh Agen di jaringan Anda.</p>
             </div>
 
-            <div style={{ backgroundColor: 'var(--color-bg-card)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+            <div style={{ backgroundColor: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', overflow: 'hidden' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                    <thead style={{ backgroundColor: '#f1f5f9' }}>
+                    <thead style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--color-border)' }}>
                         <tr>
-                            <th style={{ padding: '1rem', fontSize: '0.875rem' }}>Jamaah</th>
-                            <th style={{ padding: '1rem', fontSize: '0.875rem' }}>Paket (Keberangkatan)</th>
-                            <th style={{ padding: '1rem', fontSize: '0.875rem' }}>Pembayaran</th>
-                            <th style={{ padding: '1rem', fontSize: '0.875rem', textAlign: 'right' }}>Aksi Review</th>
+                            <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Jamaah</th>
+                            <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Paket (Keberangkatan)</th>
+                            <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pembayaran</th>
+                            <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Aksi Review</th>
                         </tr>
                     </thead>
                     <tbody>
                         {isLoading ? (
-                            <tr><td colSpan={4} style={{ padding: '2rem', textAlign: 'center' }}>Loading...</td></tr>
+                            <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-light)' }}>Memuat antrian approval...</td></tr>
                         ) : bookings.length === 0 ? (
-                            <tr><td colSpan={4} style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Mantaap! Tidak ada antrian approval.</td></tr>
+                            <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Mantaap! Tidak ada antrian approval.</td></tr>
                         ) : bookings.map((b) => (
                             <tr key={b.id} style={{ borderTop: '1px solid var(--color-border)' }}>
-                                <td style={{ padding: '1rem' }}>
-                                    <p style={{ fontWeight: 600, fontSize: '0.875rem' }}>{b.pilgrim?.name || 'Anon'}</p>
-                                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{b.pilgrim?.noKtp || '-'}</p>
+                                <td style={{ padding: '1.25rem 1.5rem' }}>
+                                    <p style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-text)' }}>{b.pilgrim?.name || 'Anon'}</p>
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.125rem' }}>{b.pilgrim?.noKtp || '-'}</p>
                                 </td>
-                                <td style={{ padding: '1rem', fontSize: '0.875rem' }}>
+                                <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.875rem', color: 'var(--color-text-light)' }}>
                                     {b.departureId /* We should expand this data using relations but ID serves as placeholder */}
                                 </td>
-                                <td style={{ padding: '1rem', fontSize: '0.875rem' }}>
+                                <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.875rem' }}>
                                     <span style={{
-                                        padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem',
-                                        backgroundColor: b.paymentStatus === 'paid' ? '#dcfce7' : b.paymentStatus === 'partial' ? '#fef08a' : '#fee2e2',
-                                        color: b.paymentStatus === 'paid' ? '#166534' : b.paymentStatus === 'partial' ? '#854d0e' : '#991b1b'
+                                        padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 700,
+                                        backgroundColor: b.paymentStatus === 'paid' ? 'rgba(22, 163, 74, 0.15)' : b.paymentStatus === 'partial' ? 'rgba(217, 119, 6, 0.15)' : 'rgba(220, 38, 38, 0.15)',
+                                        color: b.paymentStatus === 'paid' ? '#4ade80' : b.paymentStatus === 'partial' ? '#fbbf24' : '#f87171'
                                     }}>
                                         {b.paymentStatus.toUpperCase()}
                                     </span>
                                 </td>
-                                <td style={{ padding: '1rem', textAlign: 'right' }}>
+                                <td style={{ padding: '1.25rem 1.5rem', textAlign: 'right' }}>
                                     <button
                                         className="btn btn-primary"
-                                        style={{ padding: '0.375rem 0.75rem', fontSize: '0.75rem', backgroundColor: '#3b82f6' }}
+                                        style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', borderRadius: '0.5rem', textTransform: 'uppercase', fontWeight: 700 }}
                                         onClick={() => handleApprove(b.id)}
                                     >
                                         Approve
