@@ -1,21 +1,21 @@
 // Script to create test accounts for all hierarchy levels
 // Pusat → Cabang → Mitra → Agen → Reseller (same chain)
 
-const API = 'https://umroh-api.khibroh.workers.dev';
+const API = 'http://127.0.0.1:8788';
 
 const ACCOUNTS = [
     // Pusat already exists: admin@umroh.com / admin123
-    { role: 'cabang', name: 'Cabang Jakarta', email: 'cabang@umroh.com', password: 'cabang123', affiliateCode: 'CAB-JKT' },
-    { role: 'mitra', name: 'Mitra Bandung', email: 'mitra@umroh.com', password: 'mitra123', affiliateCode: 'MIT-BDG' },
-    { role: 'agen', name: 'Agen Ahmad', email: 'agen@umroh.com', password: 'agen123', affiliateCode: 'AGN-AHM' },
-    { role: 'reseller', name: 'Reseller Budi', email: 'reseller@umroh.com', password: 'reseller123', affiliateCode: 'RSL-BDI' },
+    { role: 'cabang', name: 'Cabang Jakarta', email: 'cabang@umroh.com', password: 'cabang123', affiliateCode: 'CAB-JKT', phone: '6281200000002' },
+    { role: 'mitra', name: 'Mitra Bandung', email: 'mitra@umroh.com', password: 'mitra123', affiliateCode: 'MIT-BDG', phone: '6281200000003' },
+    { role: 'agen', name: 'Agen Ahmad', email: 'agen@umroh.com', password: 'agen123', affiliateCode: 'AGN-AHM', phone: '6281200000004' },
+    { role: 'reseller', name: 'Reseller Budi', email: 'reseller@umroh.com', password: 'reseller123', affiliateCode: 'RSL-BDI', phone: '6281200000005' },
 ];
 
 async function login(email, password) {
     const res = await fetch(`${API}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ identifier: email, password })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(`Login failed for ${email}: ${data.error}`);
@@ -32,14 +32,16 @@ async function createUser(token, user) {
         body: JSON.stringify({
             name: user.name,
             email: user.email,
+            phone: user.phone,
             password: user.password,
             affiliateCode: user.affiliateCode,
             targetRole: user.role,
         })
     });
-    const data = await res.json();
+
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-        console.log(`  ⚠️ ${user.role}: ${data.error || 'Failed'} (mungkin sudah ada)`);
+        console.log(`  ⚠️ Failed to create ${user.role} (${data.error || res.statusText})`);
         return null;
     }
     console.log(`  ✅ ${user.role}: ${user.name} (${user.email}) created → ID: ${data.user?.id}`);

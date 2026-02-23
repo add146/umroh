@@ -99,7 +99,7 @@ export const AssignLead: React.FC = () => {
                             ) : agents.length === 0 ? (
                                 <option disabled>Tidak ada Agen/Mitra ditemukan</option>
                             ) : agents.map(a => (
-                                <option key={a.id} value={a.id}>{a.name} ({a.role.toUpperCase()})</option>
+                                <option key={a.id} value={a.id}>{a.name} ({a.role.toUpperCase()}) {a.phone ? `— ${a.phone}` : ''}</option>
                             ))}
                         </select>
                     </div>

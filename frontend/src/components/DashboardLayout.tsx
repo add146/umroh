@@ -69,6 +69,12 @@ const menuGroups = [
             { name: 'Dashboard Affiliasi', path: '/affiliate', icon: 'trending_up', roles: ['cabang', 'mitra', 'agen', 'reseller'] },
         ]
     },
+    {
+        label: 'Akun',
+        items: [
+            { name: 'Pengaturan Akun', path: '/profile', icon: 'manage_accounts', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'teknisi'] },
+        ]
+    }
 ];
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {

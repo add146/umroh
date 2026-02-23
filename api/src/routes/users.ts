@@ -20,10 +20,12 @@ type Variables = {
 
 const userStore = new Hono<{ Bindings: Env, Variables: Variables }>();
 
+import { normalizePhone } from '../lib/phone.js';
+
 const createUserSchema = z.object({
     name: z.string().min(2),
-    email: z.string().email(),
-    phone: z.string().optional(),
+    email: z.string().email().optional(),
+    phone: z.string().min(10),
     password: z.string().min(6),
     affiliateCode: z.string().optional(),
     targetRole: z.string().optional(),
@@ -47,13 +49,14 @@ userStore.post('/', authMiddleware, zValidator('json', createUserSchema), async 
 
     const db = getDb(c.env.DB);
     const hashedPassword = await hashPassword(body.password);
+    const normalizedPhone = normalizePhone(body.phone);
 
     try {
         const newUser = await db.insert(users).values({
-            email: body.email,
+            email: body.email || undefined,
             password: hashedPassword,
             name: body.name,
-            phone: body.phone,
+            phone: normalizedPhone,
             nik: body.nik || undefined,
             role: targetRole as 'pusat' | 'cabang' | 'mitra' | 'agen' | 'reseller',
             parentId: currentUser.id,
@@ -79,16 +82,75 @@ userStore.post('/', authMiddleware, zValidator('json', createUserSchema), async 
 
 userStore.get('/downline', authMiddleware, async (c) => {
     const currentUser = c.get('user');
-    const downlines = await getDownlineTree(c.env.DB, currentUser.id);
+    const { getDirectDownlines } = await import('../services/hierarchy.js');
+    const downlines = await getDirectDownlines(c.env.DB, currentUser.id);
     return c.json({ downlines });
 });
 
-// GET /api/users — returns all users visible to current user (downline tree)
+// GET /api/users — returns all users visible to current user (direct downlines only now)
 // Used by AssignLead dropdown and other pages that need user lists
 userStore.get('/', authMiddleware, async (c) => {
     const currentUser = c.get('user');
-    const downlines = await getDownlineTree(c.env.DB, currentUser.id);
+    const { getDirectDownlines } = await import('../services/hierarchy.js');
+    const downlines = await getDirectDownlines(c.env.DB, currentUser.id);
     return c.json({ users: downlines });
 });
 
 export default userStore;
+
+const updateUserSchema = z.object({
+    email: z.string().email().optional().nullable(),
+    phone: z.string().min(10).optional(),
+    password: z.string().min(6).optional().nullable(),
+});
+
+userStore.put('/me', authMiddleware, zValidator('json', updateUserSchema), async (c) => {
+    const currentUser = c.get('user');
+    const body = c.req.valid('json');
+    const db = getDb(c.env.DB);
+    const { eq, and, ne, or } = await import('drizzle-orm');
+
+    try {
+        // 1. Check uniqueness if email or phone is changing
+        const conditions = [];
+        if (body.email) conditions.push(eq(users.email, body.email));
+        if (body.phone) conditions.push(eq(users.phone, normalizePhone(body.phone)));
+
+        if (conditions.length > 0) {
+            const existing = await db.select({ id: users.id })
+                .from(users)
+                .where(
+                    and(
+                        ne(users.id, currentUser.id),
+                        or(...conditions)
+                    )
+                ).limit(1);
+
+            if (existing.length > 0) {
+                return c.json({ error: 'Email atau Nomor WhatsApp sudah digunakan oleh akun lain.' }, 400);
+            }
+        }
+
+        // 2. Prepare update payload
+        const updateData: any = {};
+        if (body.email !== undefined) updateData.email = body.email || null;
+        if (body.phone) updateData.phone = normalizePhone(body.phone);
+        if (body.password) {
+            updateData.password = await hashPassword(body.password);
+        }
+
+        if (Object.keys(updateData).length === 0) {
+            return c.json({ message: 'Tidak ada perubahan data' });
+        }
+
+        // 3. Update DB
+        await db.update(users)
+            .set(updateData)
+            .where(eq(users.id, currentUser.id));
+
+        return c.json({ message: 'Profil berhasil diperbarui' });
+    } catch (error: any) {
+        console.error('Update profile error:', error);
+        return c.json({ error: 'Gagal memperbarui profil' }, 500);
+    }
+});

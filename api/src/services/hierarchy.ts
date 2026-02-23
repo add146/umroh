@@ -49,6 +49,7 @@ export async function getDownlineTree(d1: D1Database, userId: string) {
             id: users.id,
             name: users.name,
             email: users.email,
+            phone: users.phone,
             role: users.role,
             parentId: users.parentId,
             isActive: users.isActive,
@@ -58,6 +59,26 @@ export async function getDownlineTree(d1: D1Database, userId: string) {
         .innerJoin(hierarchyPaths, eq(users.id, hierarchyPaths.descendantId))
         .where(and(eq(hierarchyPaths.ancestorId, userId), sql`${hierarchyPaths.pathLength} > 0`))
         .orderBy(hierarchyPaths.pathLength);
+
+    return descendants;
+}
+
+export async function getDirectDownlines(d1: D1Database, userId: string) {
+    const db = getDb(d1);
+
+    const descendants = await db
+        .select({
+            id: users.id,
+            name: users.name,
+            email: users.email,
+            phone: users.phone,
+            role: users.role,
+            parentId: users.parentId,
+            isActive: users.isActive,
+        })
+        .from(users)
+        .where(eq(users.parentId, userId))
+        .orderBy(users.name);
 
     return descendants;
 }

@@ -6,8 +6,8 @@ async function generateSeed() {
     const id = crypto.randomUUID();
 
     console.log(`-- Seed Pusat User`);
-    console.log(`INSERT INTO users (id, email, password, name, role, is_active) 
-VALUES ('${id}', 'admin@umroh.com', '${hashedPassword}', 'Admin Pusat', 'pusat', 1);`);
+    console.log(`INSERT INTO users (id, email, password, name, phone, role, is_active) 
+VALUES ('${id}', 'admin@umroh.com', '${hashedPassword}', 'Admin Pusat', '6281200000001', 'pusat', 1);`);
 
     // Also insert into hierarchy_paths for self (dist length 0)
     console.log(`INSERT INTO hierarchy_paths (ancestor_id, descendant_id, path_length)

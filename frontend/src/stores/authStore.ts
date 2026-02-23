@@ -6,6 +6,7 @@ export type User = {
     email: string;
     name: string;
     role: 'pusat' | 'cabang' | 'mitra' | 'agen' | 'reseller' | 'teknisi';
+    phone?: string;
     affiliateCode?: string;
 };
 

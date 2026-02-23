@@ -20,17 +20,24 @@ type Variables = {
 const auth = new Hono<{ Bindings: Env, Variables: Variables }>();
 
 
+import { normalizePhone, isPhoneNumber } from '../lib/phone.js';
+
 const loginSchema = z.object({
-    email: z.string().email(),
+    identifier: z.string().min(5),
     password: z.string(),
 });
 
 auth.post('/login', zValidator('json', loginSchema), async (c) => {
-    const { email, password } = c.req.valid('json');
+    const { identifier, password } = c.req.valid('json');
     const db = getDb(c.env.DB);
 
+    const isEmail = identifier.includes('@');
+    const normalizedPhone = isEmail ? null : normalizePhone(identifier);
+
     const user = await db.query.users.findFirst({
-        where: eq(users.email, email),
+        where: isEmail
+            ? eq(users.email, identifier)
+            : eq(users.phone, normalizedPhone!)
     });
 
     if (!user || !user.isActive) {

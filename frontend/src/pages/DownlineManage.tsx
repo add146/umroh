@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { apiFetch } from '../lib/api';
 
-export const DownlineManagePage: React.FC = () => {
-    const { user } = useAuthStore();
+export const DownlineManage: React.FC = () => {
+    const user = useAuthStore(state => state.user);
     const [downlines, setDownlines] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,148 +47,109 @@ export const DownlineManagePage: React.FC = () => {
         }
     };
 
-    const downlineLabel = user?.role === 'pusat' ? 'Cabang' :
-        user?.role === 'cabang' ? 'Mitra/Agen' :
-            user?.role === 'mitra' ? 'Agen' : 'Reseller';
+    const handleWhatsApp = (phone: string, name: string) => {
+        if (!phone) return;
+        const msg = encodeURIComponent(`Assalamualaikum ${name}, ini dari pusat layanan manajemen jamaah.`);
+        window.open(`https://wa.me/${phone.replace(/^0/, '62')}?text=${msg}`, '_blank');
+    };
+
+
 
     return (
-        <div className="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700">
+        <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <div>
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Manage Downline</h1>
-                    <p style={{ color: 'var(--color-text-muted)', margin: 0 }}>View and add direct {downlineLabel}s</p>
-                </div>
-                {(user?.role === 'pusat' || user?.role === 'cabang' || user?.role === 'mitra' || user?.role === 'agen') && (
-                    <button
-                        className="btn btn-primary"
-                        style={{ padding: '0.75rem 1.5rem', borderRadius: '0.5rem', fontWeight: 600 }}
-                        onClick={() => setIsModalOpen(true)}
-                    >
-                        <span className="material-symbols-outlined" style={{ fontSize: '20px', marginRight: '0.5rem' }}>person_add</span>
-                        Add {downlineLabel}
-                    </button>
-                )}
+                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>Kelola Downline</h1>
+                <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="btn btn-primary"
+                >
+                    + Tambah Anggota
+                </button>
             </div>
 
-            <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }}>
-                <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-border)' }}>
-                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>Daftar {downlineLabel} Aktif</h3>
-                </div>
-
-                {isLoading ? (
-                    <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading records...</div>
-                ) : downlines.length === 0 ? (
-                    <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No downlines found.</div>
-                ) : (
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-                        <thead>
-                            <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.02)' }}>
-                                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)' }}>Name</th>
-                                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)' }}>Email</th>
-                                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)' }}>Role</th>
-                                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)' }}>Status</th>
+            <div style={{ background: 'var(--color-bg-alt)', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', overflow: 'hidden' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead>
+                        <tr style={{ background: 'rgba(0,0,0,0.2)', borderBottom: '1px solid var(--color-border)' }}>
+                            <th style={{ padding: '1rem', fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Nama</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Posisi</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Email</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>No. WhatsApp</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {isLoading ? (
+                            <tr><td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading records...</td></tr>
+                        ) : downlines.length === 0 ? (
+                            <tr><td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>You have no downline members yet.</td></tr>
+                        ) : downlines.map(d => (
+                            <tr key={d.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                                <td style={{ padding: '1rem', fontSize: '0.875rem', fontWeight: 500 }}>{d.name}</td>
+                                <td style={{ padding: '1rem' }}>
+                                    <span style={{
+                                        padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem',
+                                        fontWeight: 600, backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--color-text-muted)',
+                                        textTransform: 'uppercase'
+                                    }}>{d.role}</span>
+                                </td>
+                                <td style={{ padding: '1rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>{d.email || '-'}</td>
+                                <td style={{ padding: '1rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>{d.phone || '-'}</td>
+                                <td style={{ padding: '1rem' }}>
+                                    {d.phone && (
+                                        <button
+                                            onClick={() => handleWhatsApp(d.phone, d.name)}
+                                            style={{
+                                                padding: '0.375rem 0.625rem', borderRadius: '4px', border: 'none',
+                                                backgroundColor: '#25D366', color: 'white', cursor: 'pointer',
+                                                display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 600,
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chat</span>
+                                            Chat WA
+                                        </button>
+                                    )}
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {downlines.map((d) => (
-                                <tr key={d.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                                    <td style={{ padding: '1rem 1.5rem', fontWeight: 500 }}>{d.name}</td>
-                                    <td style={{ padding: '1rem 1.5rem', color: 'var(--color-text-light)' }}>{d.email}</td>
-                                    <td style={{ padding: '1rem 1.5rem', textTransform: 'capitalize' }}>{d.role}</td>
-                                    <td style={{ padding: '1rem 1.5rem' }}>
-                                        <span style={{
-                                            padding: '0.25rem 0.6rem',
-                                            borderRadius: '999px',
-                                            fontSize: '0.75rem',
-                                            backgroundColor: d.isActive ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                                            color: d.isActive ? '#22c55e' : '#ef4444',
-                                            fontWeight: 600
-                                        }}>
-                                            {d.isActive ? 'Active' : 'Inactive'}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
+                        ))}
+                    </tbody>
+                </table>
             </div>
 
             {/* Modal */}
             {isModalOpen && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-                    backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
-                }}>
-                    <div style={{ backgroundColor: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', padding: '2rem', borderRadius: '1rem', width: '400px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>Add New {downlineLabel}</h3>
-                            <button
-                                type="button"
-                                onClick={() => setIsModalOpen(false)}
-                                style={{ background: 'transparent', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', padding: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'color 0.2s' }}
-                                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text)'}
-                                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
-                            >
-                                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>close</span>
-                            </button>
-                        </div>
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
+                    <div style={{ background: 'var(--color-bg)', padding: '2rem', borderRadius: 'var(--radius)', width: '100%', maxWidth: '400px' }}>
+                        <h2 style={{ margin: '0 0 1.5rem 0', fontSize: '1.25rem' }}>Tambah Downline / Partner</h2>
                         <form onSubmit={handleCreateDownline}>
-                            {(user?.role === 'pusat' || user?.role === 'cabang') && (
-                                <div style={{ marginBottom: '1rem' }}>
-                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-light)', marginBottom: '0.375rem' }}>Role</label>
-                                    <select
-                                        value={formData.targetRole}
-                                        onChange={(e) => setFormData({ ...formData, targetRole: e.target.value })}
-                                        style={{ width: '100%', padding: '0.75rem', background: '#0a0907', border: '1px solid var(--color-border)', color: 'white', borderRadius: '0.5rem', outline: 'none' }}
-                                        required
-                                    >
-                                        <option value="">-- Pilih Role --</option>
-                                        {user?.role === 'pusat' && (
-                                            <>
-                                                <option value="cabang">Cabang</option>
-                                                <option value="teknisi">Teknisi</option>
-                                            </>
-                                        )}
-                                        {user?.role === 'cabang' && (
-                                            <>
-                                                <option value="mitra">Mitra</option>
-                                                <option value="agen">Agen</option>
-                                            </>
-                                        )}
-                                    </select>
-                                </div>
-                            )}
                             <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-light)', marginBottom: '0.375rem' }}>Full Name</label>
-                                <input
-                                    type="text" required placeholder="Full Name"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', background: '#0a0907', border: '1px solid var(--color-border)', color: 'white', borderRadius: '0.5rem', outline: 'none' }}
-                                />
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Nama Lengkap *</label>
+                                <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', background: 'var(--color-bg-alt)', color: 'var(--color-text)' }} />
                             </div>
                             <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-light)', marginBottom: '0.375rem' }}>Email</label>
-                                <input
-                                    type="email" required placeholder="email@example.com"
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', background: '#0a0907', border: '1px solid var(--color-border)', color: 'white', borderRadius: '0.5rem', outline: 'none' }}
-                                />
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>No. WhatsApp *</label>
+                                <input type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} required placeholder="08123456789" style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', background: 'var(--color-bg-alt)', color: 'var(--color-text)' }} />
+                            </div>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Email (Opsional)</label>
+                                <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', background: 'var(--color-bg-alt)', color: 'var(--color-text)' }} />
+                            </div>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Password *</label>
+                                <input type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} required minLength={6} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', background: 'var(--color-bg-alt)', color: 'var(--color-text)' }} />
                             </div>
                             <div style={{ marginBottom: '1.5rem' }}>
-                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-light)', marginBottom: '0.375rem' }}>Initial Password</label>
-                                <input
-                                    type="password" required placeholder="Min. 6 characters"
-                                    value={formData.password}
-                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', background: '#0a0907', border: '1px solid var(--color-border)', color: 'white', borderRadius: '0.5rem', outline: 'none' }}
-                                />
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Posisi (Role)</label>
+                                <select value={formData.targetRole} onChange={e => setFormData({ ...formData, targetRole: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', background: 'var(--color-bg-alt)', color: 'var(--color-text)' }}>
+                                    {user?.role === 'pusat' && <option value="cabang">Cabang</option>}
+                                    {['pusat', 'cabang'].includes(user?.role || '') && <option value="mitra">Mitra</option>}
+                                    {['pusat', 'cabang', 'mitra'].includes(user?.role || '') && <option value="agen">Agen</option>}
+                                    {['pusat', 'cabang', 'mitra', 'agen'].includes(user?.role || '') && <option value="reseller">Reseller</option>}
+                                </select>
                             </div>
-                            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
-                                <button type="button" onClick={() => setIsModalOpen(false)} style={{ flex: 1, padding: '0.75rem', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text)', borderRadius: '0.5rem', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
-                                <button type="submit" className="btn btn-primary" style={{ flex: 1, padding: '0.75rem', border: 'none', borderRadius: '0.5rem', fontWeight: 700, cursor: 'pointer' }}>Save</button>
+                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                                <button type="button" onClick={() => setIsModalOpen(false)} style={{ padding: '0.75rem 1rem', background: 'transparent', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer' }}>Batal</button>
+                                <button type="submit" className="btn btn-primary">Simpan Anggota</button>
                             </div>
                         </form>
                     </div>

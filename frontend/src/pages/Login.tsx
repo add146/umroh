@@ -4,7 +4,7 @@ import { useAuthStore } from '../stores/authStore';
 import { apiFetch } from '../lib/api';
 
 export const LoginPage: React.FC = () => {
-    const [email, setEmail] = useState('');
+    const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -18,17 +18,16 @@ export const LoginPage: React.FC = () => {
         setError('');
 
         try {
-            // apiFetch already returns parsed JSON, no need to call .json() again
             const data = await apiFetch<{ user: any; accessToken: string }>('/api/auth/login', {
                 method: 'POST',
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ identifier, password }),
             });
 
             if (data.accessToken) {
                 setAuth(data.user, data.accessToken);
                 navigate('/dashboard');
             } else {
-                setError('Login gagal. Periksa email dan password Anda.');
+                setError('Login gagal. Periksa data Anda.');
             }
         } catch (err: any) {
             setError(err.message || 'Connection error. Please try again.');
@@ -74,12 +73,12 @@ export const LoginPage: React.FC = () => {
                 <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom: '1.25rem' }}>
                         <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                            Email Address
+                            Email / No. WhatsApp
                         </label>
                         <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            type="text"
+                            value={identifier}
+                            onChange={(e) => setIdentifier(e.target.value)}
                             required
                             style={{
                                 width: '100%',
@@ -88,7 +87,7 @@ export const LoginPage: React.FC = () => {
                                 borderRadius: 'var(--radius)',
                                 outline: 'none'
                             }}
-                            placeholder="admin@umroh.com"
+                            placeholder="email@contoh.com atau 0812..."
                         />
                     </div>
 

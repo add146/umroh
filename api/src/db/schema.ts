@@ -3,10 +3,10 @@ import { sqliteTable, text, integer, real, primaryKey } from 'drizzle-orm/sqlite
 
 export const users = sqliteTable('users', {
     id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-    email: text('email').unique().notNull(),
+    email: text('email').unique(), // Email not always required now
     password: text('password').notNull(),
     name: text('name').notNull(),
-    phone: text('phone'),
+    phone: text('phone').unique(),
     nik: text('nik').unique(),
     role: text('role', { enum: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'teknisi'] }).notNull(),
     affiliateCode: text('affiliate_code').unique(),

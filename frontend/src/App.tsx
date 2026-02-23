@@ -6,7 +6,7 @@ import { LoginPage } from './pages/Login';
 import { DashboardPage } from './pages/Dashboard';
 import { DashboardLayout } from './components/DashboardLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { DownlineManagePage } from './pages/DownlineManage';
+import { DownlineManage } from './pages/DownlineManage';
 import Registration from './pages/Registration';
 import Landing from './pages/Landing';
 import AgentJoinPage from './pages/AgentJoinPage';
@@ -41,6 +41,7 @@ import { AssignLead } from './pages/admin/AssignLead';
 import { CabangPerformance } from './pages/admin/CabangPerformance';
 import { AuditLogView } from './pages/admin/AuditLogView';
 import TeknisiDashboard from './pages/TeknisiDashboard';
+import { ProfileSetting } from './pages/ProfileSetting';
 
 const DashboardRouter = () => {
   const { user } = useAuthStore();
@@ -85,7 +86,7 @@ function App() {
           <Route path="/downline" element={
             <ProtectedRoute allowedRoles={['pusat', 'cabang', 'mitra', 'agen']}>
               <DashboardLayout>
-                <DownlineManagePage />
+                <DownlineManage />
               </DashboardLayout>
             </ProtectedRoute>
           } />
@@ -234,6 +235,15 @@ function App() {
             <ProtectedRoute allowedRoles={['pusat']}>
               <DashboardLayout>
                 <EquipmentMaster />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          {/* User Profile */}
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <ProfileSetting />
               </DashboardLayout>
             </ProtectedRoute>
           } />
