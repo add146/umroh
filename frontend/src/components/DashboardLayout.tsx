@@ -11,17 +11,21 @@ const menuGroups = [
         label: 'Main',
         items: [
             { name: 'Dashboard', path: '/dashboard', icon: 'dashboard', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller'] },
-            { name: 'Keberangkatan', path: '/admin/departures', icon: 'flight_takeoff', roles: ['pusat'] },
-            { name: 'Jamaah', path: '/admin/bookings', icon: 'group', roles: ['pusat'] },
-            { name: 'Pembayaran', path: '/admin/invoices', icon: 'payments', badge: true, roles: ['pusat'] },
         ]
     },
     {
-        label: 'Hotel & Operasional',
+        label: 'Manajemen Produk',
         items: [
-            // Rooming Board hidden — impractical for umroh ops (room assignments change on the day)
-            { name: 'Logistik', path: '/admin/logistics', icon: 'inventory_2', roles: ['pusat', 'teknisi'] },
-            // Dokumen & OCR hidden — data sudah diisi saat pendaftaran jamaah
+            { name: 'Paket Umroh', path: '/admin/packages', icon: 'package_2', roles: ['pusat'] },
+            { name: 'Jadwal Keberangkatan', path: '/admin/departures', icon: 'flight_takeoff', roles: ['pusat'] },
+            { name: 'Logistik & Inventory', path: '/admin/logistics', icon: 'inventory_2', roles: ['pusat', 'teknisi'] },
+        ]
+    },
+    {
+        label: 'Operasional Jamaah',
+        items: [
+            { name: 'Data Jamaah', path: '/admin/bookings', icon: 'group', roles: ['pusat'] },
+            { name: 'Pembayaran', path: '/admin/invoices', icon: 'payments', badge: true, roles: ['pusat'] },
         ]
     },
     {
@@ -30,13 +34,12 @@ const menuGroups = [
             { name: 'Data Hotel', path: '/admin/masters/hotels', icon: 'apartment', roles: ['pusat'] },
             { name: 'Data Pesawat', path: '/admin/masters/airlines', icon: 'airlines', roles: ['pusat'] },
             { name: 'Data Bandara', path: '/admin/masters/airports', icon: 'connecting_airports', roles: ['pusat'] },
-            { name: 'Master Perlengkapan', path: '/admin/masters/equipment', icon: 'backpack', roles: ['pusat'] },
-            { name: 'Data Jenis Paket', path: '/admin/masters/package-types', icon: 'category', roles: ['pusat'] },
-            { name: 'Audit Log', path: '/admin/audit', icon: 'security', roles: ['pusat'] },
+            { name: 'Item Perlengkapan', path: '/admin/masters/equipment', icon: 'backpack', roles: ['pusat'] },
+            { name: 'Jenis Paket', path: '/admin/masters/package-types', icon: 'category', roles: ['pusat'] },
         ]
     },
     {
-        label: 'Sales & CRM',
+        label: 'Sales & Marketing',
         items: [
             { name: 'Prospek', path: '/prospects', icon: 'contact_mail', roles: ['agen', 'reseller'] },
             { name: 'Inbox Lead', path: '/agent/leads', icon: 'call_received', roles: ['agen'] },
@@ -46,33 +49,33 @@ const menuGroups = [
         ]
     },
     {
-        label: 'Monitoring Jamaah',
+        label: 'Monitoring Jaringan',
         items: [
             { name: 'Approval Jamaah', path: '/cabang/approval', icon: 'rule', roles: ['cabang'] },
-            { name: 'Data Jamaah Server', path: '/cabang/jamaah', icon: 'dns', roles: ['cabang'] },
-            { name: 'Performa Cabang', path: '/admin/performance', icon: 'leaderboard', roles: ['pusat'] },
+            { name: 'Data Jamaah Cabang', path: '/cabang/jamaah', icon: 'dns', roles: ['cabang'] },
             { name: 'Data Jamaahku', path: '/agent/jamaah', icon: 'group', roles: ['agen'] },
+            { name: 'Performa Cabang', path: '/admin/performance', icon: 'leaderboard', roles: ['pusat'] },
         ]
     },
     {
-        label: 'Finance',
+        label: 'Keuangan',
         items: [
-            { name: 'Paket Umroh', path: '/admin/packages', icon: 'package_2', roles: ['pusat'] },
             { name: 'Rekening Bank', path: '/admin/bank-accounts', icon: 'account_balance', roles: ['pusat'] },
-            { name: 'Komisi', path: '/admin/commissions', icon: 'payments', roles: ['pusat'] },
+            { name: 'Komisi Jaringan', path: '/admin/commissions', icon: 'payments', roles: ['pusat'] },
         ]
     },
     {
         label: 'Afiliasi',
         items: [
-            { name: 'Downline', path: '/downline', icon: 'account_tree', roles: ['pusat', 'cabang', 'mitra', 'agen'] },
             { name: 'Dashboard Affiliasi', path: '/affiliate', icon: 'trending_up', roles: ['cabang', 'mitra', 'agen', 'reseller'] },
+            { name: 'Data Downline', path: '/downline', icon: 'account_tree', roles: ['pusat', 'cabang', 'mitra', 'agen'] },
         ]
     },
     {
-        label: 'Akun',
+        label: 'Sistem & Akun',
         items: [
             { name: 'Pengaturan Akun', path: '/profile', icon: 'manage_accounts', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'teknisi'] },
+            { name: 'Audit Log System', path: '/admin/audit', icon: 'security', roles: ['pusat'] },
         ]
     }
 ];
