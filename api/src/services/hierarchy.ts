@@ -87,6 +87,56 @@ export async function getVisibleBookingIds(d1: D1Database, userId: string, role:
     return visibleBookings.map(b => b.id);
 }
 
+// Opsi A: Only return bookings where user is the DIRECT affiliator (own jamaah)
+export async function getOwnBookingIds(d1: D1Database, userId: string) {
+    const db = getDb(d1);
+    const ownBookings = await db.select({ id: bookings.id })
+        .from(bookings)
+        .where(eq(bookings.affiliatorId, userId));
+    return ownBookings.map(b => b.id);
+}
+
+// Opsi A: Return aggregate stats per direct downline (no contact data)
+export async function getDownlineStats(d1: D1Database, userId: string) {
+    const db = getDb(d1);
+
+    // Get direct children
+    const children = await db.select({
+        id: users.id,
+        name: users.name,
+        role: users.role,
+    }).from(users).where(eq(users.parentId, userId));
+
+    const stats = [];
+    for (const child of children) {
+        // Get all descendants of this child (including the child itself)
+        const descendantIds = await db.select({ id: hierarchyPaths.descendantId })
+            .from(hierarchyPaths)
+            .where(eq(hierarchyPaths.ancestorId, child.id));
+        const ids = descendantIds.map(d => d.id);
+
+        if (ids.length === 0) {
+            stats.push({ id: child.id, name: child.name, role: child.role, totalJamaah: 0, totalRevenue: 0 });
+            continue;
+        }
+
+        // Count bookings and sum revenue for this subtree
+        const result = await db.select({
+            count: sql<number>`count(*)`,
+            revenue: sql<number>`coalesce(sum(${bookings.totalPrice}), 0)`,
+        }).from(bookings).where(inArray(bookings.affiliatorId, ids));
+
+        stats.push({
+            id: child.id,
+            name: child.name,
+            role: child.role,
+            totalJamaah: result[0]?.count || 0,
+            totalRevenue: result[0]?.revenue || 0,
+        });
+    }
+    return stats;
+}
+
 export async function checkDuplicatePilgrim(d1: D1Database, nik?: string, phone?: string, passport?: string) {
     const db = getDb(d1);
     const conditions = [];

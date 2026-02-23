@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -86,14 +86,28 @@ const Registration = () => {
     const [loading, setLoading] = useState(false);
     const [lockKey] = useState<string | null>(null);
     const [, setVisitedSteps] = useState<Set<number>>(new Set([1]));
+    const [referrer, setReferrer] = useState<{ id: string; name: string; code: string } | null>(null);
 
     const methods = useForm<RegistrationData>({
         resolver: zodResolver(registrationSchema),
-        mode: 'onTouched', // validate on blur so fields show errors as user fills
+        mode: 'onTouched',
         defaultValues: {
             pilgrim: { hasPassport: false, sex: 'L', maritalStatus: 'Belum Menikah' }
         }
     });
+
+    // Resolve affiliate code from ?ref= param
+    useEffect(() => {
+        const refCode = searchParams.get('ref');
+        if (!refCode) return;
+        apiFetch<{ agent: { id: string; name: string; affiliateCode: string; role: string } }>(`/api/affiliate/agent/${refCode}`)
+            .then(data => {
+                if (data.agent) {
+                    setReferrer({ id: data.agent.id, name: data.agent.name, code: data.agent.affiliateCode });
+                }
+            })
+            .catch(() => { });
+    }, [searchParams]);
 
     // Navigate to any step freely
     const goToStep = (step: number) => {
@@ -140,9 +154,11 @@ const Registration = () => {
     const onSubmit = async (data: RegistrationData) => {
         setLoading(true);
         try {
+            const payload: any = { ...data, lockKey };
+            if (referrer?.id) payload.affiliatorId = referrer.id;
             const response = await apiFetch<{ bookingId: string }>('/api/bookings', {
                 method: 'POST',
-                body: JSON.stringify({ ...data, lockKey }),
+                body: JSON.stringify(payload),
             });
             navigate(`/payment/${response.bookingId}`);
         } catch (error: any) {
@@ -168,6 +184,17 @@ const Registration = () => {
                     Segera selesaikan pendaftaran sebelum slot habis
                 </span>
             </div>
+
+            {/* Referrer Badge */}
+            {referrer && (
+                <div style={{
+                    background: 'rgba(34,197,94,0.08)', borderBottom: '1px solid rgba(34,197,94,0.2)',
+                    padding: '0.5rem 1rem', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
+                }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#22c55e' }}>person</span>
+                    <span style={{ fontSize: '0.8125rem', color: '#22c55e', fontWeight: 600 }}>Direferensikan oleh: {referrer.name}</span>
+                </div>
+            )}
 
             {/* Header */}
             <nav style={{ background: '#131210', borderBottom: '1px solid var(--color-border)', padding: '0 1.5rem', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

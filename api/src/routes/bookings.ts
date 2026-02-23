@@ -6,7 +6,7 @@ import { getDb } from '../db/index.js';
 import { bookings, pilgrims, departures, roomTypes, users } from '../db/schema.js';
 import { useLock, checkAvailability } from '../services/seats.js';
 import { authMiddleware } from '../middleware/auth.js';
-import { getVisibleBookingIds, checkDuplicatePilgrim } from '../services/hierarchy.js';
+import { getVisibleBookingIds, getOwnBookingIds, getDownlineStats, checkDuplicatePilgrim } from '../services/hierarchy.js';
 import { insertUserWithHierarchy } from '../services/hierarchy.js';
 import { logAction } from '../services/audit.js';
 import { Env } from '../index.js';
@@ -148,34 +148,46 @@ api.post('/', zValidator('json', bookingSchema), async (c) => {
 });
 
 
-// Admin/Agent: List bookings
+// Admin/Agent: List bookings (Opsi A: non-pusat only sees own jamaah)
 api.get('/', authMiddleware, async (c) => {
     const user = c.get('user');
     const db = getDb(c.env.DB);
-    const cabangId = c.req.query('cabang_id'); // Optional filter for pusat
+    const cabangId = c.req.query('cabang_id');
 
-    let targetUserId = user.id;
-    let targetRole = user.role;
+    if (user.role === 'pusat') {
+        // Pusat sees all bookings with pilgrim data
+        let targetUserId = user.id;
+        let targetRole = user.role;
+        if (cabangId) { targetUserId = cabangId; targetRole = 'cabang'; }
 
-    // If Pusat wants to filter by cabang
-    if (user.role === 'pusat' && cabangId) {
-        targetUserId = cabangId;
-        // Assume the target is a cabang for query purposes
-        targetRole = 'cabang';
-    }
-
-    const visibleBookingIds = await getVisibleBookingIds(c.env.DB, targetUserId, targetRole);
-
-    let conditions = undefined;
-    if (visibleBookingIds !== null) {
-        if (visibleBookingIds.length === 0) {
-            return c.json({ bookings: [] });
+        const visibleBookingIds = await getVisibleBookingIds(c.env.DB, targetUserId, targetRole);
+        let conditions = undefined;
+        if (visibleBookingIds !== null) {
+            if (visibleBookingIds.length === 0) return c.json({ bookings: [] });
+            conditions = inArray(bookings.id, visibleBookingIds);
         }
-        conditions = inArray(bookings.id, visibleBookingIds);
+        const data = await db.query.bookings.findMany({
+            where: conditions,
+            with: { pilgrim: true, departure: { with: { package: true } } }
+        });
+        return c.json({ bookings: data });
+    } else {
+        // Non-pusat: only see OWN jamaah (direct affiliator) with full detail
+        const ownIds = await getOwnBookingIds(c.env.DB, user.id);
+        if (ownIds.length === 0) return c.json({ bookings: [] });
+        const data = await db.query.bookings.findMany({
+            where: inArray(bookings.id, ownIds),
+            with: { pilgrim: true, departure: { with: { package: true } } }
+        });
+        return c.json({ bookings: data });
     }
+});
 
-    const data = await db.select().from(bookings).where(conditions);
-    return c.json({ bookings: data });
+// Opsi A: Downline stats (aggregate only, no contact data)
+api.get('/stats/downline', authMiddleware, async (c) => {
+    const user = c.get('user');
+    const stats = await getDownlineStats(c.env.DB, user.id);
+    return c.json({ stats });
 });
 
 api.get('/check-duplicate', async (c) => {

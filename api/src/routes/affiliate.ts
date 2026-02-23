@@ -246,11 +246,11 @@ api.get('/agent/:code', async (c) => {
         .where(eq(users.affiliateCode, code))
         .limit(1);
 
-    if (!agent || agent.role !== 'agen') {
+    if (!agent) {
         return c.json({ error: 'Agent not found' }, 404);
     }
 
-    return c.json({ agent: { name: agent.name, affiliateCode: agent.affiliateCode, role: agent.role } });
+    return c.json({ agent: { id: agent.id, name: agent.name, affiliateCode: agent.affiliateCode, role: agent.role } });
 });
 
 // ─────────────────────────────────────────
