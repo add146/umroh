@@ -54,6 +54,7 @@ const menuGroups = [
             { name: 'Approval Jamaah', path: '/cabang/approval', icon: 'rule', roles: ['cabang'] },
             { name: 'Data Jamaah Cabang', path: '/cabang/jamaah', icon: 'dns', roles: ['cabang'] },
             { name: 'Data Jamaahku', path: '/agent/jamaah', icon: 'group', roles: ['agen'] },
+            { name: 'Daftar Jamaah', path: '/teknisi/jamaah', icon: 'person_search', roles: ['teknisi'] },
             { name: 'Performa Cabang', path: '/admin/performance', icon: 'leaderboard', roles: ['pusat'] },
         ]
     },

@@ -1,0 +1,1 @@
+UPDATE users SET password = '5b2524cbfd1e9db0ab26259b4cd5ce7c:f1c96aee00fefc0828e262819ce413c4a4a89323028ffc613f2adbae132c2129' WHERE email = 'teknisi@madinah.com';

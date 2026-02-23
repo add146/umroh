@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, inArray, sql } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
-import { equipmentItems, equipmentChecklist, roomAssignments, bookings } from '../db/schema.js';
+import { equipmentItems, equipmentChecklist, roomAssignments, bookings, packages } from '../db/schema.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { requireRole } from '../middleware/rbac.js';
 import { Env } from '../index.js';
@@ -162,6 +162,64 @@ api.post('/rooming/assign', authMiddleware, zValidator('json', z.object({
         }).returning();
         return c.json(inserted);
     }
+});
+
+// 7. GET Jamaah Overview with Equipment Status Summary (Teknisi)
+api.get('/jamaah-overview/:departureId', authMiddleware, async (c) => {
+    const departureId = c.req.param('departureId');
+    const db = getDb(c.env.DB);
+
+    // Get all bookings with pilgrim info
+    const departureBookings = await db.query.bookings.findMany({
+        where: eq(bookings.departureId, departureId),
+        with: {
+            pilgrim: true,
+            departure: { with: { package: true } }
+        }
+    });
+
+    if (departureBookings.length === 0) return c.json([]);
+
+    const bookingIds = departureBookings.map(b => b.id);
+
+    // Get all equipment checklist rows for these bookings
+    const allChecklists = await db.select()
+        .from(equipmentChecklist)
+        .where(inArray(equipmentChecklist.bookingId, bookingIds));
+
+    // Get all master equipment items
+    const allItems = await db.select().from(equipmentItems);
+
+    const result = departureBookings.map(b => {
+        // Determine relevant item count (from package equipmentIds or all items)
+        let relevantItemIds: string[] | null = null;
+        try {
+            if (b.departure?.package?.equipmentIds) {
+                relevantItemIds = JSON.parse(b.departure.package.equipmentIds);
+            }
+        } catch { }
+
+        const relevantItems = relevantItemIds
+            ? allItems.filter(i => relevantItemIds!.includes(i.id))
+            : allItems;
+
+        const bookingChecklist = allChecklists.filter(cl => cl.bookingId === b.id);
+        const totalItems = relevantItems.length;
+        const receivedItems = bookingChecklist.filter(cl => cl.status === 'received').length;
+
+        return {
+            bookingId: b.id,
+            pilgrim: b.pilgrim,
+            totalItems,
+            receivedItems,
+            // "allAssigned" means every item has at least a checklist row
+            allAssigned: totalItems > 0 && bookingChecklist.length >= totalItems,
+            // "allReceived" means every item is "received"
+            allReceived: totalItems > 0 && receivedItems >= totalItems,
+        };
+    });
+
+    return c.json(result);
 });
 
 export default api;

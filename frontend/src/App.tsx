@@ -41,6 +41,7 @@ import { AssignLead } from './pages/admin/AssignLead';
 import { CabangPerformance } from './pages/admin/CabangPerformance';
 import { AuditLogView } from './pages/admin/AuditLogView';
 import TeknisiDashboard from './pages/TeknisiDashboard';
+import TeknikJamaahList from './pages/admin/TeknikJamaahList';
 import { ProfileSetting } from './pages/ProfileSetting';
 
 const DashboardRouter = () => {
@@ -82,6 +83,7 @@ function App() {
 
           <Route path="/admin/performance" element={<ProtectedRoute allowedRoles={['pusat']}><DashboardLayout><CabangPerformance /></DashboardLayout></ProtectedRoute>} />
           <Route path="/admin/audit" element={<ProtectedRoute allowedRoles={['pusat']}><DashboardLayout><AuditLogView /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/teknisi/jamaah" element={<ProtectedRoute allowedRoles={['teknisi', 'pusat']}><DashboardLayout><TeknikJamaahList /></DashboardLayout></ProtectedRoute>} />
 
           <Route path="/downline" element={
             <ProtectedRoute allowedRoles={['pusat', 'cabang', 'mitra', 'agen']}>

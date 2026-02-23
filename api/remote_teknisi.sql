@@ -1,0 +1,3 @@
+INSERT OR IGNORE INTO users (id, email, password, name, phone, role, is_active) VALUES ('02d61666-f7b8-49e5-81cf-a4db14df4c4c', 'teknisi@madinah.com', '0e072ce6e5874a00470cba1882b131eb:d426cbd158e80bac970cfd5cc80c0d4ba08a75a22c96d132c5b626e895c745c6', 'Teknisi & Logistik', '6281200000099', 'teknisi', 1);
+UPDATE users SET password = '0e072ce6e5874a00470cba1882b131eb:d426cbd158e80bac970cfd5cc80c0d4ba08a75a22c96d132c5b626e895c745c6' WHERE email = 'teknisi@madinah.com';
+INSERT OR IGNORE INTO hierarchy_paths (ancestor_id, descendant_id, path_length) SELECT id, id, 0 FROM users WHERE email = 'teknisi@madinah.com';
