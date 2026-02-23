@@ -30,37 +30,37 @@ export const AuditLogView: React.FC = () => {
     return (
         <div>
             <div style={{ marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#dc2626' }}>Security & Audit Log</h1>
-                <p style={{ color: 'var(--color-text-light)' }}>Log rekam jejak sistem untuk keamanan dan pemantauan anti-bypass.</p>
+                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-primary)', margin: '0 0 0.5rem 0' }}>Security & Audit Log</h1>
+                <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Log rekam jejak sistem untuk keamanan dan pemantauan anti-bypass.</p>
             </div>
 
-            <div style={{ backgroundColor: 'white', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', overflow: 'hidden' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
-                    <thead style={{ backgroundColor: '#fef2f2' }}>
-                        <tr>
-                            <th style={{ padding: '1rem', color: '#991b1b' }}>Waktu</th>
-                            <th style={{ padding: '1rem', color: '#991b1b' }}>User ID</th>
-                            <th style={{ padding: '1rem', color: '#991b1b' }}>Action</th>
-                            <th style={{ padding: '1rem', color: '#991b1b' }}>Target Tipe</th>
-                            <th style={{ padding: '1rem', color: '#991b1b' }}>Target ID</th>
+                    <thead>
+                        <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.02)' }}>
+                            <th style={{ padding: '1rem 1.5rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Waktu</th>
+                            <th style={{ padding: '1rem 1.5rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>User ID</th>
+                            <th style={{ padding: '1rem 1.5rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Action</th>
+                            <th style={{ padding: '1rem 1.5rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Target Tipe</th>
+                            <th style={{ padding: '1rem 1.5rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Target ID</th>
                         </tr>
                     </thead>
                     <tbody>
                         {isLoading ? (
-                            <tr><td colSpan={5} style={{ padding: '2rem', textAlign: 'center' }}>Loading...</td></tr>
+                            <tr><td colSpan={5} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Memuat log...</td></tr>
                         ) : logs.length === 0 ? (
-                            <tr><td colSpan={5} style={{ padding: '2rem', textAlign: 'center' }}>Tidak ada log ditemukan</td></tr>
+                            <tr><td colSpan={5} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Tidak ada log ditemukan</td></tr>
                         ) : logs.map(l => (
-                            <tr key={l.id} style={{ borderTop: '1px solid #f1f5f9' }}>
-                                <td style={{ padding: '1rem', color: 'var(--color-text-muted)' }}>{new Date(l.createdAt).toLocaleString('id-ID')}</td>
-                                <td style={{ padding: '1rem', fontFamily: 'monospace' }}>{l.userId.substring(0, 8)}...</td>
-                                <td style={{ padding: '1rem' }}>
-                                    <span style={{ backgroundColor: '#f3f4f6', padding: '0.25rem 0.5rem', borderRadius: 4, fontWeight: 600 }}>
+                            <tr key={l.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                                <td style={{ padding: '1rem 1.5rem', color: 'var(--color-text-light)', fontWeight: 500 }}>{new Date(l.createdAt).toLocaleString('id-ID')}</td>
+                                <td style={{ padding: '1rem 1.5rem', fontFamily: 'monospace', color: '#888', fontSize: '0.75rem' }}>{l.userId.substring(0, 8)}...</td>
+                                <td style={{ padding: '1rem 1.5rem' }}>
+                                    <span style={{ backgroundColor: 'rgba(255,255,255,0.05)', padding: '0.25rem 0.625rem', borderRadius: '0.375rem', fontWeight: 600, fontSize: '0.75rem', color: 'white', border: '1px solid rgba(255,255,255,0.1)' }}>
                                         {formatAction(l.action)}
                                     </span>
                                 </td>
-                                <td style={{ padding: '1rem' }}>{l.targetType || '-'}</td>
-                                <td style={{ padding: '1rem', fontFamily: 'monospace', color: 'var(--color-text-muted)' }}>{l.targetId?.substring(0, 8) || '-'}</td>
+                                <td style={{ padding: '1rem 1.5rem', color: 'var(--color-primary)', fontWeight: 500 }}>{l.targetType || '-'}</td>
+                                <td style={{ padding: '1rem 1.5rem', fontFamily: 'monospace', color: '#888', fontSize: '0.75rem' }}>{l.targetId?.substring(0, 8) || '-'}</td>
                             </tr>
                         ))}
                     </tbody>

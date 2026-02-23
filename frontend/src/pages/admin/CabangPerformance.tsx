@@ -51,45 +51,46 @@ export const CabangPerformance: React.FC = () => {
                 <p style={{ color: 'var(--color-text-light)' }}>Bandingkan target dan pencapaian seluruh cabang di Indonesia.</p>
             </div>
 
-            <div style={{ backgroundColor: 'white', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', overflow: 'hidden' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                    <thead style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid var(--color-border)' }}>
-                        <tr>
-                            <th style={{ padding: '1.5rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Peringkat</th>
-                            <th style={{ padding: '1.5rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Cabang</th>
-                            <th style={{ padding: '1.5rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Jamaah Berangkat</th>
-                            <th style={{ padding: '1.5rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Progress Target</th>
-                            <th style={{ padding: '1.5rem', fontWeight: 600, color: 'var(--color-text-muted)', textAlign: 'right' }}>Est. Revenue</th>
+                    <thead>
+                        <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.02)' }}>
+                            <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Peringkat</th>
+                            <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Cabang</th>
+                            <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Jamaah Berangkat</th>
+                            <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Progress Target</th>
+                            <th style={{ padding: '1rem 1.5rem', textAlign: 'right', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Est. Revenue</th>
                         </tr>
                     </thead>
                     <tbody>
                         {isLoading ? (
-                            <tr><td colSpan={5} style={{ padding: '2rem', textAlign: 'center' }}>Loading Data...</td></tr>
+                            <tr><td colSpan={5} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Memuat data...</td></tr>
                         ) : performanceData.map((d, i) => {
                             const percent = Math.min(Math.round((d.achieved / d.target) * 100), 100);
                             return (
                                 <tr key={d.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                                    <td style={{ padding: '1.5rem' }}>
+                                    <td style={{ padding: '1rem 1.5rem' }}>
                                         <div style={{
                                             width: 32, height: 32, borderRadius: '50%',
-                                            backgroundColor: i === 0 ? '#fef08a' : i === 1 ? '#e2e8f0' : i === 2 ? '#fed7aa' : 'transparent',
+                                            backgroundColor: i === 0 ? 'rgba(234,179,8,0.2)' : i === 1 ? 'rgba(148,163,184,0.2)' : i === 2 ? 'rgba(217,119,6,0.2)' : 'rgba(255,255,255,0.05)',
                                             display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: i < 3 ? 700 : 500,
-                                            color: i === 0 ? '#854d0e' : i === 1 ? '#475569' : i === 2 ? '#9a3412' : 'var(--color-text)'
+                                            color: i === 0 ? '#fde047' : i === 1 ? '#cbd5e1' : i === 2 ? '#fb923c' : 'var(--color-text-muted)',
+                                            border: i === 0 ? '1px solid rgba(234,179,8,0.3)' : i === 1 ? '1px solid rgba(148,163,184,0.3)' : i === 2 ? '1px solid rgba(217,119,6,0.3)' : '1px solid var(--color-border)'
                                         }}>
                                             #{i + 1}
                                         </div>
                                     </td>
-                                    <td style={{ padding: '1.5rem', fontWeight: 600 }}>{d.name}</td>
-                                    <td style={{ padding: '1.5rem' }}><span style={{ fontWeight: 700, fontSize: '1.125rem' }}>{d.achieved}</span> <span style={{ color: 'var(--color-text-light)' }}>/ {d.target}</span></td>
-                                    <td style={{ padding: '1.5rem', width: '30%' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <div style={{ flex: 1, height: 8, backgroundColor: '#e2e8f0', borderRadius: 4, overflow: 'hidden' }}>
+                                    <td style={{ padding: '1rem 1.5rem', fontWeight: 600, color: 'white' }}>{d.name}</td>
+                                    <td style={{ padding: '1rem 1.5rem' }}><span style={{ fontWeight: 700, fontSize: '1.125rem', color: 'white' }}>{d.achieved}</span> <span style={{ color: 'var(--color-text-muted)' }}>/ {d.target}</span></td>
+                                    <td style={{ padding: '1rem 1.5rem', width: '30%' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            <div style={{ flex: 1, height: 6, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 999, overflow: 'hidden' }}>
                                                 <div style={{ width: `${percent}%`, height: '100%', backgroundColor: percent >= 100 ? '#22c55e' : percent >= 50 ? 'var(--color-primary)' : '#ef4444' }}></div>
                                             </div>
-                                            <span style={{ fontSize: '0.875rem', fontWeight: 600, width: 40 }}>{percent}%</span>
+                                            <span style={{ fontSize: '0.8125rem', fontWeight: 600, width: 40, color: 'var(--color-text-light)' }}>{percent}%</span>
                                         </div>
                                     </td>
-                                    <td style={{ padding: '1.5rem', textAlign: 'right', fontWeight: 600, color: '#16a34a' }}>Rp {d.totalRevenue}</td>
+                                    <td style={{ padding: '1rem 1.5rem', textAlign: 'right', fontWeight: 700, color: 'var(--color-primary)' }}>Rp {d.totalRevenue}</td>
                                 </tr>
                             );
                         })}
