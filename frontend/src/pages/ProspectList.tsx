@@ -145,28 +145,33 @@ export const ProspectList: React.FC = () => {
     };
 
     return (
-        <div>
+        <div className="animate-in fade-in duration-700">
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <div>
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Prospect List (CRM)</h1>
-                    <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Kelola calon jamaah potensial dan lacak progress follow-up Anda.</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{
+                        width: '48px', height: '48px', background: 'var(--color-primary-bg)',
+                        borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                        <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)', fontSize: '24px' }}>group</span>
+                    </div>
+                    <div>
+                        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>Prospect List (CRM)</h1>
+                        <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Kelola calon jamaah potensial dan lacak progress follow-up Anda.</p>
+                    </div>
                 </div>
                 <button
                     onClick={openAdd}
-                    style={{
-                        padding: '0.625rem 1.25rem', borderRadius: '0.3rem', border: 'none',
-                        background: 'var(--color-primary)', color: 'white', fontWeight: 600,
-                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem'
-                    }}
+                    className="btn btn-primary"
+                    style={{ padding: '0.75rem 1.5rem', borderRadius: '0.75rem' }}
                 >
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>person_add</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>person_add</span>
                     Tambah Prospek
                 </button>
             </div>
 
             {/* Filter Tabs */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
                 {[
                     { key: 'all', label: 'Semua' },
                     { key: 'new', label: 'Baru' },
@@ -178,85 +183,85 @@ export const ProspectList: React.FC = () => {
                         key={tab.key}
                         onClick={() => setFilterStatus(tab.key)}
                         style={{
-                            padding: '0.5rem 1rem', borderRadius: '999px', border: 'none', cursor: 'pointer',
-                            backgroundColor: filterStatus === tab.key ? 'var(--color-primary)' : 'rgba(255,255,255,0.08)',
-                            color: filterStatus === tab.key ? 'white' : 'var(--color-text-muted)',
-                            fontWeight: 600, fontSize: '0.8125rem',
+                            padding: '0.5rem 1.25rem', borderRadius: '999px', border: '1px solid',
+                            borderColor: filterStatus === tab.key ? 'var(--color-primary)' : 'var(--color-border)',
+                            backgroundColor: filterStatus === tab.key ? 'var(--color-primary-bg)' : 'transparent',
+                            color: filterStatus === tab.key ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                            fontWeight: 600, fontSize: '0.8125rem', transition: 'all 0.2s ease',
+                            cursor: 'pointer'
                         }}
                     >
-                        {tab.label} ({(counts as any)[tab.key] ?? 0})
+                        {tab.label} <span style={{ opacity: 0.6, marginLeft: '4px' }}>{(counts as any)[tab.key] ?? 0}</span>
                     </button>
                 ))}
             </div>
 
-            {/* Table */}
-            <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.3rem', overflow: 'hidden', padding: '10px' }}>
+            {/* Table Container */}
+            <div style={{ background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', overflow: 'hidden' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead>
-                        <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400">Nama</th>
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400">No. HP</th>
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400">Status</th>
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400">Sumber</th>
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400">Follow-up</th>
-                            <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400" style={{ textAlign: 'right' }}>Aksi</th>
+                        <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.02)' }}>
+                            <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Nama</th>
+                            <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>No. HP</th>
+                            <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
+                            <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Sumber</th>
+                            <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Follow-up</th>
+                            <th style={{ padding: '1.25rem 1.5rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         {isLoading ? (
-                            <tr><td colSpan={6} className="px-8 py-10 text-center text-gray-500">Loading...</td></tr>
+                            <tr><td colSpan={6} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Memuat data...</td></tr>
                         ) : filtered.length === 0 ? (
-                            <tr><td colSpan={6} className="px-8 py-10 text-center text-gray-500">Belum ada prospek{filterStatus !== 'all' ? ` dengan status "${filterStatus}"` : ''}.</td></tr>
+                            <tr><td colSpan={6} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Belum ada prospek{filterStatus !== 'all' ? ` dengan status "${filterStatus}"` : ''}.</td></tr>
                         ) : filtered.map((p) => {
                             const st = getStatusStyle(p.status);
                             return (
-                                <tr key={p.id} style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                                    <td className="px-8 py-4">
-                                        <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{p.fullName}</div>
-                                        {p.address && <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>{p.address}</div>}
+                                <tr key={p.id} style={{ borderBottom: '1px solid var(--color-border)', transition: 'background 0.2s' }} className="hover:bg-white/[0.02]">
+                                    <td style={{ padding: '1.25rem 1.5rem' }}>
+                                        <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-text)' }}>{p.fullName}</div>
+                                        {p.address && <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginTop: '2px' }}>{p.address}</div>}
                                     </td>
-                                    <td className="px-8 py-4 text-sm">{p.phone || '-'}</td>
-                                    <td className="px-8 py-4">
+                                    <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.875rem' }}>{p.phone || '-'}</td>
+                                    <td style={{ padding: '1.25rem 1.5rem' }}>
                                         <select
                                             value={p.status}
                                             onChange={e => handleStatusChange(p.id, e.target.value)}
                                             disabled={p.status === 'converted'}
                                             style={{
-                                                padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem',
-                                                fontWeight: 600, border: '1px solid transparent', cursor: 'pointer',
-                                                backgroundColor: st.bg, color: st.color,
+                                                padding: '0.375rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.75rem',
+                                                fontWeight: 700, border: 'none', cursor: 'pointer',
+                                                backgroundColor: st.bg, color: st.color, outline: 'none'
                                             }}
                                         >
                                             {STATUS_OPTIONS.map(s => (
-                                                <option key={s.value} value={s.value}>{s.label}</option>
+                                                <option key={s.value} value={s.value} style={{ background: '#1a1917', color: 'white' }}>{s.label}</option>
                                             ))}
                                         </select>
                                     </td>
-                                    <td className="px-8 py-4 text-sm text-gray-400">{p.source || '-'}</td>
-                                    <td className="px-8 py-4 text-sm text-gray-400">{p.followUpDate || '-'}</td>
-                                    <td className="px-8 py-4" style={{ textAlign: 'right' }}>
-                                        <div style={{ display: 'flex', gap: '0.375rem', justifyContent: 'flex-end' }}>
+                                    <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>{p.source || '-'}</td>
+                                    <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>{p.followUpDate || '-'}</td>
+                                    <td style={{ padding: '1.25rem 1.5rem', textAlign: 'right' }}>
+                                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                                             {p.phone && p.status !== 'converted' && (
                                                 <button
                                                     onClick={() => handleWhatsApp(p.phone!, p.fullName)}
-                                                    title="WhatsApp"
                                                     style={{
-                                                        padding: '0.375rem 0.625rem', borderRadius: '4px', border: 'none',
-                                                        backgroundColor: '#25D366', color: 'white', cursor: 'pointer',
-                                                        display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 600,
+                                                        padding: '0.5rem', borderRadius: '0.5rem', border: 'none',
+                                                        backgroundColor: 'rgba(37, 211, 102, 0.1)', color: '#25D366', cursor: 'pointer'
                                                     }}
+                                                    title="Hubungi WhatsApp"
                                                 >
-                                                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chat</span> WA
+                                                    <span className="material-symbols-outlined" style={{ fontSize: '20px', display: 'block' }}>chat</span>
                                                 </button>
                                             )}
                                             {p.status !== 'converted' && (
                                                 <button
                                                     onClick={() => handleConvert(p)}
-                                                    title="Convert ke Booking"
                                                     style={{
-                                                        padding: '0.375rem 0.625rem', borderRadius: '4px', border: 'none',
-                                                        background: 'linear-gradient(135deg, var(--color-primary), #2e7d32)', color: 'white',
-                                                        cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
+                                                        padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: 'none',
+                                                        background: 'var(--color-primary-bg)', color: 'var(--color-primary)',
+                                                        cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase'
                                                     }}
                                                 >
                                                     Convert
@@ -264,25 +269,23 @@ export const ProspectList: React.FC = () => {
                                             )}
                                             <button
                                                 onClick={() => openEdit(p)}
-                                                title="Edit"
                                                 style={{
-                                                    padding: '0.375rem 0.5rem', borderRadius: '4px', border: '1px solid var(--color-border)',
-                                                    background: 'transparent', color: 'var(--color-text-muted)',
-                                                    cursor: 'pointer', display: 'flex', alignItems: 'center',
+                                                    padding: '0.5rem', borderRadius: '0.5rem', border: 'none',
+                                                    background: 'rgba(255,255,255,0.05)', color: 'var(--color-text-muted)',
+                                                    cursor: 'pointer'
                                                 }}
                                             >
-                                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span>
+                                                <span className="material-symbols-outlined" style={{ fontSize: '20px', display: 'block' }}>edit_square</span>
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(p.id)}
-                                                title="Hapus"
                                                 style={{
-                                                    padding: '0.375rem 0.5rem', borderRadius: '4px', border: '1px solid rgba(239,68,68,0.3)',
-                                                    background: 'transparent', color: '#ef4444',
-                                                    cursor: 'pointer', display: 'flex', alignItems: 'center',
+                                                    padding: '0.5rem', borderRadius: '0.5rem', border: 'none',
+                                                    background: 'rgba(239, 68, 68, 0.1)', color: 'var(--color-error)',
+                                                    cursor: 'pointer'
                                                 }}
                                             >
-                                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
+                                                <span className="material-symbols-outlined" style={{ fontSize: '20px', display: 'block' }}>delete</span>
                                             </button>
                                         </div>
                                     </td>
@@ -297,85 +300,93 @@ export const ProspectList: React.FC = () => {
             {showModal && (
                 <div style={{
                     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center',
-                    justifyContent: 'center', zIndex: 9999, padding: '1rem',
+                    backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', zIndex: 9999, padding: '1.5rem',
+                    backdropFilter: 'blur(4px)'
                 }} onClick={() => setShowModal(false)}>
                     <div style={{
-                        background: 'rgb(26, 25, 23)', borderRadius: '0.5rem',
-                        border: '1px solid var(--color-border)', width: '100%', maxWidth: '520px',
-                        maxHeight: '90vh', overflow: 'auto',
+                        background: '#1a1917', borderRadius: '1.25rem',
+                        border: '1px solid var(--color-border)', width: '100%', maxWidth: '560px',
+                        maxHeight: '90vh', overflow: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
                     }} onClick={e => e.stopPropagation()}>
-                        <div style={{ padding: '1.5rem 1.5rem 0' }}>
-                            <h2 style={{ fontSize: '1.125rem', fontWeight: 700, margin: '0 0 0.25rem 0' }}>
-                                {editingId ? 'Edit Prospek' : 'Tambah Prospek Baru'}
-                            </h2>
-                            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.8125rem', margin: 0 }}>
-                                {editingId ? 'Perbarui data calon jamaah.' : 'Tambah calon jamaah potensial ke daftar CRM Anda.'}
-                            </p>
+                        <div style={{ padding: '2rem 2rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 0.25rem 0' }}>
+                                    {editingId ? 'Edit Prospek' : 'Tambah Prospek Baru'}
+                                </h2>
+                                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', margin: 0 }}>
+                                    {editingId ? 'Perbarui data calon jamaah.' : 'Tambah calon jamaah potensial ke daftar CRM Anda.'}
+                                </p>
+                            </div>
+                            <button onClick={() => setShowModal(false)} style={{ color: 'var(--color-text-light)' }}>
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
                         </div>
 
-                        <form onSubmit={handleSave} style={{ padding: '1.25rem 1.5rem 1.5rem' }}>
-                            <div style={{ marginBottom: '1rem' }}>
+                        <form onSubmit={handleSave} style={{ padding: '2rem' }}>
+                            <div style={{ marginBottom: '1.25rem' }}>
                                 <label style={labelStyle}>Nama Lengkap *</label>
                                 <input required type="text" value={form.fullName}
                                     onChange={e => setForm({ ...form, fullName: e.target.value })}
-                                    placeholder="Contoh: Bpk. Ahmad" style={inputStyle} />
+                                    placeholder="Contoh: Bpk. Ahmad"
+                                    style={{ ...inputStyle, background: '#0a0907', border: '1px solid #333', padding: '0.875rem' }} />
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
                                 <div>
                                     <label style={labelStyle}>No. HP / WhatsApp</label>
                                     <input type="text" value={form.phone}
                                         onChange={e => setForm({ ...form, phone: e.target.value })}
-                                        placeholder="08123456789" style={inputStyle} />
+                                        placeholder="08123456789"
+                                        style={{ ...inputStyle, background: '#0a0907', border: '1px solid #333', padding: '0.875rem' }} />
                                 </div>
                                 <div>
                                     <label style={labelStyle}>Sumber Lead</label>
                                     <select value={form.source} onChange={e => setForm({ ...form, source: e.target.value })}
-                                        style={inputStyle}>
-                                        <option value="">-- Pilih Sumber --</option>
-                                        {SOURCE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                                        style={{ ...inputStyle, background: '#0a0907', border: '1px solid #333', padding: '0.875rem' }}>
+                                        <option value="" style={{ background: '#1a1917' }}>-- Pilih Sumber --</option>
+                                        {SOURCE_OPTIONS.map(s => <option key={s} value={s} style={{ background: '#1a1917' }}>{s}</option>)}
                                     </select>
                                 </div>
                             </div>
-                            <div style={{ marginBottom: '1rem' }}>
+                            <div style={{ marginBottom: '1.25rem' }}>
                                 <label style={labelStyle}>Alamat</label>
                                 <input type="text" value={form.address}
                                     onChange={e => setForm({ ...form, address: e.target.value })}
-                                    placeholder="Alamat tinggal" style={inputStyle} />
+                                    placeholder="Alamat tinggal"
+                                    style={{ ...inputStyle, background: '#0a0907', border: '1px solid #333', padding: '0.875rem' }} />
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
                                 <div>
                                     <label style={labelStyle}>Tanggal Follow-up</label>
                                     <input type="date" value={form.followUpDate}
                                         onChange={e => setForm({ ...form, followUpDate: e.target.value })}
-                                        style={inputStyle} />
+                                        style={{ ...inputStyle, background: '#0a0907', border: '1px solid #333', padding: '0.875rem' }} />
                                 </div>
                                 {editingId && (
                                     <div>
                                         <label style={labelStyle}>Status</label>
                                         <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}
-                                            style={inputStyle}>
-                                            {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                                            style={{ ...inputStyle, background: '#0a0907', border: '1px solid #333', padding: '0.875rem' }}>
+                                            {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value} style={{ background: '#1a1917' }}>{s.label}</option>)}
                                         </select>
                                     </div>
                                 )}
                             </div>
-                            <div style={{ marginBottom: '1.5rem' }}>
+                            <div style={{ marginBottom: '2rem' }}>
                                 <label style={labelStyle}>Catatan</label>
                                 <textarea rows={3} value={form.notes}
                                     onChange={e => setForm({ ...form, notes: e.target.value })}
-                                    placeholder="Catatan internal tentang prospek ini..." style={inputStyle} />
+                                    placeholder="Catatan internal tentang prospek ini..."
+                                    style={{ ...inputStyle, background: '#0a0907', border: '1px solid #333', padding: '0.875rem' }} />
                             </div>
-                            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                            <div style={{ display: 'flex', gap: '1rem' }}>
                                 <button type="button" onClick={() => setShowModal(false)} style={{
-                                    padding: '0.625rem 1.25rem', borderRadius: '0.3rem',
+                                    flex: 1, padding: '1rem', borderRadius: '0.75rem',
                                     border: '1px solid var(--color-border)', background: 'transparent',
-                                    color: 'var(--color-text-muted)', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem',
+                                    color: 'var(--color-text-muted)', cursor: 'pointer', fontWeight: 600
                                 }}>Batal</button>
-                                <button type="submit" disabled={isSaving} style={{
-                                    padding: '0.625rem 1.25rem', borderRadius: '0.3rem', border: 'none',
-                                    background: 'var(--color-primary)', color: 'white',
-                                    cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem', opacity: isSaving ? 0.6 : 1,
+                                <button type="submit" disabled={isSaving} className="btn btn-primary" style={{
+                                    flex: 2, padding: '1rem', borderRadius: '0.75rem', opacity: isSaving ? 0.6 : 1,
                                 }}>{isSaving ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Tambah Prospek'}</button>
                             </div>
                         </form>
