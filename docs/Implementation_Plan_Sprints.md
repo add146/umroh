@@ -47,7 +47,9 @@ Berdasarkan audit menyeluruh terhadap codebase, **banyak skeleton sudah ada** (s
 - Ranking API, Leaderboard page, Target widget
 
 ## Sprint 8 — Duplikat Detection, Quick Register, Broadcast WA
-- Deteksi duplikat NIK/HP, Form ringkas booking, Broadcast via WAHA
+- ✅ Deteksi duplikat NIK/HP terintegrasi di backend `POST /api/bookings`. Tangkapan error friendly di UI Frontend Registrasi.
+- ✅ Form ringkas booking (Quick Book Modal) via Dashboard Agen & Prospect CRM.
+- ✅ Broadcast via WAHA terintegrasi di halaman *Booking List* dengan penyaringan kontak & sistem *delay buffer*.
 
 ---
 
