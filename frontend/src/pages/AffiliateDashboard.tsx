@@ -145,7 +145,7 @@ const AffiliateDashboard: React.FC = () => {
             </div>
 
             {/* Tabs */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '2px solid var(--color-border)', overflowX: 'auto' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '2px solid var(--color-border)', flexWrap: 'wrap' }}>
                 {(['profil', 'referrals', 'commissions'] as const).map(tab => (
                     <button
                         key={tab}
@@ -159,8 +159,7 @@ const AffiliateDashboard: React.FC = () => {
                             background: 'none',
                             border: 'none',
                             cursor: 'pointer',
-                            fontSize: '0.95rem',
-                            whiteSpace: 'nowrap'
+                            fontSize: '0.95rem'
                         }}
                     >
                         {tab === 'profil' ? 'Profil & Alat Penjualan' : tab === 'referrals' ? `Daftar Referral (${referrals.length})` : `Riwayat Komisi (${history.length})`}
