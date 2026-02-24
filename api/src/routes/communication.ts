@@ -23,16 +23,20 @@ api.post('/test-wa', authMiddleware, zValidator('json', z.object({
     }
 });
 
-// 2. Broadcast (Admin Pusat only)
-api.post('/broadcast', authMiddleware, requireRole('pusat'), zValidator('json', z.object({
+// 2. Broadcast (Admin Pusat & Cabang)
+api.post('/broadcast', authMiddleware, requireRole('pusat', 'cabang'), zValidator('json', z.object({
     phones: z.array(z.string()),
     message: z.string()
 })), async (c) => {
     const { phones, message } = c.req.valid('json');
 
-    const results = await Promise.all(phones.map(phone =>
-        WhatsAppService.sendMessage(phone, message)
-    ));
+    const results = [];
+    for (const phone of phones) {
+        const res = await WhatsAppService.sendMessage(phone, message);
+        results.push(res);
+        // Delay 1 second between messages to respect WAHA rate limits
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
 
     const failed = results.filter(r => !r.success).length;
 

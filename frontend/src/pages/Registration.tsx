@@ -170,7 +170,12 @@ const Registration = () => {
             });
             navigate(`/payment/${response.bookingId}`);
         } catch (error: any) {
-            alert('Pendaftaran gagal: ' + error.message);
+            // Enhanced Error Handling for Duplicates
+            if (error.message.includes('Pendaftaran ditolak')) {
+                alert(`⚠️ ${error.message}`);
+            } else {
+                alert('Pendaftaran gagal: ' + error.message);
+            }
         } finally {
             setLoading(false);
         }

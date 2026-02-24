@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
+import { QuickBookModal } from '../components/QuickBookModal';
 
 interface Prospect {
     id: string;
@@ -31,6 +32,7 @@ export const ProspectList: React.FC = () => {
     const [prospects, setProspects] = useState<Prospect[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [showQuickBook, setShowQuickBook] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [form, setForm] = useState(emptyForm);
     const [isSaving, setIsSaving] = useState(false);
@@ -160,14 +162,24 @@ export const ProspectList: React.FC = () => {
                         <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Kelola calon jamaah potensial dan lacak progress follow-up Anda.</p>
                     </div>
                 </div>
-                <button
-                    onClick={openAdd}
-                    className="btn btn-primary"
-                    style={{ padding: '0.75rem 1.5rem', borderRadius: '0.75rem' }}
-                >
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>person_add</span>
-                    Tambah Prospek
-                </button>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button
+                        onClick={() => setShowQuickBook(true)}
+                        className="btn"
+                        style={{ padding: '0.75rem 1.5rem', borderRadius: '0.75rem', background: 'rgba(255,255,255,0.05)', color: 'var(--color-primary)', border: '1px solid var(--color-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>bolt</span>
+                        Quick Book
+                    </button>
+                    <button
+                        onClick={openAdd}
+                        className="btn btn-primary"
+                        style={{ padding: '0.75rem 1.5rem', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>person_add</span>
+                        Tambah Prospek
+                    </button>
+                </div>
             </div>
 
             {/* Filter Tabs */}
@@ -393,6 +405,16 @@ export const ProspectList: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            {/* Quick Book Modal */}
+            <QuickBookModal
+                isOpen={showQuickBook}
+                onClose={() => setShowQuickBook(false)}
+                onSuccess={(id) => {
+                    setShowQuickBook(false);
+                    navigate(`/payment/${id}`);
+                }}
+            />
         </div>
     );
 };

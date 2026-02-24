@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { apiFetch } from '../lib/api';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { QuickBookModal } from '../components/QuickBookModal';
 
 export const AgentDashboard: React.FC = () => {
     const { user } = useAuthStore();
     const [stats, setStats] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [showQuickBook, setShowQuickBook] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const load = async () => {
@@ -54,9 +57,19 @@ export const AgentDashboard: React.FC = () => {
 
     return (
         <div>
-            <div style={{ marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-primary)' }}>Sales & Follow-Up Hub</h1>
-                <p style={{ color: 'var(--color-text-light)' }}>Selamat datang, {user?.name}. Kelola prospek dan jamaah Anda di sini.</p>
+            <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-primary)' }}>Sales & Follow-Up Hub</h1>
+                    <p style={{ color: 'var(--color-text-light)' }}>Selamat datang, {user?.name}. Kelola prospek dan jamaah Anda di sini.</p>
+                </div>
+                <button
+                    onClick={() => setShowQuickBook(true)}
+                    className="btn btn-primary"
+                    style={{ padding: '0.75rem 1.5rem', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>bolt</span>
+                    Pendaftaran Cepat
+                </button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
@@ -129,6 +142,16 @@ export const AgentDashboard: React.FC = () => {
 
             {/* Reseller List */}
             <ResellerList />
+
+            {/* Quick Book Modal */}
+            <QuickBookModal
+                isOpen={showQuickBook}
+                onClose={() => setShowQuickBook(false)}
+                onSuccess={(id) => {
+                    setShowQuickBook(false);
+                    navigate(`/payment/${id}`);
+                }}
+            />
         </div>
     );
 };

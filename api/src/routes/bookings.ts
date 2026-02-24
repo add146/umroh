@@ -4,11 +4,13 @@ import { zValidator } from '@hono/zod-validator';
 import { eq, sql, inArray } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
 import { bookings, pilgrims, departures, roomTypes, users } from '../db/schema.js';
-import { useLock, checkAvailability } from '../services/seats.js';
+import { checkAvailability } from '../services/availability.js';
+import { useLock } from '../services/seats.js';
 import { authMiddleware } from '../middleware/auth.js';
-import { getVisibleBookingIds, getOwnBookingIds, getDownlineStats, checkDuplicatePilgrim } from '../services/hierarchy.js';
+import { getVisibleBookingIds, getOwnBookingIds, getDownlineStats } from '../services/hierarchy.js';
 import { insertUserWithHierarchy } from '../services/hierarchy.js';
 import { logAction } from '../services/audit.js';
+import { checkDuplicatePilgrim } from '../services/pilgrim.js';
 import { Env } from '../index.js';
 
 const api = new Hono<{ Bindings: Env }>();
@@ -66,7 +68,23 @@ api.post('/', zValidator('json', bookingSchema), async (c) => {
         }
     }
 
-    // 2. Start Transaction (D1 batch)
+    // 2. Duplicate Detection (NIK / Phone)
+    const existingPilgrim = await checkDuplicatePilgrim(
+        c.env.DB,
+        body.pilgrim.noKtp,
+        body.pilgrim.phone,
+        body.pilgrim.noPassport
+    );
+
+    if (existingPilgrim) {
+        return c.json({
+            error: `Pendaftaran ditolak: NIK atau Nomor HP sudah terdaftar atas nama ${existingPilgrim.name}.`,
+            isDuplicate: true,
+            pilgrim: existingPilgrim
+        }, 400); // Bad Request
+    }
+
+    // 3. Start Transaction (D1 batch)
     try {
         // Note: Drizzle D1 transaction helper is used via batch
         const dep = await db.query.departures.findFirst({
@@ -262,7 +280,7 @@ api.post('/:id/reject', authMiddleware, async (c) => {
 
     // Return status to pending so Agent can edit/resubmit
     await db.update(bookings).set({ bookingStatus: 'pending' }).where(eq(bookings.id, id));
-    await logAction(c.env.DB, user.id, `REJECT_BOOKING: ${reason || 'No reason'}`, 'booking', id);
+    await logAction(c.env.DB, user.id, `REJECT_BOOKING: ${reason || 'No reason'} `, 'booking', id);
 
     return c.json({ message: 'Booking rejected' });
 });
@@ -297,12 +315,12 @@ api.post('/:id/approve', authMiddleware, async (c) => {
             if (existingUser.length === 0) {
                 // Auto-create reseller account
                 const newUserId = crypto.randomUUID();
-                const affiliateCode = `AFF-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+                const affiliateCode = `AFF - ${Math.random().toString(36).substring(2, 8).toUpperCase()} `;
                 const tempPassword = Math.random().toString(36).substring(2, 10); // Temporary password
 
                 await db.insert(users).values({
                     id: newUserId,
-                    email: `${booking.pilgrim.noKtp}@jamaah.local`,
+                    email: `${booking.pilgrim.noKtp} @jamaah.local`,
                     name: booking.pilgrim.name,
                     phone: booking.pilgrim.phone,
                     nik: booking.pilgrim.noKtp,
