@@ -141,6 +141,157 @@ app.route('/api/marketing-kit', marketingKitRoutes);
 app.route('/api/leads', leadsRoutes);
 app.route('/api/audit-log', auditRoutes);
 
+app.get('/api/seed-test', async (c) => {
+    const { getDb } = await import('./db/index.js');
+    const { users, hierarchyPaths, packages, departures, roomTypes, pilgrims, bookings } = await import('./db/schema.js');
+    const { hashPassword } = await import('./lib/password.js');
+    const db = getDb(c.env.DB);
+    try {
+        const hp = await hashPassword('password123');
+
+        // 1. Create Cabang
+        const cabangId = 'cabang-test-123';
+        await db.insert(users).values({
+            id: cabangId,
+            email: 'cabang.test@umroh.com',
+            name: 'Cabang Test',
+            password: hp,
+            role: 'cabang',
+            phone: '0811111111'
+        }).onConflictDoNothing();
+
+        // 2. Create Agen (under Cabang)
+        const agenId = 'agen-test-123';
+        await db.insert(users).values({
+            id: agenId,
+            email: 'agen.test@umroh.com',
+            name: 'Agen Test',
+            password: hp,
+            role: 'agen',
+            phone: '0822222222',
+            parentId: cabangId
+        }).onConflictDoNothing();
+
+        await db.insert(hierarchyPaths).values([
+            { ancestorId: cabangId, descendantId: cabangId, pathLength: 0 },
+            { ancestorId: agenId, descendantId: agenId, pathLength: 0 },
+            { ancestorId: cabangId, descendantId: agenId, pathLength: 1 }
+        ]).onConflictDoNothing();
+
+        // 3. Create Package & Departure
+        const pkgId = 'pkg-test-123';
+        await db.insert(packages).values({
+            id: pkgId,
+            name: 'Testing Package',
+            slug: 'test-pkg-123',
+            basePrice: 20000000
+        }).onConflictDoNothing();
+
+        const depId = 'dep-test-123';
+        await db.insert(departures).values({
+            id: depId,
+            packageId: pkgId,
+            departureDate: '2026-10-10',
+            airport: 'CGK',
+            totalSeats: 45
+        }).onConflictDoNothing();
+
+        const roomId = 'room-test-123';
+        await db.insert(roomTypes).values({
+            id: roomId,
+            departureId: depId,
+            name: 'Quad',
+            capacity: 4
+        }).onConflictDoNothing();
+
+        // 4. Create Pilgrim & Booking
+        const pilId = 'pilgrim-test-123';
+        await db.insert(pilgrims).values({
+            id: pilId,
+            name: 'Fulan bin Fulan',
+            noKtp: '1234567812345678',
+            sex: 'L',
+            born: '1990-01-01',
+            address: 'Jakarta',
+            fatherName: 'Bapak Fulan',
+            maritalStatus: 'Belum Menikah',
+            phone: '0833333333',
+            lastEducation: 'S1',
+            work: 'Swasta',
+            famContactName: 'Istri',
+            famContact: '0844444444',
+            sourceFrom: 'Brosur'
+        }).onConflictDoNothing();
+
+        const bookId = 'book-test-123';
+        await db.insert(bookings).values({
+            id: bookId,
+            departureId: depId,
+            pilgrimId: pilId,
+            roomTypeId: roomId,
+            affiliatorId: agenId,
+            totalPrice: 20000000,
+            paymentStatus: 'unpaid',
+            bookingStatus: 'pending' // READY FOR AGENT TO REVIEW
+        }).onConflictDoNothing();
+
+        return c.json({ success: true, message: 'Seed successful. Agen: agen.test@umroh.com (password123). Cabang: cabang.test@umroh.com (password123)' });
+    } catch (err: any) {
+        return c.json({ success: false, error: err.message });
+    }
+});
+
+app.get('/api/seed-dummy', async (c) => {
+    const { getDb } = await import('./db/index.js');
+    const { pilgrims, bookings } = await import('./db/schema.js');
+    const db = getDb(c.env.DB);
+    try {
+        const depId = 'dep-test-123';
+        const roomId = 'room-test-123';
+        const agenId = 'agen-test-123';
+
+        const dummies = [
+            { id: 'pil-dummy-1', name: 'Budi Santoso', ktp: '3512345678900001', sex: 'L' },
+            { id: 'pil-dummy-2', name: 'Siti Aminah', ktp: '3512345678900002', sex: 'P' },
+            { id: 'pil-dummy-3', name: 'Ahmad Fauzi', ktp: '3512345678900003', sex: 'L' }
+        ];
+
+        for (const pt of dummies) {
+            await db.insert(pilgrims).values({
+                id: pt.id,
+                name: pt.name,
+                noKtp: pt.ktp,
+                sex: pt.sex as any,
+                born: '1985-05-15',
+                address: 'Jl. Merdeka No. 10, Jakarta',
+                fatherName: 'Bapak ' + pt.name.split(' ')[0],
+                maritalStatus: 'Menikah',
+                phone: '08500000000' + pt.id.slice(-1),
+                lastEducation: 'SMA',
+                work: 'Wiraswasta',
+                famContactName: 'Keluarga ' + pt.name.split(' ')[0],
+                famContact: '0860000000' + pt.id.slice(-1),
+                sourceFrom: 'Sosial Media'
+            }).onConflictDoNothing();
+
+            await db.insert(bookings).values({
+                id: 'book-' + pt.id,
+                departureId: depId,
+                pilgrimId: pt.id,
+                roomTypeId: roomId,
+                affiliatorId: agenId,
+                totalPrice: 20000000,
+                paymentStatus: 'unpaid',
+                bookingStatus: 'pending'
+            }).onConflictDoNothing();
+        }
+
+        return c.json({ success: true, message: '3 Dummy jamaah created successfully' });
+    } catch (err: any) {
+        return c.json({ success: false, error: err.message });
+    }
+});
+
 export default app;
 
 

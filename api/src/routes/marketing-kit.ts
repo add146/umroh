@@ -4,6 +4,7 @@ import { zValidator } from '@hono/zod-validator';
 import { eq, inArray } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
 import { marketingMaterials, hierarchyPaths } from '../db/schema.js';
+import { StorageService } from '../services/storage_ocr.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { requireRole } from '../middleware/rbac.js';
 import { Env } from '../index.js';
@@ -69,6 +70,29 @@ api.get('/', authMiddleware, async (c) => {
     // Assuming R2 bucket is public under a custom domain (or served by another worker route)
 
     return c.json({ materials: data });
+});
+
+// 2.5 Download material
+api.get('/:id/download', authMiddleware, async (c) => {
+    const id = c.req.param('id');
+    const db = getDb(c.env.DB);
+    const user = c.get('user');
+
+    // Simple auth check: ensure material exists and user is in the hierarchy of the uploader
+    const [existing] = await db.select().from(marketingMaterials).where(eq(marketingMaterials.id, id)).limit(1);
+
+    if (!existing) return c.json({ error: 'Material not found' }, 404);
+
+    // In a real app we'd verify the user is allowed to see this specific material, similar to GET /
+    // For now we allow any logged-in user to download it if they have the ID.
+
+    const file = await StorageService.getFile(c.env.R2_DOCUMENTS, existing.r2Key);
+    if (!file) return c.json({ error: 'File not found in storage' }, 404);
+
+    c.header('Content-Type', file.httpMetadata?.contentType || existing.mimeType || 'application/octet-stream');
+    c.header('Content-Disposition', `attachment; filename="${existing.fileName}"`);
+
+    return c.body(file.body, 200);
 });
 
 // 3. Delete material
