@@ -74,7 +74,10 @@ export const AgentDashboard: React.FC = () => {
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+            {/* Antrian Follow-Up Widget */}
+            <FollowUpQueue />
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginTop: '2rem' }}>
                 <Link to="/prospects" style={{ textDecoration: 'none', color: 'inherit' }}>
                     <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem', transition: 'box-shadow 0.2s' }}>
                         <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: 'rgba(200, 168, 81, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -126,6 +129,124 @@ export const AgentDashboard: React.FC = () => {
 
             {/* Reseller List */}
             <ResellerList />
+        </div>
+    );
+};
+
+const FollowUpQueue: React.FC = () => {
+    const [queue, setQueue] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchBookings = async () => {
+            try {
+                const res = await apiFetch('/api/bookings');
+                if (res.ok) {
+                    const data = await res.json();
+                    const allBookings = data.bookings || [];
+                    // Filter those needing follow-up
+                    const needingFollowUp = allBookings.filter((b: any) =>
+                        (b.paymentStatus === 'unpaid' || b.paymentStatus === 'partial') && b.bookingStatus !== 'cancelled'
+                    );
+
+                    // Sort descending by bookedAt (newest first)
+                    needingFollowUp.sort((a: any, b: any) => new Date(b.bookedAt).getTime() - new Date(a.bookedAt).getTime());
+
+                    setQueue(needingFollowUp);
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchBookings();
+    }, []);
+
+    const handleWhatsApp = async (id: string, phone: string, name: string, paymentStatus: string) => {
+        let textTemplate = '';
+        if (paymentStatus === 'unpaid') {
+            textTemplate = `Assalamualaikum Bapak/Ibu ${name}, kami dari tim pendaftaran Al-Madinah ingin mengingatkan bahwa pendaftaran umroh Anda telah berhasil, namun kami belum menerima pembayaran DP. Mohon segera melakukan pembayaran agar seat dapat kami amankan.`;
+        } else if (paymentStatus === 'partial') {
+            textTemplate = `Assalamualaikum Bapak/Ibu ${name}, terima kasih atas pembayaran DP umroh Anda bersama Al-Madinah. Kami ingin menginformasikan sisa tahapan pelunasan...`;
+        }
+
+        const message = encodeURIComponent(textTemplate);
+        await apiFetch(`/api/bookings/${id}/follow-up`, { method: 'POST' });
+        window.open(`https://wa.me/${phone.replace(/^0/, '62')}?text=${message}`, '_blank');
+    };
+
+    if (loading) return null; // Or skeleton loader
+
+    if (queue.length === 0) return null; // Don't show if nothing to follow up
+
+    return (
+        <div style={{ background: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', borderRadius: '0.5rem', overflow: 'hidden', padding: '10px' }}>
+            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span className="material-symbols-outlined" style={{ color: '#f59e0b' }}>pending_actions</span>
+                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>Antrian Follow-Up ({queue.length})</h3>
+                </div>
+                <Link to="/agent/jamaah" style={{ fontSize: '0.875rem', color: 'var(--color-primary)', textDecoration: 'none' }}>Lihat Semua →</Link>
+            </div>
+
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                <thead>
+                    <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.02)' }}>
+                        <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)' }}>Jamaah</th>
+                        <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)' }}>Hutang</th>
+                        <th style={{ padding: '1rem 1.5rem', textAlign: 'right', fontWeight: 600, color: 'var(--color-text-muted)' }}>Aksi Cepat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {queue.slice(0, 5).map(b => (
+                        <tr key={b.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                            <td style={{ padding: '1rem 1.5rem' }}>
+                                <div style={{ fontWeight: 600 }}>{b.pilgrim?.name}</div>
+                                <div style={{ color: 'var(--color-text-light)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{b.pilgrim?.phone}</div>
+                            </td>
+                            <td style={{ padding: '1rem 1.5rem' }}>
+                                <span style={{
+                                    padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 700,
+                                    backgroundColor: b.paymentStatus === 'unpaid' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                                    color: b.paymentStatus === 'unpaid' ? '#ef4444' : '#f59e0b'
+                                }}>
+                                    {b.paymentStatus === 'unpaid' ? 'Belum DP' : 'Belum Lunas'}
+                                </span>
+                            </td>
+                            <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
+                                {b.pilgrim?.phone && (
+                                    <button
+                                        style={{
+                                            padding: '0.4rem 0.8rem',
+                                            borderRadius: '0.375rem',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            backgroundColor: 'rgba(37, 211, 102, 0.1)',
+                                            color: '#25D366',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            fontWeight: 600,
+                                            fontSize: '0.75rem'
+                                        }}
+                                        onClick={() => handleWhatsApp(b.id, b.pilgrim.phone, b.pilgrim.name, b.paymentStatus)}
+                                        title="Kirim Template WA"
+                                    >
+                                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>chat</span>
+                                        Kirim Reminder
+                                    </button>
+                                )}
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+            {queue.length > 5 && (
+                <div style={{ padding: '1rem', textAlign: 'center', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+                    +{queue.length - 5} jamaah lainnya perlu di-follow up.
+                </div>
+            )}
         </div>
     );
 };
