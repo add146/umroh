@@ -3,6 +3,7 @@ import { apiClient } from '../lib/api';
 import { QRCodeModal } from '../components/QRCodeModal';
 import { CommissionCalculator } from '../components/CommissionCalculator';
 import { DigitalCard } from '../components/DigitalCard';
+import { TargetWidget } from '../components/TargetWidget';
 
 interface AffiliateStats {
     affiliateCode: string;
@@ -128,20 +129,25 @@ const AffiliateDashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Stats */}
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
-                <StatCard label="Total Referral" value={stats?.stats.totalReferrals ?? 0} />
-                <StatCard label="Total Klik Link" value={stats?.stats.totalClicks ?? 0} />
-                <StatCard
-                    label="Komisi Pending"
-                    value={formatCurrency(stats?.stats.totalCommissionPending ?? 0)}
-                    sub="Menunggu pencairan"
-                />
-                <StatCard
-                    label="Komisi Dibayar"
-                    value={formatCurrency(stats?.stats.totalCommissionPaid ?? 0)}
-                    sub="Total komisi diterima"
-                />
+            {/* Stats & Targets */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem', alignItems: 'stretch' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
+                    <StatCard label="Total Referral" value={stats?.stats.totalReferrals ?? 0} />
+                    <StatCard label="Total Klik Link" value={stats?.stats.totalClicks ?? 0} />
+                    <StatCard
+                        label="Komisi Pending"
+                        value={formatCurrency(stats?.stats.totalCommissionPending ?? 0)}
+                        sub="Menunggu pencairan"
+                    />
+                    <StatCard
+                        label="Komisi Dibayar"
+                        value={formatCurrency(stats?.stats.totalCommissionPaid ?? 0)}
+                        sub="Total komisi diterima"
+                    />
+                </div>
+                <div style={{ minWidth: 0 }}>
+                    <TargetWidget />
+                </div>
             </div>
 
             {/* Tabs */}

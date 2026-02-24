@@ -119,6 +119,7 @@ import prospectRoutes from './routes/prospects.js';
 import marketingKitRoutes from './routes/marketing-kit.js';
 import leadsRoutes from './routes/leads.js';
 import auditRoutes from './routes/audit.js';
+import leaderboardRoutes from './routes/leaderboard.js';
 
 
 app.route('/api/auth', authRoutes);
@@ -140,6 +141,7 @@ app.route('/api/prospects', prospectRoutes);
 app.route('/api/marketing-kit', marketingKitRoutes);
 app.route('/api/leads', leadsRoutes);
 app.route('/api/audit-log', auditRoutes);
+app.route('/api/leaderboard', leaderboardRoutes);
 
 app.get('/api/seed-test', async (c) => {
     const { getDb } = await import('./db/index.js');

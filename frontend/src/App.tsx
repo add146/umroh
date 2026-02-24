@@ -43,6 +43,7 @@ import { AuditLogView } from './pages/admin/AuditLogView';
 import TeknisiDashboard from './pages/TeknisiDashboard';
 import TeknikJamaahList from './pages/admin/TeknikJamaahList';
 import { ProfileSetting } from './pages/ProfileSetting';
+import { Leaderboard } from './pages/Leaderboard';
 
 const DashboardRouter = () => {
   const { user } = useAuthStore();
@@ -75,6 +76,7 @@ function App() {
           <Route path="/agent/leads" element={<ProtectedRoute allowedRoles={['agen']}><DashboardLayout><IncomingLeads /></DashboardLayout></ProtectedRoute>} />
           <Route path="/agent/jamaah" element={<ProtectedRoute allowedRoles={['agen']}><DashboardLayout><AgentJamaahView /></DashboardLayout></ProtectedRoute>} />
           <Route path="/marketing-kit" element={<ProtectedRoute allowedRoles={['cabang', 'mitra', 'agen', 'reseller']}><DashboardLayout><MarketingKitView /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/leaderboard" element={<ProtectedRoute allowedRoles={['pusat', 'cabang', 'mitra', 'agen', 'reseller']}><DashboardLayout><Leaderboard /></DashboardLayout></ProtectedRoute>} />
 
           <Route path="/cabang/approval" element={<ProtectedRoute allowedRoles={['cabang']}><DashboardLayout><CabangApproval /></DashboardLayout></ProtectedRoute>} />
           <Route path="/cabang/jamaah" element={<ProtectedRoute allowedRoles={['cabang']}><DashboardLayout><CabangJamaahView /></DashboardLayout></ProtectedRoute>} />
