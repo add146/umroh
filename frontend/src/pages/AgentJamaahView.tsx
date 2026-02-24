@@ -17,10 +17,9 @@ export const AgentJamaahView: React.FC = () => {
     const fetchBookings = async () => {
         setIsLoading(true);
         try {
-            const res = await apiFetch('/api/bookings');
-            if (res.ok) {
-                const data = await res.json();
-                setBookings(data.bookings || []);
+            const data = await apiFetch('/api/bookings');
+            if (data && data.bookings) {
+                setBookings(data.bookings);
             }
         } catch (err) {
             console.error(err);
@@ -37,7 +36,7 @@ export const AgentJamaahView: React.FC = () => {
         if (!window.confirm('Tandai jamaah ini sudah siap direview Cabang?')) return;
         try {
             const res = await apiFetch(`/api/bookings/${id}/ready-for-review`, { method: 'POST' });
-            if (res.ok) {
+            if (res && res.message) {
                 alert('Berhasil ditandai siap direview');
                 fetchBookings();
             } else {
@@ -63,9 +62,8 @@ export const AgentJamaahView: React.FC = () => {
 
     const fetchDocuments = async (pilgrimId: string) => {
         try {
-            const res = await apiFetch(`/api/documents/pilgrim/${pilgrimId}`);
-            if (res.ok) {
-                const data = await res.json();
+            const data = await apiFetch(`/api/documents/pilgrim/${pilgrimId}`);
+            if (Array.isArray(data)) {
                 setDocuments(data);
             }
         } catch (err) {

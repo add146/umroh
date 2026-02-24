@@ -13,11 +13,10 @@ export const CabangApproval: React.FC = () => {
     const fetchBookings = async () => {
         setIsLoading(true);
         try {
-            const res = await apiFetch('/api/bookings');
-            if (res.ok) {
-                const data = await res.json();
+            const data = await apiFetch('/api/bookings');
+            if (data && data.bookings) {
                 // Filter only 'ready_review' status bookings (marked ready for review by agent)
-                setBookings(data.bookings?.filter((b: any) => b.bookingStatus === 'ready_review') || []);
+                setBookings(data.bookings.filter((b: any) => b.bookingStatus === 'ready_review'));
             }
         } catch (err) {
             console.error(err);
@@ -34,7 +33,7 @@ export const CabangApproval: React.FC = () => {
         if (!window.confirm('Verifikasi data jamaah ini sudah lengkap dan valid?')) return;
         try {
             const res = await apiFetch(`/api/bookings/${id}/approve`, { method: 'POST' });
-            if (res.ok) {
+            if (res && res.message) {
                 alert('Jamaah berhasil di-approve!');
                 fetchBookings();
             } else {
@@ -53,7 +52,7 @@ export const CabangApproval: React.FC = () => {
                 method: 'POST',
                 body: JSON.stringify({ reason })
             });
-            if (res.ok) {
+            if (res && res.message) {
                 alert('Jamaah dikembalikan ke Agen untuk direvisi!');
                 fetchBookings();
             } else {
@@ -72,9 +71,8 @@ export const CabangApproval: React.FC = () => {
 
     const fetchDocuments = async (pilgrimId: string) => {
         try {
-            const res = await apiFetch(`/api/documents/pilgrim/${pilgrimId}`);
-            if (res.ok) {
-                const data = await res.json();
+            const data = await apiFetch(`/api/documents/pilgrim/${pilgrimId}`);
+            if (Array.isArray(data)) {
                 setDocuments(data);
             }
         } catch (err) {
