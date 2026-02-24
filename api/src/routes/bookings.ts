@@ -243,10 +243,28 @@ api.post('/:id/ready-for-review', authMiddleware, async (c) => {
     const db = getDb(c.env.DB);
 
     // Can optionally check if payment is at least partially paid and docs are complete
-    await db.update(bookings).set({ bookingStatus: 'pending' }).where(eq(bookings.id, id));
+    await db.update(bookings).set({ bookingStatus: 'ready_review' }).where(eq(bookings.id, id));
     await logAction(c.env.DB, user.id, 'MARK_READY_REVIEW', 'booking', id);
 
     return c.json({ message: 'Marked ready for review' });
+});
+
+// Cabang rejecting booking
+api.post('/:id/reject', authMiddleware, async (c) => {
+    const id = c.req.param('id');
+    const user = c.get('user');
+    if (user.role !== 'cabang' && user.role !== 'pusat') {
+        return c.json({ error: 'Unauthorized' }, 403);
+    }
+
+    const { reason } = await c.req.json().catch(() => ({ reason: '' }));
+    const db = getDb(c.env.DB);
+
+    // Return status to pending so Agent can edit/resubmit
+    await db.update(bookings).set({ bookingStatus: 'pending' }).where(eq(bookings.id, id));
+    await logAction(c.env.DB, user.id, `REJECT_BOOKING: ${reason || 'No reason'}`, 'booking', id);
+
+    return c.json({ message: 'Booking rejected' });
 });
 
 // Cabang approving booking

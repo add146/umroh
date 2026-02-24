@@ -95,7 +95,7 @@ export const AgentJamaahView: React.FC = () => {
                         <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>WA</span>
                     </button>
                 )}
-                {b.bookingStatus !== 'pending' && b.bookingStatus !== 'confirmed' && (
+                {b.bookingStatus === 'pending' && (
                     <button
                         className="btn btn-primary"
                         style={{ flex: 1, padding: '0.5rem', fontSize: '0.75rem', borderRadius: '0.375rem', textTransform: 'uppercase', fontWeight: 700, border: 'none', cursor: 'pointer' }}
@@ -103,6 +103,24 @@ export const AgentJamaahView: React.FC = () => {
                     >
                         Review
                     </button>
+                )}
+                {b.bookingStatus === 'ready_review' && (
+                    <span style={{
+                        flex: 1,
+                        padding: '0.5rem',
+                        fontSize: '0.7rem',
+                        borderRadius: '0.375rem',
+                        textTransform: 'uppercase',
+                        fontWeight: 700,
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        color: 'var(--color-text-muted)',
+                        textAlign: 'center',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        Sedang Direview
+                    </span>
                 )}
             </div>
         </div>

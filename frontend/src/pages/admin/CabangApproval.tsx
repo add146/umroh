@@ -11,9 +11,8 @@ export const CabangApproval: React.FC = () => {
             const res = await apiFetch('/api/bookings');
             if (res.ok) {
                 const data = await res.json();
-                // Filter only 'pending' status bookings (marked ready for review by agent)
-                // Note: The /api/bookings already returns what's under Cabang
-                setBookings(data.bookings?.filter((b: any) => b.bookingStatus === 'pending') || []);
+                // Filter only 'ready_review' status bookings (marked ready for review by agent)
+                setBookings(data.bookings?.filter((b: any) => b.bookingStatus === 'ready_review') || []);
             }
         } catch (err) {
             console.error(err);
@@ -35,6 +34,25 @@ export const CabangApproval: React.FC = () => {
                 fetchBookings();
             } else {
                 alert('Gagal memproses approval.');
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleReject = async (id: string) => {
+        const reason = window.prompt('Masukkan alasan penolakan (opsional):');
+        if (reason === null) return; // User cancelled
+        try {
+            const res = await apiFetch(`/api/bookings/${id}/reject`, {
+                method: 'POST',
+                body: JSON.stringify({ reason })
+            });
+            if (res.ok) {
+                alert('Jamaah dikembalikan ke Agen untuk direvisi!');
+                fetchBookings();
+            } else {
+                alert('Gagal memproses penolakan.');
             }
         } catch (err) {
             console.error(err);
@@ -82,13 +100,22 @@ export const CabangApproval: React.FC = () => {
                                     </span>
                                 </td>
                                 <td style={{ padding: '1.25rem 1.5rem', textAlign: 'right' }}>
-                                    <button
-                                        className="btn btn-primary"
-                                        style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', borderRadius: '0.5rem', textTransform: 'uppercase', fontWeight: 700 }}
-                                        onClick={() => handleApprove(b.id)}
-                                    >
-                                        Approve
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                        <button
+                                            className="btn btn-secondary"
+                                            style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', borderRadius: '0.5rem', textTransform: 'uppercase', fontWeight: 700, backgroundColor: 'rgba(220, 38, 38, 0.1)', color: '#f87171', border: '1px solid #f87171' }}
+                                            onClick={() => handleReject(b.id)}
+                                        >
+                                            Tolak
+                                        </button>
+                                        <button
+                                            className="btn btn-primary"
+                                            style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', borderRadius: '0.5rem', textTransform: 'uppercase', fontWeight: 700 }}
+                                            onClick={() => handleApprove(b.id)}
+                                        >
+                                            Approve
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}

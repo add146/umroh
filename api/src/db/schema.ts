@@ -212,8 +212,8 @@ export const bookings = sqliteTable('bookings', {
 
     totalPrice: integer('total_price').notNull(),
     paymentStatus: text('payment_status', { enum: ['unpaid', 'partial', 'paid', 'cancelled'] }).default('unpaid'),
-    bookingStatus: text('booking_status', { enum: ['pending', 'confirmed', 'cancelled'] }).default('pending'),
-
+    bookingStatus: text('booking_status', { enum: ['pending', 'ready_review', 'confirmed', 'cancelled'] }).default('pending'),
+    paymentMode: text('payment_mode', { enum: ['auto', 'manual'] }).default('manual'),
     bookedAt: text('booked_at').default(sql`(datetime('now'))`),
 });
 
