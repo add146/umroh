@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { apiClient } from '../lib/api';
+import { QRCodeModal } from '../components/QRCodeModal';
+import { CommissionCalculator } from '../components/CommissionCalculator';
+import { DigitalCard } from '../components/DigitalCard';
 
 interface AffiliateStats {
     affiliateCode: string;
@@ -61,7 +64,8 @@ const AffiliateDashboard: React.FC = () => {
     const [referrals, setReferrals] = useState<ReferralBooking[]>([]);
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(false);
-    const [activeTab, setActiveTab] = useState<'referrals' | 'commissions'>('referrals');
+    const [activeTab, setActiveTab] = useState<'profil' | 'referrals' | 'commissions'>('profil');
+    const [isQrOpen, setIsQrOpen] = useState(false);
 
     const frontendUrl = window.location.origin;
 
@@ -140,90 +144,9 @@ const AffiliateDashboard: React.FC = () => {
                 />
             </div>
 
-            {/* Affiliate Link Card */}
-            <div style={{ background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', padding: '1.5rem', marginBottom: '2rem' }}>
-                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px', verticalAlign: 'text-bottom', marginRight: '4px' }}>link</span> Link Referral Anda
-                </p>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <input
-                        type="text"
-                        readOnly
-                        value={affiliateLink || 'Kode affiliasi belum tersedia'}
-                        style={{ flex: 1, background: '#0a0907', borderRadius: '0.75rem', padding: '0.875rem 1rem', fontFamily: 'monospace', fontSize: '0.9rem', border: '1px solid var(--color-border)', color: 'var(--color-text)', minWidth: 0 }}
-                    />
-                    <button
-                        onClick={handleCopy}
-                        style={{
-                            background: copied ? 'var(--color-primary)' : 'var(--color-primary-bg)',
-                            color: copied ? '#0a0907' : 'var(--color-primary)',
-                            padding: '0.875rem 1.5rem',
-                            borderRadius: '0.75rem',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            border: copied ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
-                            transition: 'all 0.2s',
-                            whiteSpace: 'nowrap',
-                            display: 'flex', alignItems: 'center', gap: '0.5rem'
-                        }}
-                    >
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{copied ? 'check' : 'content_copy'}</span> {copied ? 'Tersalin!' : 'Salin Link'}
-                    </button>
-                    <button onClick={() => affiliateLink && window.open(affiliateLink, '_blank')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.875rem 1.5rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', cursor: affiliateLink ? 'pointer' : 'default', opacity: affiliateLink ? 1 : 0.5 }} disabled={!affiliateLink}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>open_in_new</span> Test
-                    </button>
-                </div>
-                <p style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                    Kode: <strong style={{ color: 'var(--color-primary)' }}>{stats?.affiliateCode || '-'}</strong> • Bagikan ke calon jamaah, komisi otomatis dihitung saat pembayaran lunas
-                </p>
-            </div>
-
-            {/* Reseller Recruitment Link (Agen only) */}
-            {stats?.role === 'agen' && (
-                <div style={{ background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', padding: '1.5rem', marginBottom: '2rem' }}>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px', verticalAlign: 'text-bottom', marginRight: '4px' }}>handshake</span> Link Rekrut Reseller
-                    </p>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <input
-                            type="text"
-                            readOnly
-                            value={stats?.affiliateCode ? `${frontendUrl}/join/${stats.affiliateCode}` : 'Kode belum tersedia'}
-                            style={{ flex: 1, background: '#0a0907', borderRadius: '0.75rem', padding: '0.875rem 1rem', fontFamily: 'monospace', fontSize: '0.9rem', border: '1px solid var(--color-border)', color: 'var(--color-text)', minWidth: 0 }}
-                        />
-                        <button
-                            onClick={() => {
-                                if (stats?.affiliateCode) {
-                                    navigator.clipboard.writeText(`${frontendUrl}/join/${stats.affiliateCode}`);
-                                    setCopied(true);
-                                    setTimeout(() => setCopied(false), 2000);
-                                }
-                            }}
-                            style={{
-                                background: copied ? 'var(--color-primary)' : 'var(--color-primary-bg)',
-                                color: copied ? '#0a0907' : 'var(--color-primary)',
-                                padding: '0.875rem 1.5rem',
-                                borderRadius: '0.75rem',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                border: copied ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
-                                transition: 'all 0.2s',
-                                whiteSpace: 'nowrap',
-                                display: 'flex', alignItems: 'center', gap: '0.5rem'
-                            }}
-                        >
-                            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{copied ? 'check' : 'content_copy'}</span> {copied ? 'Tersalin!' : 'Salin Link'}
-                        </button>
-                    </div>
-                    <p style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                        Bagikan link ini ke siapa saja. Mereka bisa langsung mendaftar sebagai reseller di bawah Anda.
-                    </p>
-                </div>
-            )}
-
             {/* Tabs */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '2px solid var(--color-border)' }}>
-                {(['referrals', 'commissions'] as const).map(tab => (
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '2px solid var(--color-border)', overflowX: 'auto' }}>
+                {(['profil', 'referrals', 'commissions'] as const).map(tab => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
@@ -236,13 +159,121 @@ const AffiliateDashboard: React.FC = () => {
                             background: 'none',
                             border: 'none',
                             cursor: 'pointer',
-                            fontSize: '0.95rem'
+                            fontSize: '0.95rem',
+                            whiteSpace: 'nowrap'
                         }}
                     >
-                        {tab === 'referrals' ? `Daftar Referral (${referrals.length})` : `Riwayat Komisi (${history.length})`}
+                        {tab === 'profil' ? 'Profil & Alat Penjualan' : tab === 'referrals' ? `Daftar Referral (${referrals.length})` : `Riwayat Komisi (${history.length})`}
                     </button>
                 ))}
             </div>
+
+            {/* Profile & Tools Tab */}
+            {activeTab === 'profil' && (
+                <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+
+                    {/* Left Column: Digital Card & Calculator */}
+                    <div style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                        <DigitalCard
+                            name="User Affiliasi" // TODO: Add real name from API if available
+                            role={stats?.role || 'Reseller'}
+                            affiliateCode={stats?.affiliateCode || '-'}
+                        />
+                        <CommissionCalculator />
+                    </div>
+
+                    {/* Right Column: Links */}
+                    <div style={{ flex: '2 1 400px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                        {/* Affiliate Link Card */}
+                        <div style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)', borderRadius: '1rem', padding: '1.5rem' }}>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '16px', verticalAlign: 'text-bottom', marginRight: '4px' }}>link</span> Link Referral Anda
+                            </p>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                                <input
+                                    type="text"
+                                    readOnly
+                                    value={affiliateLink || 'Kode affiliasi belum tersedia'}
+                                    style={{ flex: 1, background: 'var(--color-bg)', borderRadius: '0.75rem', padding: '0.875rem 1rem', fontFamily: 'monospace', fontSize: '0.9rem', border: '1px solid var(--color-border)', color: 'var(--color-text)', minWidth: 0 }}
+                                />
+                                <button
+                                    onClick={handleCopy}
+                                    style={{
+                                        background: copied ? 'var(--color-primary)' : 'var(--color-primary-bg)',
+                                        color: copied ? '#0a0907' : 'var(--color-primary)',
+                                        padding: '0.875rem 1.5rem',
+                                        borderRadius: '0.75rem',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                        border: copied ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
+                                        transition: 'all 0.2s',
+                                        whiteSpace: 'nowrap',
+                                        display: 'flex', alignItems: 'center', gap: '0.5rem'
+                                    }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{copied ? 'check' : 'content_copy'}</span> {copied ? 'Tersalin' : 'Salin'}
+                                </button>
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={() => setIsQrOpen(true)}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.875rem 1.5rem', borderRadius: '0.75rem', fontWeight: 700 }}
+                                    disabled={!affiliateLink}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>qr_code</span> QR Code
+                                </button>
+                            </div>
+                            <p style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                                Kode: <strong style={{ color: 'var(--color-primary)' }}>{stats?.affiliateCode || '-'}</strong> • Bagikan ke calon jamaah, komisi otomatis dihitung.
+                            </p>
+                        </div>
+
+                        {/* Reseller Recruitment Link (Agen only) */}
+                        {stats?.role === 'agen' && (
+                            <div style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)', borderRadius: '1rem', padding: '1.5rem' }}>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '16px', verticalAlign: 'text-bottom', marginRight: '4px' }}>handshake</span> Link Rekrut Reseller
+                                </p>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                                    <input
+                                        type="text"
+                                        readOnly
+                                        value={stats?.affiliateCode ? `${frontendUrl}/join/${stats.affiliateCode}` : 'Kode belum tersedia'}
+                                        style={{ flex: 1, background: 'var(--color-bg)', borderRadius: '0.75rem', padding: '0.875rem 1rem', fontFamily: 'monospace', fontSize: '0.9rem', border: '1px solid var(--color-border)', color: 'var(--color-text)', minWidth: 0 }}
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            if (stats?.affiliateCode) {
+                                                navigator.clipboard.writeText(`${frontendUrl}/join/${stats.affiliateCode}`);
+                                                setCopied(true);
+                                                setTimeout(() => setCopied(false), 2000);
+                                            }
+                                        }}
+                                        style={{
+                                            background: copied ? 'var(--color-primary)' : 'var(--color-primary-bg)',
+                                            color: copied ? '#0a0907' : 'var(--color-primary)',
+                                            padding: '0.875rem 1.5rem',
+                                            borderRadius: '0.75rem',
+                                            fontWeight: 700,
+                                            cursor: 'pointer',
+                                            border: copied ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
+                                            transition: 'all 0.2s',
+                                            whiteSpace: 'nowrap',
+                                            display: 'flex', alignItems: 'center', gap: '0.5rem'
+                                        }}
+                                    >
+                                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{copied ? 'check' : 'content_copy'}</span> {copied ? 'Tersalin' : 'Salin'}
+                                    </button>
+                                </div>
+                                <p style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                                    Bagikan link ini ke siapa saja. Mereka bisa langsung mendaftar sebagai reseller di bawah Anda.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+
 
             {/* Referrals Table */}
             {activeTab === 'referrals' && (
@@ -346,6 +377,13 @@ const AffiliateDashboard: React.FC = () => {
                     )}
                 </div>
             )}
+
+            <QRCodeModal
+                isOpen={isQrOpen}
+                onClose={() => setIsQrOpen(false)}
+                affiliateLink={affiliateLink}
+                affiliateCode={stats?.affiliateCode || ''}
+            />
         </div>
     );
 };
