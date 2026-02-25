@@ -30,6 +30,7 @@ name = "umroh-api-prod"
 [env.production.vars]
 ENVIRONMENT = "production"
 FRONTEND_URL = "https://umroh-3vl.pages.dev"
+IMGBB_API_KEY = "aac6020804140df6ac86f95fc226a3c1"
 
 [[env.production.d1_databases]]
 binding = "DB"
