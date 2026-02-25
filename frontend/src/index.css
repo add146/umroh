@@ -374,6 +374,18 @@ button {
   }
 }
 
+/* ===== PACKAGE DETAIL RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .pkg-detail-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .pkg-detail-sidebar {
+    position: static !important;
+    order: -1;
+  }
+}
+
 /* ============ FOCUS ACCESSIBILITY ============ */
 :focus-visible {
   outline: 2px solid var(--color-primary);

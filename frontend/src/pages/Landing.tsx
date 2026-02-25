@@ -6,6 +6,7 @@ import { TestimonialGallery } from '../components/TestimonialGallery';
 interface Package {
     id: string;
     name: string;
+    slug: string;
     description: string;
     basePrice: number;
     image?: string;
@@ -257,7 +258,7 @@ const Landing = () => {
                                         </div>
                                     </div>
 
-                                    <Link to={`/register?package=${pkg.id}`} style={{
+                                    <Link to={`/paket/${pkg.slug}`} style={{
                                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
                                         padding: '0.75rem', background: 'rgba(255,255,255,0.08)',
                                         borderRadius: '0.75rem', fontWeight: 700, fontSize: '0.875rem',

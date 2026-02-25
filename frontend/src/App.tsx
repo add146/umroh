@@ -9,6 +9,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { DownlineManage } from './pages/DownlineManage';
 import Registration from './pages/Registration';
 import Landing from './pages/Landing';
+import PublicPackageDetail from './pages/PublicPackageDetail';
 import { ResellerLandingPage } from './pages/ResellerLandingPage';
 import AgentJoinPage from './pages/AgentJoinPage';
 import PackageManage from './pages/admin/PackageManage';
@@ -65,6 +66,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<Registration />} />
+          <Route path="/paket/:slug" element={<PublicPackageDetail />} />
           <Route path="/join/:code" element={<AgentJoinPage />} />
           <Route path="/r/:affiliateCode" element={<ResellerLandingPage />} />
 
