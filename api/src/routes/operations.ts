@@ -6,6 +6,8 @@ import { getDb } from '../db/index.js';
 import { equipmentItems, equipmentChecklist, roomAssignments, bookings, packages } from '../db/schema.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { requireRole } from '../middleware/rbac.js';
+import { logAction } from '../services/audit.js';
+import { WhatsAppService } from '../services/whatsapp.js';
 import { Env } from '../index.js';
 
 const api = new Hono<{ Bindings: Env }>();
@@ -165,7 +167,7 @@ api.post('/rooming/assign', authMiddleware, zValidator('json', z.object({
 });
 
 // 7. GET Jamaah Overview with Equipment Status Summary (Teknisi)
-api.get('/jamaah-overview/:departureId', authMiddleware, async (c) => {
+api.get('/jamaah-overview/:departureId', authMiddleware, requireRole('teknisi', 'pusat'), async (c) => {
     const departureId = c.req.param('departureId');
     const db = getDb(c.env.DB);
 
@@ -180,13 +182,6 @@ api.get('/jamaah-overview/:departureId', authMiddleware, async (c) => {
     const allChecklists = await db.select().from(equipmentChecklist).where(inArray(equipmentChecklist.bookingId, bookingIds));
     const allItems = await db.select().from(equipmentItems);
 
-    // Also fetch equipment_delivered status for each booking via D1 directly
-    const placeholders = bookingIds.map(() => '?').join(',');
-    const rawResult = await c.env.DB.prepare(`SELECT id, equipment_delivered FROM bookings WHERE id IN (${placeholders})`)
-        .bind(...bookingIds)
-        .all<{ id: string; equipment_delivered: number }>();
-    const rawBookings = rawResult.results || [];
-
     const result = departureBookings.map(b => {
         let relevantItemIds: string[] | null = null;
         try { if (b.departure?.package?.equipmentIds) relevantItemIds = JSON.parse(b.departure.package.equipmentIds); } catch { }
@@ -195,7 +190,6 @@ api.get('/jamaah-overview/:departureId', authMiddleware, async (c) => {
         const bookingChecklist = allChecklists.filter(cl => cl.bookingId === b.id);
         const totalItems = relevantItems.length;
         const receivedItems = bookingChecklist.filter(cl => cl.status === 'received').length;
-        const rawBooking = rawBookings.find((rb: any) => rb.id === b.id);
 
         return {
             bookingId: b.id,
@@ -204,7 +198,7 @@ api.get('/jamaah-overview/:departureId', authMiddleware, async (c) => {
             receivedItems,
             allAssigned: totalItems > 0 && receivedItems >= totalItems,
             allReceived: totalItems > 0 && receivedItems >= totalItems,
-            equipmentDelivered: !!rawBooking?.equipment_delivered,
+            equipmentDelivered: b.equipmentDelivered,
         };
     });
 
@@ -212,22 +206,33 @@ api.get('/jamaah-overview/:departureId', authMiddleware, async (c) => {
 });
 
 // 8. TOGGLE equipment_delivered on a booking (manual "Diserahkan" action)
-api.post('/deliver-equipment/:bookingId', authMiddleware, async (c) => {
+api.post('/deliver-equipment/:bookingId', authMiddleware, requireRole('teknisi', 'pusat'), async (c) => {
     const bookingId = c.req.param('bookingId');
+    const user = c.get('user');
+    const db = getDb(c.env.DB);
 
-    // Use D1 directly since equipment_delivered is not in the Drizzle schema
-    const row = await c.env.DB.prepare(
-        'SELECT equipment_delivered FROM bookings WHERE id = ?'
-    ).bind(bookingId).first<{ equipment_delivered: number }>();
+    const booking = await db.query.bookings.findFirst({
+        where: eq(bookings.id, bookingId),
+        with: { pilgrim: true, departure: { with: { package: true } } }
+    });
 
-    const current = row?.equipment_delivered ?? 0;
-    const newVal = current ? 0 : 1;
+    if (!booking) return c.json({ error: 'Not found' }, 404);
 
-    await c.env.DB.prepare(
-        'UPDATE bookings SET equipment_delivered = ? WHERE id = ?'
-    ).bind(newVal, bookingId).run();
+    const newVal = !booking.equipmentDelivered;
 
-    return c.json({ bookingId, equipmentDelivered: !!newVal });
+    await db.update(bookings).set({ equipmentDelivered: newVal }).where(eq(bookings.id, bookingId));
+
+    if (newVal && booking.pilgrim && booking.departure?.package) {
+        await WhatsAppService.sendEquipmentDeliveryNotification(booking.pilgrim.phone, {
+            name: booking.pilgrim.name,
+            packageName: booking.departure.package.name
+        });
+        await logAction(c.env.DB, user.id, 'deliver_equipment', 'booking', bookingId, { pilgrimId: booking.pilgrim.id, status: 'delivered' });
+    } else if (!newVal && booking.pilgrim) {
+        await logAction(c.env.DB, user.id, 'deliver_equipment', 'booking', bookingId, { pilgrimId: booking.pilgrim.id, status: 'revoked' });
+    }
+
+    return c.json({ bookingId, equipmentDelivered: newVal });
 });
 
 export default api;

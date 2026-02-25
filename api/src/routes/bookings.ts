@@ -344,5 +344,47 @@ api.post('/:id/approve', authMiddleware, async (c) => {
     return c.json({ message: 'Booking approved' });
 });
 
-export default api;
+api.patch('/:id/pipeline-stage', authMiddleware, zValidator('json', z.object({
+    stage: z.enum(['lead', 'terdaftar', 'dp_bayar', 'cicilan', 'lunas', 'berangkat'])
+})), async (c) => {
+    const id = c.req.param('id');
+    const user = c.get('user');
+    const { stage } = c.req.valid('json');
+    const db = getDb(c.env.DB);
 
+    // Quick verify user owns this booking
+    const ownIds = await getOwnBookingIds(c.env.DB, user.id);
+    if (!ownIds.includes(id) && user.role !== 'pusat' && user.role !== 'cabang') {
+        return c.json({ error: 'Unauthorized to change stage' }, 403);
+    }
+
+    // Map stage to bookingStatus / paymentStatus logically
+    let bookingUpdate: any = {};
+
+    switch (stage) {
+        case 'terdaftar':
+            bookingUpdate = { bookingStatus: 'pending', paymentStatus: 'unpaid' };
+            break;
+        case 'dp_bayar':
+            bookingUpdate = { paymentStatus: 'partial' };
+            break;
+        case 'cicilan':
+            bookingUpdate = { paymentStatus: 'partial' };
+            break;
+        case 'lunas':
+            bookingUpdate = { paymentStatus: 'paid' };
+            break;
+        case 'berangkat':
+            bookingUpdate = { bookingStatus: 'confirmed' };
+            break;
+    }
+
+    if (Object.keys(bookingUpdate).length > 0) {
+        await db.update(bookings).set(bookingUpdate).where(eq(bookings.id, id));
+        await logAction(c.env.DB, user.id, `PIPELINE_STAGE_UPDATE: ${stage}`, 'booking', id);
+    }
+
+    return c.json({ message: 'Pipeline stage updated', stage });
+});
+
+export default api;

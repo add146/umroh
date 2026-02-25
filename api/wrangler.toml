@@ -16,6 +16,7 @@ bucket_name = "umroh-documents"
 ENVIRONMENT = "development"
 FRONTEND_URL = "http://localhost:5173"
 JWT_SECRET = "super-secret-key-change-in-production"
+IMGBB_API_KEY = "aac6020804140df6ac86f95fc226a3c1"
 # MIDTRANS_CLIENT_KEY — set via: wrangler secret put MIDTRANS_CLIENT_KEY
 # MIDTRANS_SERVER_KEY — set via: wrangler secret put MIDTRANS_SERVER_KEY
 

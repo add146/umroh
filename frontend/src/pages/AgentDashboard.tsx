@@ -3,19 +3,41 @@ import { useAuthStore } from '../stores/authStore';
 import { apiFetch } from '../lib/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { QuickBookModal } from '../components/QuickBookModal';
+import { KanbanBoard } from '../components/KanbanBoard';
+import type { KanbanColumn, KanbanCard } from '../components/KanbanBoard';
+import { AlumniTab } from '../components/AlumniTab';
+import { PriceCalculator } from '../components/PriceCalculator';
+import { PerformanceChart } from '../components/PerformanceChart';
+import { TargetWidget } from '../components/TargetWidget';
+
+const PIPELINE_COLUMNS: KanbanColumn[] = [
+    { id: 'lead', title: 'Lead / Prospek', color: '#9ca3af' },
+    { id: 'terdaftar', title: 'Terdaftar', color: '#3b82f6' },
+    { id: 'dp_bayar', title: 'DP Dibayar', color: '#f59e0b' },
+    { id: 'cicilan', title: 'Cicilan', color: '#8b5cf6' },
+    { id: 'lunas', title: 'Lunas', color: '#10b981' },
+    { id: 'berangkat', title: 'Berangkat', color: '#c8a851' }
+];
+
+type TabType = 'overview' | 'pipeline' | 'alumni';
 
 export const AgentDashboard: React.FC = () => {
     const { user } = useAuthStore();
     const [stats, setStats] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [showQuickBook, setShowQuickBook] = useState(false);
+    const [showPriceCalc, setShowPriceCalc] = useState(false);
+    const [activeTab, setActiveTab] = useState<TabType>('overview');
+
+    // For Kanban Pipeline
+    const [pipelineCards, setPipelineCards] = useState<KanbanCard[]>([]);
+    const [loadingPipeline, setLoadingPipeline] = useState(false);
+
     const navigate = useNavigate();
 
     useEffect(() => {
-        const load = async () => {
+        const loadStats = async () => {
             try {
-                // Fetch stats (we can reuse affiliate dashboard stats or create a custom one)
-                // For now, we'll fetch prospects and bookings to derive stats
                 const [prospectsRes, bookingsRes, incomingRes] = await Promise.all([
                     apiFetch('/api/prospects'),
                     apiFetch('/api/bookings'),
@@ -39,19 +61,121 @@ export const AgentDashboard: React.FC = () => {
                     incomingLeadsCount = data.incomingLeads?.length || 0;
                 }
 
-                setStats({
-                    prospectCount,
-                    activeJamaah,
-                    incomingLeadsCount,
-                });
+                setStats({ prospectCount, activeJamaah, incomingLeadsCount });
             } catch (err) {
                 console.error('Failed to load stats', err);
             } finally {
                 setIsLoading(false);
             }
         };
-        load();
+        loadStats();
     }, []);
+
+    const fetchPipelineData = async () => {
+        setLoadingPipeline(true);
+        try {
+            const [prospectsRes, bookingsRes] = await Promise.all([
+                apiFetch('/api/prospects'),
+                apiFetch('/api/bookings')
+            ]);
+
+            let cards: KanbanCard[] = [];
+
+            if (prospectsRes.ok) {
+                const pData = await prospectsRes.json();
+                const prospects = pData.prospects || [];
+                prospects.filter((p: any) => p.status !== 'converted').forEach((p: any) => {
+                    cards.push({
+                        id: `p-${p.id}`,
+                        columnId: 'lead',
+                        content: (
+                            <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ fontWeight: 600 }}>{p.fullName}</span>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--color-primary)' }}>person</span>
+                                </div>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{p.phone}</span>
+                            </div>
+                        )
+                    });
+                });
+            }
+
+            if (bookingsRes.ok) {
+                const bData = await bookingsRes.json();
+                const bookings = bData.bookings || [];
+
+                bookings.forEach((b: any) => {
+                    let colId = 'terdaftar';
+                    if (b.bookingStatus === 'confirmed' || b.departure?.status === 'departed') {
+                        colId = 'berangkat';
+                    } else if (b.paymentStatus === 'paid') {
+                        colId = 'lunas';
+                    } else if (b.paymentStatus === 'partial') {
+                        // could be dp or cicilan, let's just categorize as dp_bayar for now, user can move it
+                        colId = 'dp_bayar';
+                    } else if (b.bookingStatus === 'pending') {
+                        colId = 'terdaftar';
+                    }
+
+                    // Allow server override mapping if they actually saved a stage
+                    // This relies on the new endpoint logic
+
+                    cards.push({
+                        id: `b-${b.id}`,
+                        columnId: colId,
+                        content: (
+                            <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ fontWeight: 600 }}>{b.pilgrim?.name}</span>
+                                    {b.bookingStatus === 'confirmed' && <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#10b981' }}>check_circle</span>}
+                                </div>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{b.departure?.package?.name || 'Paket Umroh'}</span>
+                                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+                                    <span style={{ fontSize: '0.7rem', background: 'var(--color-bg)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>{b.paymentStatus}</span>
+                                </div>
+                            </div>
+                        )
+                    });
+                });
+            }
+
+            setPipelineCards(cards);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoadingPipeline(false);
+        }
+    };
+
+    useEffect(() => {
+        if (activeTab === 'pipeline') {
+            fetchPipelineData();
+        }
+    }, [activeTab]);
+
+    const handleCardMove = async (cardId: string, targetColumnId: string) => {
+        // Optimistic UI update
+        setPipelineCards(prev => prev.map(c => c.id === cardId ? { ...c, columnId: targetColumnId } : c));
+
+        if (cardId.startsWith('b-')) {
+            const bookingId = cardId.replace('b-', '');
+            try {
+                await apiFetch(`/api/bookings/${bookingId}/pipeline-stage`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stage: targetColumnId })
+                });
+            } catch (err) {
+                console.error("Failed to update stage on server", err);
+                fetchPipelineData(); // Revert on fail
+            }
+        } else if (cardId.startsWith('p-')) {
+            // Cannot reliably move a prospect to booking just by dragging without data, so ignore or show modal
+            alert("Prospek harus diconvert menjadi booking dari halaman Kelola Prospek, tidak bisa hanya di-drag.");
+            fetchPipelineData(); // Revert
+        }
+    };
 
     if (isLoading) return <div style={{ padding: '2rem' }}>Loading Dashboard...</div>;
 
@@ -70,78 +194,170 @@ export const AgentDashboard: React.FC = () => {
                     <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>bolt</span>
                     Pendaftaran Cepat
                 </button>
+                <button
+                    onClick={() => setShowPriceCalc(true)}
+                    style={{ padding: '0.75rem 1.5rem', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid var(--color-border)', background: 'var(--color-bg-card)', color: 'var(--color-text)', cursor: 'pointer', fontWeight: 600 }}
+                >
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--color-primary)' }}>calculate</span>
+                    Kalkulator Harga
+                </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-                <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)' }}>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Jamaah Aktif</p>
-                    <p style={{ fontSize: '1.5rem', fontWeight: 700 }}>{stats?.activeJamaah || 0}</p>
-                </div>
-                <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)' }}>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Total Prospek</p>
-                    <p style={{ fontSize: '1.5rem', fontWeight: 700 }}>{stats?.prospectCount || 0}</p>
-                </div>
-                <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', borderLeft: '4px solid #ef4444' }}>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Lead Masuk Baru</p>
-                    <p style={{ fontSize: '1.5rem', fontWeight: 700, color: '#ef4444' }}>{stats?.incomingLeadsCount || 0}</p>
-                </div>
+            {/* Tab Navigation */}
+            <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--color-border)', marginBottom: '2rem', overflowX: 'auto' }}>
+                <button
+                    onClick={() => setActiveTab('overview')}
+                    style={{
+                        background: 'none', border: 'none', padding: '1rem 0', cursor: 'pointer',
+                        color: activeTab === 'overview' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                        borderBottom: activeTab === 'overview' ? '2px solid var(--color-primary)' : '2px solid transparent',
+                        fontWeight: activeTab === 'overview' ? 700 : 500,
+                        fontSize: '1rem',
+                        whiteSpace: 'nowrap'
+                    }}
+                >
+                    Overview
+                </button>
+                <button
+                    onClick={() => setActiveTab('pipeline')}
+                    style={{
+                        background: 'none', border: 'none', padding: '1rem 0', cursor: 'pointer',
+                        color: activeTab === 'pipeline' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                        borderBottom: activeTab === 'pipeline' ? '2px solid var(--color-primary)' : '2px solid transparent',
+                        fontWeight: activeTab === 'pipeline' ? 700 : 500,
+                        fontSize: '1rem',
+                        whiteSpace: 'nowrap'
+                    }}
+                >
+                    Pipeline Kanban
+                </button>
+                <button
+                    onClick={() => setActiveTab('alumni')}
+                    style={{
+                        background: 'none', border: 'none', padding: '1rem 0', cursor: 'pointer',
+                        color: activeTab === 'alumni' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                        borderBottom: activeTab === 'alumni' ? '2px solid var(--color-primary)' : '2px solid transparent',
+                        fontWeight: activeTab === 'alumni' ? 700 : 500,
+                        fontSize: '1rem',
+                        whiteSpace: 'nowrap'
+                    }}
+                >
+                    Alumni Jamaah
+                </button>
             </div>
 
-            {/* Antrian Follow-Up Widget */}
-            <FollowUpQueue />
+            {activeTab === 'overview' && (
+                <>
+                    {/* Target Widget */}
+                    <div style={{ marginBottom: '1rem' }}>
+                        <TargetWidget />
+                    </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginTop: '2rem' }}>
-                <Link to="/prospects" style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem', transition: 'box-shadow 0.2s' }}>
-                        <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: 'rgba(200, 168, 81, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>contact_mail</span>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+                        <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)' }}>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Jamaah Aktif</p>
+                            <p style={{ fontSize: '1.5rem', fontWeight: 700 }}>{stats?.activeJamaah || 0}</p>
                         </div>
-                        <div>
-                            <h3 style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Kelola Prospek</h3>
-                            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>CRM pipeline & follow-up calon jamaah</p>
+                        <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)' }}>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Total Prospek</p>
+                            <p style={{ fontSize: '1.5rem', fontWeight: 700 }}>{stats?.prospectCount || 0}</p>
+                        </div>
+                        <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', borderLeft: '4px solid #ef4444' }}>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Lead Masuk Baru</p>
+                            <p style={{ fontSize: '1.5rem', fontWeight: 700, color: '#ef4444' }}>{stats?.incomingLeadsCount || 0}</p>
                         </div>
                     </div>
-                </Link>
 
-                <Link to="/agent/jamaah" style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem', transition: 'box-shadow 0.2s' }}>
-                        <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: 'rgba(200, 168, 81, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>group</span>
-                        </div>
-                        <div>
-                            <h3 style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Data Jamaah</h3>
-                            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Pantau kelengkapan & status pembayaran</p>
-                        </div>
+                    {/* Antrian Follow-Up Widget */}
+                    <FollowUpQueue />
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginTop: '2rem' }}>
+                        <Link to="/prospects" style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem', transition: 'box-shadow 0.2s' }}>
+                                <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: 'rgba(200, 168, 81, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>contact_mail</span>
+                                </div>
+                                <div>
+                                    <h3 style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Kelola Prospek</h3>
+                                    <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>CRM pipeline & follow-up calon jamaah</p>
+                                </div>
+                            </div>
+                        </Link>
+
+                        <Link to="/agent/jamaah" style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem', transition: 'box-shadow 0.2s' }}>
+                                <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: 'rgba(200, 168, 81, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>group</span>
+                                </div>
+                                <div>
+                                    <h3 style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Data Jamaah</h3>
+                                    <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Pantau kelengkapan & status pembayaran</p>
+                                </div>
+                            </div>
+                        </Link>
+
+                        <Link to="/agent/leads" style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem', transition: 'box-shadow 0.2s' }}>
+                                <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <span className="material-symbols-outlined" style={{ color: '#ef4444' }}>call_received</span>
+                                </div>
+                                <div>
+                                    <h3 style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Inbox Lead</h3>
+                                    <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Terima lead dari Cabang/Mitra</p>
+                                </div>
+                            </div>
+                        </Link>
+
+                        <Link to="/marketing-kit" style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem', transition: 'box-shadow 0.2s' }}>
+                                <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: 'rgba(200, 168, 81, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>imagesmode</span>
+                                </div>
+                                <div>
+                                    <h3 style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Marketing Kit</h3>
+                                    <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Download flyer & copywriting</p>
+                                </div>
+                            </div>
+                        </Link>
                     </div>
-                </Link>
 
-                <Link to="/agent/leads" style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem', transition: 'box-shadow 0.2s' }}>
-                        <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span className="material-symbols-outlined" style={{ color: '#ef4444' }}>call_received</span>
-                        </div>
-                        <div>
-                            <h3 style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Inbox Lead</h3>
-                            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Terima lead dari Cabang/Mitra</p>
-                        </div>
+                    <ResellerList />
+
+                    {/* Performance Chart */}
+                    <div style={{ marginTop: '2rem' }}>
+                        <PerformanceChart />
                     </div>
-                </Link>
+                </>
+            )}
 
-                <Link to="/marketing-kit" style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <div style={{ backgroundColor: 'var(--color-bg-card)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem', transition: 'box-shadow 0.2s' }}>
-                        <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: 'rgba(200, 168, 81, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>imagesmode</span>
-                        </div>
-                        <div>
-                            <h3 style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Marketing Kit</h3>
-                            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Download flyer & copywriting</p>
-                        </div>
+            {activeTab === 'pipeline' && (
+                <div style={{ marginTop: '1rem' }}>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <h2 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '0.5rem' }}>Pipeline Jamaah</h2>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+                            Geser kartu ke kolom yang sesuai untuk mengupdate status secara cepat.
+                        </p>
                     </div>
-                </Link>
-            </div>
+                    <KanbanBoard
+                        columns={PIPELINE_COLUMNS}
+                        cards={pipelineCards}
+                        onCardMove={handleCardMove}
+                        isLoading={loadingPipeline}
+                    />
+                </div>
+            )}
 
-            {/* Reseller List */}
-            <ResellerList />
+            {activeTab === 'alumni' && (
+                <div style={{ marginTop: '1rem' }}>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <h2 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '0.5rem' }}>Data Alumni & Repeat Customer</h2>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+                            Lihat daftar jamaah yang sudah pernah berangkat atau lunas untuk penawaran spesial.
+                        </p>
+                    </div>
+                    <AlumniTab />
+                </div>
+            )}
 
             {/* Quick Book Modal */}
             <QuickBookModal
@@ -152,6 +368,16 @@ export const AgentDashboard: React.FC = () => {
                     navigate(`/payment/${id}`);
                 }}
             />
+
+            {/* Price Calculator Modal */}
+            {showPriceCalc && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setShowPriceCalc(false)} />
+                    <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', borderRadius: '1rem' }}>
+                        <PriceCalculator onClose={() => setShowPriceCalc(false)} />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

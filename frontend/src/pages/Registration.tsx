@@ -168,6 +168,20 @@ const Registration = () => {
                 method: 'POST',
                 body: JSON.stringify(payload),
             });
+
+            // Auto-convert prospect if exists
+            const prospectId = searchParams.get('prospect');
+            if (prospectId) {
+                try {
+                    await apiFetch(`/api/prospects/${prospectId}/convert`, {
+                        method: 'POST',
+                        body: JSON.stringify({ bookingId: response.bookingId })
+                    });
+                } catch (e) {
+                    console.error('Failed to convert prospect:', e);
+                }
+            }
+
             navigate(`/payment/${response.bookingId}`);
         } catch (error: any) {
             // Enhanced Error Handling for Duplicates

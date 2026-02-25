@@ -58,4 +58,14 @@ export class WhatsAppService {
 
         return await this.sendMessage(to, message);
     }
+    static async sendEquipmentDeliveryNotification(to: string, data: { name: string, packageName: string }) {
+        const message = `*Pemberitahuan Penyerahan Perlengkapan*\n\n` +
+            `Assalamu'alaikum Wr. Wb. Bapak/Ibu *${data.name}*,\n\n` +
+            `Alhamdulillah, seluruh perlengkapan jamaah untuk keberangkatan paket *${data.packageName}* telah kami serahkan dan Anda terima dengan baik.\n\n` +
+            `Semoga ibadah Bapak/Ibu berjalan lancar dan mabrur.\n\n` +
+            `Terima kasih.\n` +
+            `*AL MADINAH UMROH*`;
+
+        return await this.sendMessage(to, message);
+    }
 }

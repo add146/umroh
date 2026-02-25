@@ -4,6 +4,7 @@ import { QRCodeModal } from '../components/QRCodeModal';
 import { CommissionCalculator } from '../components/CommissionCalculator';
 import { DigitalCard } from '../components/DigitalCard';
 import { TargetWidget } from '../components/TargetWidget';
+import { ShareCards } from '../components/ShareCards';
 
 interface AffiliateStats {
     affiliateCode: string;
@@ -65,7 +66,7 @@ const AffiliateDashboard: React.FC = () => {
     const [referrals, setReferrals] = useState<ReferralBooking[]>([]);
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(false);
-    const [activeTab, setActiveTab] = useState<'profil' | 'referrals' | 'commissions'>('profil');
+    const [activeTab, setActiveTab] = useState<'profil' | 'marketing' | 'referrals' | 'commissions'>('profil');
     const [isQrOpen, setIsQrOpen] = useState(false);
 
     const frontendUrl = window.location.origin;
@@ -152,7 +153,7 @@ const AffiliateDashboard: React.FC = () => {
 
             {/* Tabs */}
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '2px solid var(--color-border)', flexWrap: 'wrap' }}>
-                {(['profil', 'referrals', 'commissions'] as const).map(tab => (
+                {(['profil', 'marketing', 'referrals', 'commissions'] as const).map(tab => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
@@ -168,7 +169,10 @@ const AffiliateDashboard: React.FC = () => {
                             fontSize: '0.95rem'
                         }}
                     >
-                        {tab === 'profil' ? 'Profil & Alat Penjualan' : tab === 'referrals' ? `Daftar Referral (${referrals.length})` : `Riwayat Komisi (${history.length})`}
+                        {tab === 'profil' ? 'Profil & Alat Penjualan'
+                            : tab === 'marketing' ? 'Share Cards / Promo'
+                                : tab === 'referrals' ? `Daftar Referral (${referrals.length})`
+                                    : `Riwayat Komisi (${history.length})`}
                     </button>
                 ))}
             </div>
@@ -279,6 +283,20 @@ const AffiliateDashboard: React.FC = () => {
             )}
 
 
+
+            {/* Marketing Cards Tab */}
+            {activeTab === 'marketing' && (
+                <div style={{ animation: 'fadeIn 0.3s ease' }}>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Marketing Kit</h2>
+                        <p style={{ color: 'var(--color-text-light)', margin: 0, fontSize: '0.9rem' }}>Bagikan paket umroh ini ke sosial media Anda. Klik "Unduh IG Story" untuk mendapatkan gambar siap posting berukuran 1080x1920 yang terpersonalisasi dengan link Anda.</p>
+                    </div>
+                    <ShareCards
+                        affiliateCode={stats?.affiliateCode || ''}
+                        resellerName="Sahabat Al Madinah" // A good fallback name
+                    />
+                </div>
+            )}
 
             {/* Referrals Table */}
             {activeTab === 'referrals' && (

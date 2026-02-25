@@ -6,6 +6,7 @@ import { getDb } from '../db/index.js';
 import {
     commissionRules,
     commissionLedger,
+    disbursementRequests,
     bookings,
     users,
     affiliateClicks,
@@ -371,6 +372,90 @@ api.get('/my-resellers', authMiddleware, async (c) => {
         .orderBy(desc(users.createdAt));
 
     return c.json({ resellers });
+});
+
+// ─────────────────────────────────────────
+// 12. DISBURSEMENT REQUESTS
+// ─────────────────────────────────────────
+
+// A. Get list of requests (Admin see all, User see own)
+api.get('/disbursement-requests', authMiddleware, async (c) => {
+    const user = c.get('user');
+    const db = getDb(c.env.DB);
+
+    if (user.role === 'pusat') {
+        const reqs = await db.query.disbursementRequests.findMany({
+            with: { user: true },
+            orderBy: (dr, { desc }) => [desc(dr.requestedAt)],
+        });
+        return c.json(reqs);
+    } else {
+        const reqs = await db.query.disbursementRequests.findMany({
+            where: eq(disbursementRequests.userId, user.id),
+            orderBy: (dr, { desc }) => [desc(dr.requestedAt)],
+        });
+        return c.json(reqs);
+    }
+});
+
+// B. Request a new disbursement (Affiliator)
+api.post('/request-disbursement', authMiddleware, zValidator('json', z.object({
+    amount: z.number().min(10000),
+    bankName: z.string().min(2),
+    accountNumber: z.string().min(5),
+    accountHolder: z.string().min(3),
+})), async (c) => {
+    const user = c.get('user');
+    const data = c.req.valid('json');
+    const db = getDb(c.env.DB);
+
+    // Verify balance first
+    const myLedger = await db.select().from(commissionLedger).where(eq(commissionLedger.userId, user.id));
+    const paidBalance = myLedger.filter(e => e.status === 'paid').reduce((sum, e) => sum + e.amount, 0);
+
+    // We need to also subtract the amount already requested/paid through disbursement
+    const myRequests = await db.select().from(disbursementRequests).where(eq(disbursementRequests.userId, user.id));
+    const usedBalance = myRequests.filter(e => ['pending', 'approved', 'paid'].includes(e.status!)).reduce((sum, e) => sum + e.amount, 0);
+
+    const availableBalance = paidBalance - usedBalance;
+
+    if (data.amount > availableBalance) {
+        return c.json({ error: 'Insufficent available commission balance' }, 400);
+    }
+
+    const [req] = await db.insert(disbursementRequests).values({
+        userId: user.id,
+        amount: data.amount,
+        bankName: data.bankName,
+        accountNumber: data.accountNumber,
+        accountHolder: data.accountHolder,
+        status: 'pending',
+    }).returning();
+
+    return c.json(req, 201);
+});
+
+// C. Approve/Reject/Pay a request (Admin)
+api.patch('/disbursement-requests/:id', authMiddleware, requireRole('pusat'), zValidator('json', z.object({
+    status: z.enum(['approved', 'paid', 'rejected']),
+    adminNotes: z.string().optional(),
+})), async (c) => {
+    const id = c.req.param('id');
+    const user = c.get('user');
+    const data = c.req.valid('json');
+    const db = getDb(c.env.DB);
+
+    const [updated] = await db.update(disbursementRequests)
+        .set({
+            status: data.status,
+            adminNotes: data.adminNotes,
+            processedAt: new Date().toISOString(),
+            processedBy: user.id,
+        })
+        .where(eq(disbursementRequests.id, id))
+        .returning();
+
+    return c.json(updated);
 });
 
 export default api;

@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, and, gte, asc } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
-import { marketingMaterials, hierarchyPaths } from '../db/schema.js';
+import { marketingMaterials, hierarchyPaths, packages, departures } from '../db/schema.js';
 import { StorageService } from '../services/storage_ocr.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { requireRole } from '../middleware/rbac.js';
@@ -114,6 +114,29 @@ api.delete('/:id', authMiddleware, requireRole('cabang', 'pusat'), async (c) => 
     await db.delete(marketingMaterials).where(eq(marketingMaterials.id, id));
 
     return c.json({ message: 'Deleted successfully' });
+});
+
+// 4. Get Packages for Share Cards
+api.get('/share-cards', authMiddleware, async (c) => {
+    const db = getDb(c.env.DB);
+    const today = new Date().toISOString().split('T')[0];
+
+    // Fetch active packages with their future departures, ordered by closest departure
+    const activePackages = await db.query.packages.findMany({
+        where: eq(packages.isActive, true),
+        with: {
+            departures: {
+                where: gte(departures.departureDate, today),
+                orderBy: [asc(departures.departureDate)],
+                limit: 1, // Only need the closest upcoming departure for the card
+                with: {
+                    roomTypes: true
+                }
+            }
+        },
+    });
+
+    return c.json({ packages: activePackages });
 });
 
 export default api;

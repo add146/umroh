@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
 import { toast } from 'sonner';
+import ImageUploader from '../../components/ImageUploader';
 
 // Shared inline styles (same as MasterDataPage)
 const cardStyle: React.CSSProperties = {
@@ -240,19 +241,21 @@ export default function PackageForm() {
                     </h2>
                     <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                         {images.map((img, idx) => (
-                            <div key={idx} style={{
-                                width: '80px', height: '80px', borderRadius: '0.5rem', overflow: 'hidden',
-                                border: img ? '2px solid var(--color-primary)' : '2px dashed #333',
-                                background: img ? `url(${img}) center/cover` : '#0a0907',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative',
-                            }} onClick={() => { const url = prompt('URL gambar:', img); if (url !== null) { const ni = [...images]; ni[idx] = url; setImages(ni); } }}>
-                                {!img && <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#555' }}>add_photo_alternate</span>}
-                                {img && <button type="button" onClick={(e) => { e.stopPropagation(); const ni = [...images]; ni[idx] = ''; setImages(ni); }}
-                                    style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.7)', border: 'none', color: 'white', borderRadius: '50%', width: 18, height: 18, cursor: 'pointer', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>}
+                            <div key={idx} style={{ width: '100px' }}>
+                                <ImageUploader
+                                    mode="package"
+                                    compact
+                                    currentImage={img || undefined}
+                                    onUpload={(url) => {
+                                        const ni = [...images];
+                                        ni[idx] = url;
+                                        setImages(ni);
+                                    }}
+                                />
                             </div>
                         ))}
                     </div>
-                    <p style={helpStyle}>Klik untuk menambah URL gambar produk</p>
+                    <p style={helpStyle}>Klik untuk mengunggah gambar produk. Gambar akan dikompresi otomatis dan disimpan di server internal.</p>
                 </div>
 
                 {/* ====== DATA UTAMA ====== */}

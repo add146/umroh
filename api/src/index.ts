@@ -12,6 +12,7 @@ export type Env = {
     MIDTRANS_CLIENT_KEY?: string;
     WAHA_URL?: string;
     WAHA_TOKEN?: string;
+    IMGBB_API_KEY?: string;
 };
 
 
@@ -38,6 +39,7 @@ app.use(
 
             const allowedOrigins = [
                 'http://localhost:5173',
+                'http://localhost:5174',
                 'http://localhost:3000',
                 c.env.FRONTEND_URL,
             ].filter(Boolean);
@@ -120,7 +122,13 @@ import marketingKitRoutes from './routes/marketing-kit.js';
 import leadsRoutes from './routes/leads.js';
 import auditRoutes from './routes/audit.js';
 import leaderboardRoutes from './routes/leaderboard.js';
-
+import alumniRoutes from './routes/alumni.js';
+import targetsRoutes from './routes/targets.js';
+import chartsRoutes from './routes/charts.js';
+import priceCalculatorRoutes from './routes/price-calculator.js';
+import reportsRoutes from './routes/reports.js';
+import testimonialsRoutes from './routes/testimonials.js';
+import uploadRoutes from './routes/upload.js';
 
 app.route('/api/auth', authRoutes);
 app.route('/api/users', userRoutes);
@@ -142,6 +150,13 @@ app.route('/api/marketing-kit', marketingKitRoutes);
 app.route('/api/leads', leadsRoutes);
 app.route('/api/audit-log', auditRoutes);
 app.route('/api/leaderboard', leaderboardRoutes);
+app.route('/api/alumni', alumniRoutes);
+app.route('/api/targets', targetsRoutes);
+app.route('/api/charts', chartsRoutes);
+app.route('/api/price-calculator', priceCalculatorRoutes);
+app.route('/api/reports', reportsRoutes);
+app.route('/api/testimonials', testimonialsRoutes);
+app.route('/api/upload', uploadRoutes);
 
 app.get('/api/seed-test', async (c) => {
     const { getDb } = await import('./db/index.js');
@@ -150,6 +165,17 @@ app.get('/api/seed-test', async (c) => {
     const db = getDb(c.env.DB);
     try {
         const hp = await hashPassword('password123');
+
+        // 0. Create Pusat (Super Admin)
+        const pusatId = 'pusat-test-123';
+        await db.insert(users).values({
+            id: pusatId,
+            email: 'admin.test@umroh.com',
+            name: 'Pusat Admin',
+            password: hp,
+            role: 'pusat',
+            phone: '0800000000'
+        }).onConflictDoNothing();
 
         // 1. Create Cabang
         const cabangId = 'cabang-test-123';
@@ -237,7 +263,7 @@ app.get('/api/seed-test', async (c) => {
             bookingStatus: 'pending' // READY FOR AGENT TO REVIEW
         }).onConflictDoNothing();
 
-        return c.json({ success: true, message: 'Seed successful. Agen: agen.test@umroh.com (password123). Cabang: cabang.test@umroh.com (password123)' });
+        return c.json({ success: true, message: 'Seed successful. Pusat: admin.test@umroh.com. Cabang: cabang.test@umroh.com. Agen: agen.test@umroh.com (password123)' });
     } catch (err: any) {
         return c.json({ success: false, error: err.message });
     }

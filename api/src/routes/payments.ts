@@ -50,12 +50,26 @@ api.post('/create-invoice', authMiddleware, zValidator('json', z.object({
     const db = getDb(c.env.DB);
 
     // Get booking to get amount (usually DP amount)
-    const [booking] = await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
+    const booking = await db.query.bookings.findFirst({
+        where: eq(bookings.id, bookingId),
+        with: { departure: { with: { package: true } } }
+    });
     if (!booking) return c.json({ error: 'Booking not found' }, 404);
 
-    // For now, let's assume DP is Rp 5.000.000 or 30%? 
-    // Let's use Rp 5.000.000 as constant for POC, or total_price if less.
-    const dpAmount = Math.min(5000000, booking.totalPrice);
+    let dpAmount = 5000000;
+    let idrTotalPrice = booking.totalPrice;
+
+    if (booking.departure?.package) {
+        if (booking.departure.package.currency === 'USD') {
+            const rate = 16000; // Fixed rate POC
+            idrTotalPrice = booking.totalPrice * rate;
+            dpAmount = (booking.departure.package.dpAmount || 300) * rate;
+        } else {
+            dpAmount = booking.departure.package.dpAmount || 5000000;
+        }
+    }
+
+    dpAmount = Math.min(dpAmount, idrTotalPrice);
 
     const { createInitialInvoice } = await import('../services/payment.js');
     const invoice = await createInitialInvoice(c.env.DB, c.env, bookingId, dpAmount);

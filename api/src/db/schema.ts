@@ -35,7 +35,21 @@ export const commissionRules = sqliteTable('commission_rules', {
     createdAt: text('created_at').default(sql`(datetime('now'))`),
 });
 
-// --- FASE 4: AFFILIATE ENGINE ---
+// --- FASE 6: REWARD & KOMISI ---
+
+export const disbursementRequests = sqliteTable('disbursement_requests', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text('user_id').notNull().references(() => users.id), // affiliator who requested
+    amount: integer('amount').notNull(),
+    bankName: text('bank_name').notNull(),
+    accountNumber: text('account_number').notNull(),
+    accountHolder: text('account_holder').notNull(),
+    status: text('status', { enum: ['pending', 'approved', 'paid', 'rejected'] }).default('pending'),
+    adminNotes: text('admin_notes'),
+    requestedAt: text('requested_at').default(sql`(datetime('now'))`),
+    processedAt: text('processed_at'),
+    processedBy: text('processed_by').references(() => users.id),
+});
 
 export const commissionLedger = sqliteTable('commission_ledger', {
     id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -62,6 +76,18 @@ export const affiliateClicks = sqliteTable('affiliate_clicks', {
 // --- FASE 2: KATALOG & BOOKING ---
 
 // --- MASTER DATA ---
+export const testimonials = sqliteTable('testimonials', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    pilgrimName: text('pilgrim_name').notNull(),
+    departureInfo: text('departure_info'), // e.g. "Umroh Plus Turki - Nov 2023"
+    content: text('content').notNull(),
+    photoR2Key: text('photo_r2_key'),
+    videoUrl: text('video_url'),
+    rating: integer('rating').notNull().default(5),
+    isPublished: integer('is_published', { mode: 'boolean' }).default(false),
+    createdAt: text('created_at').default(sql`(datetime('now'))`),
+});
+
 export const hotels = sqliteTable('hotels', {
     id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
     name: text('name').notNull(),
@@ -214,6 +240,7 @@ export const bookings = sqliteTable('bookings', {
     paymentStatus: text('payment_status', { enum: ['unpaid', 'partial', 'paid', 'cancelled'] }).default('unpaid'),
     bookingStatus: text('booking_status', { enum: ['pending', 'ready_review', 'confirmed', 'cancelled'] }).default('pending'),
     paymentMode: text('payment_mode', { enum: ['auto', 'manual'] }).default('manual'),
+    equipmentDelivered: integer('equipment_delivered', { mode: 'boolean' }).default(false),
     bookedAt: text('booked_at').default(sql`(datetime('now'))`),
 });
 
@@ -558,5 +585,28 @@ export const roomAssignmentsRelations = relations(roomAssignments, ({ one }) => 
     booking: one(bookings, {
         fields: [roomAssignments.bookingId],
         references: [bookings.id],
+    }),
+}));
+
+export const salesTargets = sqliteTable('sales_targets', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text('user_id').notNull().references(() => users.id),
+    month: integer('month').notNull(),
+    year: integer('year').notNull(),
+    targetPax: integer('target_pax').notNull(),
+    setBy: text('set_by').references(() => users.id), // e.g. Cabang admin marking target for their user
+    createdAt: text('created_at').default(sql`(datetime('now'))`),
+});
+
+export const salesTargetsRelations = relations(salesTargets, ({ one }) => ({
+    user: one(users, {
+        fields: [salesTargets.userId],
+        references: [users.id],
+        relationName: 'targetUser'
+    }),
+    setter: one(users, {
+        fields: [salesTargets.setBy],
+        references: [users.id],
+        relationName: 'targetSetter'
     }),
 }));

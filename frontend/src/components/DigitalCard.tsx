@@ -1,4 +1,5 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
+import * as htmlToImage from 'html-to-image';
 
 interface DigitalCardProps {
     name: string;
@@ -9,6 +10,27 @@ interface DigitalCardProps {
 
 export const DigitalCard: React.FC<DigitalCardProps> = ({ name, role, affiliateCode, phone }) => {
     const cardRef = useRef<HTMLDivElement>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
+
+    const handleDownload = async () => {
+        if (!cardRef.current) return;
+        setIsGenerating(true);
+        try {
+            const dataUrl = await htmlToImage.toPng(cardRef.current, {
+                quality: 1.0,
+                pixelRatio: 3 // Higher resolution for crisp print
+            });
+            const link = document.createElement('a');
+            link.download = `KartuNama_${name.replace(/\s+/g, '_')}.png`;
+            link.href = dataUrl;
+            link.click();
+        } catch (err) {
+            console.error('Failed to generate card image', err);
+            alert('Gagal mengunduh kartu nama. Coba lagi.');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     return (
         <div style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)', borderRadius: '1rem', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center' }}>
@@ -71,11 +93,22 @@ export const DigitalCard: React.FC<DigitalCardProps> = ({ name, role, affiliateC
 
             <button
                 className="btn btn-outline"
-                style={{ width: '100%', maxWidth: '400px', padding: '0.75rem', borderRadius: '0.75rem' }}
-                onClick={() => alert("Fitur unduh kartu belum sempurna (membutuhkan lib html-to-image). Untuk sementara silakan screenshot area kartu.")}
+                style={{ width: '100%', maxWidth: '400px', padding: '0.75rem', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                onClick={handleDownload}
+                disabled={isGenerating}
             >
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>screenshot</span> Simpan Gambar
+                {isGenerating ? (
+                    <><span className="material-symbols-outlined" style={{ fontSize: '18px', animation: 'spin 1s linear infinite' }}>autorenew</span> Memproses...</>
+                ) : (
+                    <><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>download</span> Simpan Gambar</>
+                )}
             </button>
+            <style>{`
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+            `}</style>
         </div>
     );
 };

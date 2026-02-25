@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../lib/api';
+import { TestimonialGallery } from '../components/TestimonialGallery';
 
 interface Package {
     id: string;
@@ -279,6 +280,9 @@ const Landing = () => {
                     </div>
                 </div>
             </section >
+
+            {/* ===== TESTIMONIALS ===== */}
+            <TestimonialGallery />
 
             {/* ===== TRUST MARKERS ===== */}
             < section style={{ background: 'rgba(255,255,255,0.03)', borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)', padding: '3rem 0' }}>

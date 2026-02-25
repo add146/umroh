@@ -46,6 +46,7 @@ const menuGroups = [
             { name: 'Marketing Kit', path: '/marketing-kit', icon: 'imagesmode', roles: ['mitra', 'agen', 'reseller', 'cabang'] },
             { name: 'Upload Banner', path: '/cabang/marketing-kit', icon: 'upload', roles: ['cabang'] },
             { name: 'Assign Lead', path: '/cabang/assign-lead', icon: 'assignment_ind', roles: ['cabang', 'mitra'] },
+            { name: 'Kelola Testimoni', path: '/admin/testimonials', icon: 'reviews', roles: ['pusat'] },
         ]
     },
     {
@@ -55,6 +56,7 @@ const menuGroups = [
             { name: 'Data Jamaah Cabang', path: '/cabang/jamaah', icon: 'dns', roles: ['cabang'] },
             { name: 'Data Jamaahku', path: '/agent/jamaah', icon: 'group', roles: ['agen'] },
             { name: 'Daftar Jamaah', path: '/teknisi/jamaah', icon: 'person_search', roles: ['teknisi'] },
+            { name: 'Repeat Customers', path: '/admin/reports/repeat-customers', icon: 'group_add', roles: ['pusat'] },
             { name: 'Performa Cabang', path: '/admin/performance', icon: 'leaderboard', roles: ['pusat'] },
         ]
     },
@@ -69,6 +71,7 @@ const menuGroups = [
         label: 'Afiliasi',
         items: [
             { name: 'Dashboard Affiliasi', path: '/affiliate', icon: 'trending_up', roles: ['cabang', 'mitra', 'agen', 'reseller'] },
+            { name: 'Pencairan Komisi', path: '/affiliate/disbursement', icon: 'account_balance_wallet', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller'] },
             { name: 'Leaderboard', path: '/leaderboard', icon: 'trophy', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller'] },
             { name: 'Data Downline', path: '/downline', icon: 'account_tree', roles: ['pusat', 'cabang', 'mitra', 'agen'] },
         ]
