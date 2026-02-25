@@ -271,7 +271,7 @@ export default function PackageForm() {
                                 onChange={e => setForm({ ...form, name: e.target.value })} style={inputStyle} required />
                             <p style={helpStyle}>Berikan nama yang menarik agar jamaah butuh untuk melihat</p>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
+                        <div className="responsive-grid-2" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
                             <div>
                                 <label style={labelStyle}>Harga Paket <span style={{ color: '#ef4444' }}>*</span></label>
                                 <div style={{ display: 'flex' }}>
@@ -290,7 +290,7 @@ export default function PackageForm() {
                                     onChange={e => setForm({ ...form, dpAmount: e.target.value })} style={inputStyle} />
                             </div>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div className="responsive-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                             <div>
                                 <label style={labelStyle}>Jenis Paket</label>
                                 <select value={form.packageType} onChange={e => setForm({ ...form, packageType: e.target.value })} style={selectStyle}>
@@ -342,7 +342,7 @@ export default function PackageForm() {
                             }}>+ Tambah Keberangkatan</button>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.5rem' }}>
+                        <div className="responsive-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.5rem' }}>
                             <div>
                                 <label style={labelStyle}>Bandara Keberangkatan Indonesia</label>
                                 <select value={mainAirportId} onChange={e => setMainAirportId(e.target.value)} style={selectStyle}>
@@ -457,7 +457,7 @@ export default function PackageForm() {
                     {equipmentItems.length === 0 ? (
                         <p style={{ color: '#888', fontSize: '0.875rem', fontStyle: 'italic' }}>Belum ada item perlengkapan. Tambahkan di <a href="/admin/masters/equipment" style={{ color: 'var(--color-primary)' }}>Master Perlengkapan</a>.</p>
                     ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                        <div className="responsive-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                             {equipmentItems.map(item => {
                                 const isChecked = selectedEquipmentIds.includes(item.id);
                                 return (

@@ -51,7 +51,7 @@ const Landing = () => {
                     </div>
 
                     {/* Links */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+                    <div className="landing-nav-links" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
                         <a href="#paket" style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)', transition: 'color 0.2s' }}
                             onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-primary)')}
                             onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}>Paket Umroh</a>
@@ -60,7 +60,7 @@ const Landing = () => {
                             onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}>Jadwal</a>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <div className="landing-nav-actions" style={{ display: 'flex', gap: '0.75rem' }}>
                         <Link to="/login" style={{
                             padding: '0.5rem 1.25rem', fontSize: '0.875rem', fontWeight: 700,
                             border: '1px solid var(--color-border-gold)', borderRadius: '0.5rem',
@@ -117,7 +117,7 @@ const Landing = () => {
                         </p>
 
                         {/* Search Box */}
-                        <div style={{
+                        <div className="hero-search-box" style={{
                             background: 'rgba(10,9,7,0.85)', backdropFilter: 'blur(16px)',
                             border: '1px solid var(--color-border)', borderRadius: '1rem',
                             padding: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem'
@@ -157,7 +157,7 @@ const Landing = () => {
             <section id="paket" style={{ padding: '5rem 0' }}>
                 <div className="container">
                     {/* Header */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
+                    <div className="package-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
                         <div>
                             <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Paket Pilihan</h2>
                             <p style={{ color: 'var(--color-text-muted)' }}>Koleksi paket umroh premium kami yang telah dipilih dengan cermat.</p>
@@ -287,7 +287,7 @@ const Landing = () => {
             {/* ===== TRUST MARKERS ===== */}
             < section style={{ background: 'rgba(255,255,255,0.03)', borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)', padding: '3rem 0' }}>
                 <div className="container">
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2rem', opacity: 0.7 }}>
+                    <div className="trust-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2rem', opacity: 0.7 }}>
                         {[
                             { icon: 'verified_user', label: 'IATA Certified' },
                             { icon: 'policy', label: 'Kemenag Approved' },
@@ -306,7 +306,7 @@ const Landing = () => {
             {/* ===== FOOTER ===== */}
             < footer style={{ padding: '4rem 0 2rem', background: 'var(--color-bg)' }}>
                 <div className="container">
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '3rem', marginBottom: '3rem' }}>
+                    <div className="footer-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '3rem', marginBottom: '3rem' }}>
                         <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
                                 <div style={{ width: '36px', height: '36px', background: 'var(--color-primary)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -335,7 +335,7 @@ const Landing = () => {
                             </ul>
                         </div>
                     </div>
-                    <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className="footer-bottom" style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <p style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>© 2025 Al Madinah. Semua hak dilindungi.</p>
                         <div style={{ display: 'flex', gap: '1.5rem' }}>
                             {['Privasi', 'Ketentuan'].map(l => (
