@@ -185,9 +185,9 @@ const LandingPageEditor = () => {
     // File upload helper
     const handleImageUpload = async (file: File, callback: (url: string) => void) => {
         const fd = new FormData();
-        fd.append('file', file);
+        fd.append('image', file);
         try {
-            const res = await apiFetch<{ url: string }>('/api/upload', { method: 'POST', body: fd });
+            const res = await apiFetch<{ url: string }>('/api/upload/imgbb', { method: 'POST', body: fd });
             if (res.url) callback(res.url);
         } catch (err: any) {
             showToast('Upload gagal: ' + err.message, 'error');

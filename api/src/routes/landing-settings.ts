@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { eq } from 'drizzle-orm';
+import { authMiddleware } from '../middleware/auth.js';
 
 type Env = {
     Bindings: {
@@ -37,7 +38,7 @@ app.get('/', async (c) => {
 });
 
 // PUT /api/landing-settings — Admin only: bulk update settings
-app.put('/', async (c) => {
+app.put('/', authMiddleware, async (c) => {
     // Auth check — must be pusat or cabang
     const user = c.get('user' as any) as any;
     if (!user || !['pusat', 'cabang'].includes(user.role)) {
