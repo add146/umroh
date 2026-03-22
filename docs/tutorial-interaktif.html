@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial Login Berjenjang - Al Madinah</title>
+
+    <!-- Alpine JS for Tab Logic -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            100: '#fef9c3',
+                            400: '#facc15',
+                            500: '#eab308',
+                            600: '#d97706',
+                            800: '#92400e',
+                            900: '#78350f',
+                            accent: '#D4AF37'
+                        },
+                        dark: {
+                            DEFAULT: '#0f1115',
+                            card: '#1a1d24',
+                            border: '#2a2f3a'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
+        rel="stylesheet">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            background-color: #0c0e12;
+            color: #e5e7eb;
+            font-family: 'Outfit', sans-serif;
+            background-image:
+                radial-gradient(circle at 15% 50%, rgba(212, 175, 55, 0.05) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(212, 175, 55, 0.04) 0%, transparent 25%);
+        }
+
+        .text-gradient-gold {
+            background: linear-gradient(135deg, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .bg-gradient-gold {
+            background: linear-gradient(135deg, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
+        }
+
+        .glass-panel {
+            background: rgba(26, 29, 36, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .tab-btn {
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: rgba(212, 175, 55, 0.1);
+            border-left: 4px solid #D4AF37;
+            color: #D4AF37;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid rgba(212, 175, 55, 0.4);
+        }
+
+        .step-circle {
+            background: #1a1d24;
+            border: 2px solid #D4AF37;
+            color: #D4AF37;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+        }
+
+        .code-block {
+            background: #0f1115;
+            border: 1px solid #2a2f3a;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: monospace;
+            color: #a78bfa;
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            color: #6b7280;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .copy-btn:hover {
+            color: #D4AF37;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0c0e12;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2a2f3a;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #D4AF37;
+        }
+    </style>
+</head>
+
+<body class="antialiased min-h-screen flex flex-col" x-data="tutorialData()">
+
+    <!-- Header -->
+    <header class="glass-panel sticky top-0 z-50 border-b-0 border-dark-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 rounded-lg bg-gradient-gold flex items-center justify-center text-dark font-bold text-xl">
+                    <i class="fa-solid fa-kaaba"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold font-['Playfair_Display'] tracking-wide">
+                        <span class="text-white">AL</span><span class="text-gradient-gold">MADINAH</span>
+                    </h1>
+                    <p class="text-xs text-gray-400 tracking-widest uppercase mt-0.5">Tutorial Platform</p>
+                </div>
+            </div>
+            <a href="https://umroh-3vl.pages.dev/login" target="_blank"
+                class="hidden sm:flex items-center gap-2 px-5 py-2 rounded-full border border-gold-accent text-gold-accent hover:bg-gold-accent hover:text-dark transition-colors text-sm font-semibold">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i> Buka Aplikasi
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full flex flex-col lg:flex-row gap-8">
+
+        <!-- Sidebar Navigation -->
+        <aside class="w-full lg:w-72 flex-shrink-0">
+            <div class="glass-panel rounded-2xl p-4 sticky top-28">
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-3">Pilih Jenjang Akun
+                </h3>
+                <nav class="flex flex-col gap-1">
+                    <template x-for="(role, index) in roles" :key="role.id">
+                        <button @click="activeTab = role.id" :class="{'active': activeTab === role.id}"
+                            class="tab-btn flex items-center justify-between px-4 py-3 rounded-lg text-left text-sm font-medium border-l-4 border-transparent">
+                            <div class="flex items-center gap-3">
+                                <i
+                                    :class="role.icon + (activeTab === role.id ? ' text-gold-accent' : ' text-gray-400')"></i>
+                                <span x-text="role.title"
+                                    :class="activeTab === role.id ? 'text-white' : 'text-gray-300'"></span>
+                            </div>
+                            <span x-show="activeTab === role.id"
+                                class="flex w-2 h-2 rounded-full bg-gold-accent shadow-[0_0_8px_rgba(212,175,55,0.8)]"></span>
+                        </button>
+                    </template>
+                </nav>
+
+                <div class="mt-8 p-4 rounded-xl bg-dark border border-dark-border">
+                    <div class="flex items-start gap-3">
+                        <i class="fa-solid fa-info-circle text-gold-accent mt-0.5"></i>
+                        <p class="text-xs text-gray-400 leading-relaxed">
+                            Pilih salah satu peran di atas untuk melihat <strong class="text-gray-200">Email,
+                                Password</strong>, dan <strong class="text-gray-200">Panduan Langkah Demi
+                                Langkah</strong> penggunaan sistem.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <section class="flex-grow min-w-0">
+            <template x-for="role in roles" :key="role.id">
+                <div x-show="activeTab === role.id" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 translate-y-4"
+                    x-transition:enter-end="opacity-100 translate-y-0" class="space-y-6" style="display: none;">
+
+                    <!-- Header Role -->
+                    <div class="glass-panel rounded-2xl p-8 relative overflow-hidden">
+                        <!-- Decorative background icon -->
+                        <i :class="role.icon"
+                            class="absolute -right-10 -bottom-10 text-9xl opacity-5 text-gold-accent"></i>
+
+                        <div
+                            class="relative z-10 w-full flex flex-col md:flex-row md:items-start justify-between gap-6">
+                            <div>
+                                <div
+                                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-accent/10 border border-gold-accent/20 text-gold-accent text-xs font-semibold tracking-wide uppercase mb-3">
+                                    <i :class="role.icon"></i> <span x-text="role.badge"></span>
+                                </div>
+                                <h2 class="text-3xl font-bold text-white mb-2" x-text="role.title"></h2>
+                                <p class="text-gray-400 max-w-2xl" x-text="role.description"></p>
+                            </div>
+
+                            <!-- Credentials Card -->
+                            <div class="bg-dark rounded-xl border border-dark-border p-5 w-full md:w-80 flex-shrink-0">
+                                <h4
+                                    class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">
+                                    Kredensial Login Test</h4>
+
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Alamat Email</label>
+                                        <div class="code-block flex items-center justify-between group">
+                                            <span class="text-sm font-medium text-white" x-text="role.email"></span>
+                                            <button @click="copyToClipboard(role.email, $event)" class="copy-btn"
+                                                title="Copy Email">
+                                                <i class="fa-regular fa-copy"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Password</label>
+                                        <div class="code-block flex items-center justify-between group">
+                                            <span class="text-sm font-medium text-emerald-400"
+                                                x-text="role.password"></span>
+                                            <button @click="copyToClipboard(role.password, $event)" class="copy-btn"
+                                                title="Copy Password">
+                                                <i class="fa-regular fa-copy"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <a href="https://umroh-3vl.pages.dev/login" target="_blank"
+                                        class="block w-full text-center py-2.5 rounded-lg bg-gold-accent text-black font-semibold text-sm hover:bg-yellow-400 transition-colors mt-2">
+                                        Login Sekarang &rarr;
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step by Step Tutorial -->
+                    <div class="glass-panel rounded-2xl p-8">
+                        <h3 class="text-xl font-bold text-white mb-8 border-l-4 border-gold-accent pl-4">Langkah-Langkah
+                            Penggunaan</h3>
+
+                        <div class="space-y-8 relative">
+                            <!-- Vertical dashed line for timeline -->
+                            <div
+                                class="absolute top-2 left-4 bottom-2 w-px border-l-2 border-dashed border-gray-800 z-0">
+                            </div>
+
+                            <template x-for="(step, index) in role.steps" :key="index">
+                                <div class="relative z-10 flex gap-6">
+                                    <div class="flex-shrink-0 mt-1">
+                                        <div
+                                            class="w-8 h-8 rounded-full step-circle flex items-center justify-center font-bold text-sm bg-dark">
+                                            <span x-text="index + 1"></span>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="bg-dark/50 border border-dark-border rounded-xl p-5 w-full hover:border-gold-accent/30 transition-colors">
+                                        <h4 class="text-lg font-semibold text-white mb-2" x-text="step.title"></h4>
+                                        <p class="text-gray-400 text-sm leading-relaxed" x-html="step.content"></p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                </div>
+            </template>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 bg-[#0a0c10] py-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-gray-500 text-sm">
+                &copy; 2026 Al Madinah Sistem Manajemen Terintegrasi. Tema Khusus <span
+                    class="text-gold-accent font-semibold">Premium Black Gold</span>.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Toast Notification (Alpine) -->
+    <div x-show="toast.visible" x-transition:enter="transition ease-out duration-300 transform"
+        x-transition:enter-start="opacity-0 translate-y-2 sm:translate-y-0 sm:translate-x-2"
+        x-transition:enter-end="opacity-100 translate-y-0 sm:translate-x-0"
+        x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed bottom-6 right-6 z-50 rounded-lg glass-panel px-4 py-3 shadow-2xl border-l-4 border-emerald-500 flex items-center gap-3"
+        style="display: none;">
+        <div class="text-emerald-400">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div>
+            <p class="text-white font-medium text-sm" x-text="toast.message"></p>
+        </div>
+    </div>
+
+    <!-- Application Data Logic -->
+    <script>
+        function tutorialData() {
+            return {
+                activeTab: 'pusat',
+                toast: { visible: false, message: '' },
+                copyToClipboard(text, event) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        this.showToast('Teks berhasil disalin!');
+                        // temporary icon change
+                        const icon = event.currentTarget.querySelector('i');
+                        icon.classList.remove('fa-copy', 'fa-regular');
+                        icon.classList.add('fa-check', 'fa-solid', 'text-emerald-400');
+                        setTimeout(() => {
+                            icon.classList.add('fa-copy', 'fa-regular');
+                            icon.classList.remove('fa-check', 'fa-solid', 'text-emerald-400');
+                        }, 2000);
+                    });
+                },
+                showToast(msg) {
+                    this.toast.message = msg;
+                    this.toast.visible = true;
+                    setTimeout(() => { this.toast.visible = false; }, 3000);
+                },
+                roles: [
+                    {
+                        id: 'pusat',
+                        badge: 'Level 1 - Tertinggi',
+                        title: 'Akun Pusat (Owner / Master)',
+                        description: 'Memiliki kontrol absolut ke seluruh fitur, master data, setup paket umroh, dan dapat melihat kinerja total dari seluruh cabang secara global.',
+                        icon: 'fa-solid fa-crown',
+                        email: 'admin@almadinahms.com',
+                        password: 'password123',
+                        steps: [
+                            {
+                                title: '🖥️ MAIN: Dashboard',
+                                content: '<strong>Fungsi:</strong> Pantau performa bisnis 360 derajat.<br/><strong>Cara Pakai:</strong> Buka halaman Dashboard, tinjau metrik Total Pendapatan, Total Jamaah Global, dan grafik pencapaian target bulanan dari seluruh cabang secara real-time.'
+                            },
+                            {
+                                title: '📦 MANAJEMEN PRODUK: Paket, Jadwal & Logistik',
+                                content: '<strong>Fungsi:</strong> Mengelola inventori produk umroh fisik & layanan.<br/><strong>Cara Pakai:</strong> <ul class="list-disc pl-5 mt-1 space-y-1 text-gray-400"><li><strong>Paket Umroh:</strong> Klik tambah untuk merancang paket baru (nama, harga dasar, deskripsi, gambar promosi).</li><li><strong>Jadwal Keberangkatan:</strong> Tambahkan varian jadwal untuk suatu paket beserta kuota seat, bandara, dan maskapai operasional.</li><li><strong>Logistik & Inventory:</strong> Pantau stok seragam, koper, dan status pembagian fasilitas ke jamaah.</li></ul>'
+                            },
+                            {
+                                title: '👥 OPERASIONAL JAMAAH: Data Jamaah & Pembayaran',
+                                content: '<strong>Fungsi:</strong> Mengurus administrasi detail keberangkatan.<br/><strong>Cara Pakai:</strong> <ul class="list-disc pl-5 mt-1 space-y-1 text-gray-400"><li><strong>Data Jamaah:</strong> Lihat daftar seluruh jamaah lintas cabang. Anda bisa menambahkan jamaah secara manual atau via fitur OCR KTP, lalu melengkapi riwayat medis dan dokumen paspor.</li><li><strong>Pembayaran:</strong> Verifikasi bukti transfer pembayaran dari jamaah, proses pelunasan, terbitkan invoice resmi.</li></ul>'
+                            },
+                            {
+                                title: '⚙️ MASTER DATA: Setup Variabel Inti',
+                                content: '<strong>Fungsi:</strong> Menyediakan data referensi atau kamus data sistem.<br/><strong>Cara Pakai:</strong> Buka sub-menu (<strong>Data Hotel, Pesawat, Bandara, Item Perlengkapan, Jenis Paket</strong>). Tambahkan entitas baru seperti Hotel Bintang 5 di Makkah atau Maskapai spesifik. Data ini akan muncul sebagai dropdown saat Anda membuat Paket/Jadwal.'
+                            },
+                            {
+                                title: '📈 SALES & MARKETING: Kelola Testimoni',
+                                content: '<strong>Fungsi:</strong> Digital marketing dan social proof.<br/><strong>Cara Pakai:</strong> Masuk ke <em>Kelola Testimoni</em>. Kumpulkan ulasan positif dari jamaah yang baru pulang, cantumkan rating bintang dan foto, lalu aktifkan "Publish" agar tampil mentereng di portal pendaftaran publik.'
+                            },
+                            {
+                                title: '📊 MONITORING & KEUANGAN: Repeat Customers & Rekening Bank',
+                                content: '<strong>Fungsi:</strong> Visibilitas kesehatan finansial korporat.<br/><strong>Cara Pakai:</strong> <ul class="list-disc pl-5 mt-1 space-y-1 text-gray-400"><li><strong>Repeat Customers:</strong> Temukan jamaah yang sudah lama pulang untuk ditawari umroh kembali (retensi pelanggan).</li><li><strong>Performa Cabang:</strong> Intip kinerja pencapaian jamaah setiap wilayah.</li><li><strong>Rekening Bank:</strong> Daftarkan rekening bank resmi perusahaan sebagai instruksi transfer pembayaran jamaah.</li><li><strong>Komisi Jaringan:</strong> Lihat rekap seluruh ledger/buku besar dari komisi yang masuk ke seluruh afiliator.</li></ul>'
+                            },
+                            {
+                                title: '🤝 AFILIASI: Pencairan Komisi & Leaderboard',
+                                content: '<strong>Fungsi:</strong> Mengelola mitra, agen, dan hak keuangan mereka.<br/><strong>Cara Pakai:</strong> <ul class="list-disc pl-5 mt-1 space-y-1 text-gray-400"><li><strong>Pencairan Komisi:</strong> Jika Cabang/Mitra mengajukan penarikan dana, transfer manual uangnya lalu klik tombol "Approve/Telah Dibayar" di sini.</li><li><strong>Leaderboard:</strong> Lihat peringkat penjualan (top sales) dari semua tingkatan user.</li><li><strong>Data Downline:</strong> Jelajahi pohon jaringan afiliasi secara keseluruhan.</li></ul>'
+                            },
+                            {
+                                title: '🛡️ SISTEM & AKUN: Pengaturan & Audit Log',
+                                content: '<strong>Fungsi:</strong> Pengaturan sekuritas tingkat tinggi.<br/><strong>Cara Pakai:</strong> <ul class="list-disc pl-5 mt-1 space-y-1 text-gray-400"><li><strong>Pengaturan Akun:</strong> Bisa ganti profil, password, serta menyimpan rahasia konfigurasi <strong>API Key WhatsApp Gateway (WAHA)</strong> untuk broadcast WA otomatis.</li><li><strong>Audit Log System:</strong> Pantau rekam jejak digital aktivitas siapa mengubah data apa pada jam berapa.</li></ul>'
+                            }
+                        ]
+                    },
+                    {
+                        id: 'cabang',
+                        badge: 'Level 2 - Representatif Regional',
+                        title: 'Akun Cabang',
+                        description: 'Mengelola operasional pendaftaran jamaah di wilayah tertentu. Cabang tidak bisa mengubah master paket, namun dapat melihat semua transaksi dari Mitra/Agen di bawahnya.',
+                        icon: 'fa-solid fa-building-flag',
+                        email: 'jakarta@almadinahms.com',
+                        password: 'password123',
+                        steps: [
+                            {
+                                title: '🖥️ MAIN: Dashboard',
+                                content: '<strong>Fungsi:</strong> Monitor kesehatan regional.<br/><strong>Cara Pakai:</strong> Buka halaman awal untuk mengecek grafik closing dan revenue yang hanya merepresentasikan cabang Anda dan jaringan di bawah naungan Anda.'
+                            },
+                            {
+                                title: '📦 MANAJEMEN PRODUK: Logistik & Inventory',
+                                content: '<strong>Fungsi:</strong> Mengontrol fisik barang khusus calon jamaah lokal.<br/><strong>Cara Pakai:</strong> Pada sub-menu ini, konfirmasikan serah terima barang (koper bagasi, seragam, dll) secara riil kepada jamaah yang terdaftar di wilayah cabang Anda.'
+                            },
+                            {
+                                title: '👥 OPERASIONAL JAMAAH: Registrasi & Tagihan',
+                                content: '<strong>Fungsi:</strong> Admin frontline untuk jamaah walk-in.<br/><strong>Cara Pakai:</strong> <ul class="list-disc pl-5 mt-1 space-y-1 text-gray-400"><li><strong>Data Jamaah:</strong> Daftarkan pesanan paket untuk jamaah awam. Upload KTP melalui sistem Scan KTP agar nama/NIK otomatis terisi.</li><li><strong>Pembayaran:</strong> Upload bukti setoran awal jamaah yang melalui cabang Anda agar diverifikasi Pusat.</li></ul>'
+                            },
+                            {
+                                title: '📊 MONITORING JARINGAN: Performa Mitra & Downline',
+                                content: '<strong>Fungsi:</strong> Evaluasi agen pemasaran area lokal.<br/><strong>Cara Pakai:</strong> Gunakan menu <strong>Leaderboard</strong> dan <strong>Performa Cabang</strong> untuk melacak siapa agen paling produktif di area Anda untuk diberikan insentif lebih.'
+                            },
+                            {
+                                title: '💰 AFILIASI: Pencairan Komisi',
+                                content: '<strong>Fungsi:</strong> Mengklaim bagian margin hasil kerja keras cabang.<br/><strong>Cara Pakai:</strong> Setiap penjualan yang terjadi dalam silsilah jaringan Anda, saldo dompet cabang Anda bertambah. Masuk ke <strong>Pencairan Komisi</strong>, dan tap tombol ajukan penarikan agar Pusat mentransfer upah Anda.'
+                            }
+                        ]
+                    },
+                    {
+                        id: 'mitra',
+                        badge: 'Level 3 - Partner Bisnis',
+                        title: 'Akun Mitra / Agen Utama',
+                        description: 'Fokus pada pembangunan jaringan penjualan dengan merekrut Agen. Mendapatkan komisi langsung serta margin over-riding dari penjualan tim di bawahnya.',
+                        icon: 'fa-solid fa-handshake-angle',
+                        email: 'mitra.ahmad@gmail.com',
+                        password: 'password123',
+                        steps: [
+                            {
+                                title: '🖥️ MAIN: Dashboard (Pusat Rekrutmen)',
+                                content: '<strong>Fungsi:</strong> Pusat data jaringan mandiri Anda.<br/><strong>Cara Pakai:</strong> Salin <strong>Link Afiliasi Referral</strong> langsung dari layar depan ini, lalu sebarkan untuk merekrut Agen di bawah Anda secara otomatis.'
+                            },
+                            {
+                                title: '👥 OPERASIONAL JAMAAH: Pendaftaran Order',
+                                content: '<strong>Fungsi:</strong> Membantu checkout pesanan pelanggan Anda.<br/><strong>Cara Pakai:</strong> Anda bisa melakukan booking pesanan mewakili jamaah. Di menu <strong>Data Jamaah</strong>, klik Pendaftaran Baru, lalu isi formulir. Komisi langsung terkait ID Mitra Anda berkat hierarki otomatis.'
+                            },
+                            {
+                                title: '🤝 AFILIASI: Leaderboard & Pohon Downline',
+                                content: '<strong>Fungsi:</strong> Gamifikasi motivasi & struktur tim.<br/><strong>Cara Pakai:</strong> <ul class="list-disc pl-5 mt-1 space-y-1 text-gray-400"><li><strong>Leaderboard:</strong> Lihat apakah Anda masuk Top 10 Mitra Nasional.</li><li><strong>Data Downline:</strong> Lihat struktur siapa saja Agen dan Reseller yang berhasil Anda rekrut dalam tim Anda.</li></ul>'
+                            },
+                            {
+                                title: '💰 AFILIASI: Dompet Pencairan Komisi',
+                                content: '<strong>Fungsi:</strong> Pusat penarikan dana dari Passive Income.<br/><strong>Cara Pakai:</strong> Pantau saldo komisi Over-riding dari penjualan Agen bawahan Anda. Akses <strong>Pencairan Komisi</strong> setiap awal bulan untuk mendepositokan uang ke rekening pribadi (pastikan profil bank sudah diisi di Pengaturan Akun).'
+                            }
+                        ]
+                    },
+                    {
+                        id: 'agen',
+                        badge: 'Level 4 - Sales Eksekutif B2C',
+                        title: 'Akun Agen',
+                        description: 'Ujung tombak yang berhadapan langsung dengan jamaah awam. Fokus promosi menggunakan katalog untuk per-orangan.',
+                        icon: 'fa-solid fa-user-tie',
+                        email: 'agen.fatimah@gmail.com',
+                        password: 'password123',
+                        steps: [
+                            {
+                                title: '🖥️ MAIN: Dashboard',
+                                content: '<strong>Fungsi:</strong> Mengetahui posisi penjualan dan klik ringkas.<br/><strong>Cara Pakai:</strong> Amati performa klik link jualan Anda. Segera sebar kembali ke WhatsApp kerabat Anda dari link yang terpampang.'
+                            },
+                            {
+                                title: '👥 OPERASIONAL JAMAAH: Input Prospek Awal',
+                                content: '<strong>Fungsi:</strong> Mengunci closing via upload KTP jamaah.<br/><strong>Cara Pakai:</strong> Temui calon jamaah, bawa aplikasi ini, lalu foto KTP mereka di <strong>Data Jamaah (Menu Scanner KTP)</strong>. Sistem otomatis mendaftarkan pesanan atas nama pelanggan ke paket umroh pilihan, dan Anda mendapat atribusi sales-nya.'
+                            },
+                            {
+                                title: '🤝 AFILIASI: Leaderboard & Downline (Reseller)',
+                                content: '<strong>Fungsi:</strong> Bukti keberhasilan promosi.<br/><strong>Cara Pakai:</strong> Cek omzet Anda dibanding agen lain di <strong>Leaderboard</strong>. Anda bisa merekrut <strong>Reseller</strong> (level relawan) di bawah Anda lewat link di Dashboard, yang nantinya performanya terlihat di <strong>Data Downline</strong>.'
+                            },
+                            {
+                                title: '💰 AFILIASI: Pencairan Komisi',
+                                content: '<strong>Fungsi:</strong> Mengubah poin closing jadi rupiah nyata.<br/><strong>Cara Pakai:</strong> Komisi per kepala jamaah (Fix Fee) masuk real-time tiap kali pelanggan Anda melunasi DP. Tarik komisi ini di <strong>Pencairan Komisi</strong>.'
+                            }
+                        ]
+                    },
+                    {
+                        id: 'reseller',
+                        badge: 'Level 5 - Afiliator Lepas',
+                        title: 'Akun Reseller',
+                        description: 'Level paling dasar untuk orang yang ingin mendapat income referensi dengan menyebar link katalog di media sosial.',
+                        icon: 'fa-solid fa-share-nodes',
+                        email: 'reseller.ayu@gmail.com',
+                        password: 'password123',
+                        steps: [
+                            {
+                                title: '🖥️ MAIN: Dashboard & Link Generator',
+                                content: '<strong>Fungsi:</strong> Memulai promosi secara instan tanpa skill ribet.<br/><strong>Cara Pakai:</strong> Terdapat tombol besar dan menonjol untuk menyalin URL promosi di Dashboard. Cukup klik tombol itu, lalu <em>Paste</em> ke Grup WA keluarga atau status Sosial Media. Mudah!'
+                            },
+                            {
+                                title: '📈 STATISTIK: Lacak Klik Katalog',
+                                content: '<strong>Fungsi:</strong> Bukti aktivitas viralitas link Anda.<br/><strong>Cara Pakai:</strong> Jika Anda membagikan link ke 100 orang di grup WA, dan ada 25 orang yang mengkliknya hari ini, angka keterlihatan klik tersebut akan grafiknya naik langsung di Dashboard Anda!'
+                            },
+                            {
+                                title: '💰 AFILIASI: Pencairan Komisi',
+                                content: '<strong>Fungsi:</strong> Bayaran kontribusi link referral (Tracker 30 Hari).<br/><strong>Cara Pakai:</strong> Jika jamaah memesan dalam 30 hari usai klik link promosi Anda dari grup, Anda dijamin mendapat komisi pendaftaran. Masuk <strong>Pencairan Komisi</strong> dan klaim saldo tersebut.'
+                            },
+                            {
+                                title: '⚙️ SISTEM & AKUN: Pengaturan Akun',
+                                content: '<strong>Fungsi:</strong> Verifikasi data penerimaan uang.<br/><strong>Cara Pakai:</strong> Masuk ke <strong>Pengaturan Akun</strong>, ubah Password Anda secara berkala demi keamanan, dan yang terpenting jangan lupa masukkan nama Bank serta Rekening Pencairan agar transfer tidak salah tujuan.'
+                            }
+                        ]
+                    },
+                    {
+                        id: 'teknisi',
+                        badge: 'Level Khusus - Staff Lapangan',
+                        title: 'Akun Teknisi',
+                        description: 'Staff lapangan yang bertanggung jawab atas pengecekan ketersediaan perlengkapan jamaah (koper, seragam, dll) dan konfirmasi penyerahan fisik barang ke jamaah sebelum keberangkatan.',
+                        icon: 'fa-solid fa-screwdriver-wrench',
+                        email: 'teknisi@almadinahms.com',
+                        password: 'password123',
+                        steps: [
+                            {
+                                title: '🖥️ MAIN: Dashboard Teknisi',
+                                content: '<strong>Fungsi:</strong> Pusat monitoring perlengkapan per keberangkatan.<br/><strong>Cara Pakai:</strong> Setelah login, Anda akan melihat Dashboard Teknisi yang menampilkan:<ul class="list-disc pl-5 mt-1 space-y-1 text-gray-400"><li><strong>Greeting Dinamis:</strong> Sapaan otomatis berdasarkan waktu (pagi/siang/sore/malam).</li><li><strong>Pilih Keberangkatan:</strong> Gunakan dropdown untuk memilih jadwal keberangkatan yang sedang aktif.</li><li><strong>4 Stat Cards:</strong> Total Jamaah, Perlengkapan Lengkap, Sudah Diserahkan, dan Belum Diserahkan.</li><li><strong>Progress Bar:</strong> Persentase visual penyerahan perlengkapan per keberangkatan.</li><li><strong>Quick Access:</strong> Tombol cepat menuju Logistik, Daftar Jamaah, dan Pengaturan Akun.</li></ul>'
+                            },
+                            {
+                                title: '📦 MANAJEMEN PRODUK: Logistik & Inventory',
+                                content: '<strong>Fungsi:</strong> Mengecek dan menandai ketersediaan setiap item perlengkapan per jamaah.<br/><strong>Cara Pakai:</strong> <ul class="list-disc pl-5 mt-1 space-y-1 text-gray-400"><li><strong>Pilih Keberangkatan:</strong> Pilih jadwal dari dropdown di halaman Logistik.</li><li><strong>Ceklis Item:</strong> Untuk setiap jamaah, klik tombol "Ada" pada masing-masing item perlengkapan (koper, seragam, buku doa, dll) yang sudah tersedia/disiapkan.</li><li><strong>Filter:</strong> Gunakan tab <em>Sudah Lengkap / Belum Lengkap</em> untuk memfilter jamaah berdasarkan status kelengkapan.</li><li><strong>Badge Persentase:</strong> Setiap kartu jamaah menampilkan badge progres (contoh: "Selesai 100%", "Sebagian 62%").</li></ul>'
+                            },
+                            {
+                                title: '👥 MONITORING JARINGAN: Daftar Jamaah (Penyerahan Perlengkapan)',
+                                content: '<strong>Fungsi:</strong> Konfirmasi bahwa perlengkapan telah diserahkan secara fisik kepada jamaah.<br/><strong>Cara Pakai:</strong> <ul class="list-disc pl-5 mt-1 space-y-1 text-gray-400"><li><strong>Pilih Keberangkatan:</strong> Pilih jadwal dari dropdown.</li><li><strong>Indikator Hijau 🟢:</strong> Menandakan semua item perlengkapan jamaah ini sudah ditandai "Ada" di halaman Logistik.</li><li><strong>Indikator Merah 🔴:</strong> Belum semua item tersedia — kembali ke Logistik untuk melengkapi.</li><li><strong>Tombol Centang Biru 🔵:</strong> Setelah menyerahkan barang secara fisik ke jamaah, klik tombol ini untuk mengonfirmasi <em>"Sudah Diserahkan"</em>.</li><li><strong>Filter:</strong> Gunakan tab <em>Sudah Menerima / Belum Menerima</em> untuk memantau progres.</li><li><strong>Search:</strong> Cari jamaah berdasarkan nama, telepon, atau No. KTP.</li></ul>'
+                            },
+                            {
+                                title: '⚙️ SISTEM & AKUN: Pengaturan Akun',
+                                content: '<strong>Fungsi:</strong> Mengelola profil dan keamanan akun teknisi.<br/><strong>Cara Pakai:</strong> Masuk ke <strong>Pengaturan Akun</strong>, ubah password Anda secara berkala demi keamanan. Pastikan nama dan nomor HP Anda terisi dengan benar agar tim pusat dapat menghubungi Anda.'
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    </script>
+</body>
+
+</html>

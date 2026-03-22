@@ -8,43 +8,40 @@ import { Env } from '../index.js';
 
 const api = new Hono<{ Bindings: Env }>();
 
-// 1. Test WA Connection
+// 1. Test WA Connection (single message with typing + delay)
 api.post('/test-wa', authMiddleware, zValidator('json', z.object({
     phone: z.string(),
     message: z.string()
 })), async (c) => {
     const { phone, message } = c.req.valid('json');
-    const result = await WhatsAppService.sendMessage(phone, message);
+    const { getDb } = await import('../db/index.js');
+    const db = getDb(c.env.DB);
+    const result = await WhatsAppService.sendMessage(db, phone, message);
 
     if (result.success) {
         return c.json({ success: true, message: 'Message sent via WAHA' });
     } else {
-        return c.json({ success: false, error: result.error }, 500);
+        const errStr = typeof result.error === 'string' ? result.error : JSON.stringify(result.error);
+        return c.json({ success: false, error: `WAHA Error: ${errStr}` }, 500);
     }
 });
 
-// 2. Broadcast (Admin Pusat & Cabang)
-api.post('/broadcast', authMiddleware, requireRole('pusat', 'cabang'), zValidator('json', z.object({
-    phones: z.array(z.string()),
+// 2. Send Single Message (used by frontend bulk loop, one call per contact)
+api.post('/send-single', authMiddleware, requireRole('pusat', 'cabang'), zValidator('json', z.object({
+    phone: z.string(),
     message: z.string()
 })), async (c) => {
-    const { phones, message } = c.req.valid('json');
+    const { phone, message } = c.req.valid('json');
+    const { getDb } = await import('../db/index.js');
+    const db = getDb(c.env.DB);
+    const result = await WhatsAppService.sendMessage(db, phone, message);
 
-    const results = [];
-    for (const phone of phones) {
-        const res = await WhatsAppService.sendMessage(phone, message);
-        results.push(res);
-        // Delay 1 second between messages to respect WAHA rate limits
-        await new Promise(resolve => setTimeout(resolve, 1000));
+    if (result.success) {
+        return c.json({ success: true });
+    } else {
+        const errStr = typeof result.error === 'string' ? result.error : JSON.stringify(result.error);
+        return c.json({ success: false, error: errStr }, 500);
     }
-
-    const failed = results.filter(r => !r.success).length;
-
-    return c.json({
-        total: phones.length,
-        success: phones.length - failed,
-        failed
-    });
 });
 
 export default api;

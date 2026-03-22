@@ -223,7 +223,7 @@ api.post('/deliver-equipment/:bookingId', authMiddleware, requireRole('teknisi',
     await db.update(bookings).set({ equipmentDelivered: newVal }).where(eq(bookings.id, bookingId));
 
     if (newVal && booking.pilgrim && booking.departure?.package) {
-        await WhatsAppService.sendEquipmentDeliveryNotification(booking.pilgrim.phone, {
+        await WhatsAppService.sendEquipmentDeliveryNotification(db, booking.pilgrim.phone, {
             name: booking.pilgrim.name,
             packageName: booking.departure.package.name
         });

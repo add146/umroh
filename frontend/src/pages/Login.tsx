@@ -55,6 +55,7 @@ export const LoginPage: React.FC = () => {
                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
             }}>
                 <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+                    <img src="/logo.png" alt="Al Madinah" style={{ width: '64px', height: '64px', objectFit: 'contain', margin: '0 auto 1rem' }} />
                     <h1 style={{ color: 'var(--color-primary)', fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.025em' }}>Al Madinah</h1>
                     <p style={{ color: 'var(--color-text-muted)', marginTop: '0.5rem', fontSize: '0.875rem', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Management System Login</p>
                 </div>

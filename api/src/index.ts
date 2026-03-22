@@ -129,6 +129,7 @@ import priceCalculatorRoutes from './routes/price-calculator.js';
 import reportsRoutes from './routes/reports.js';
 import testimonialsRoutes from './routes/testimonials.js';
 import uploadRoutes from './routes/upload.js';
+import landingSettingsRoutes from './routes/landing-settings.js';
 
 app.route('/api/auth', authRoutes);
 app.route('/api/users', userRoutes);
@@ -142,7 +143,7 @@ app.route('/api/payments', paymentRoutes);
 app.route('/api/affiliate', affiliateRoutes);
 app.route('/api/documents', documentRoutes);
 app.route('/api/operations', operationRoutes);
-app.route('/api/comm', communicationRoutes);
+app.route('/api/communication', communicationRoutes);
 app.route('/api/export', exportRoutes);
 
 app.route('/api/prospects', prospectRoutes);
@@ -157,6 +158,7 @@ app.route('/api/price-calculator', priceCalculatorRoutes);
 app.route('/api/reports', reportsRoutes);
 app.route('/api/testimonials', testimonialsRoutes);
 app.route('/api/upload', uploadRoutes);
+app.route('/api/landing-settings', landingSettingsRoutes);
 
 app.get('/api/seed-full', async (c) => {
     const { getDb } = await import('./db/index.js');
@@ -178,6 +180,7 @@ app.get('/api/seed-full', async (c) => {
             `CREATE TABLE IF NOT EXISTS room_assignments (id text PRIMARY KEY, booking_id text NOT NULL, room_number text NOT NULL, notes text, created_at text DEFAULT (datetime('now')))`,
             `CREATE TABLE IF NOT EXISTS disbursement_requests (id text PRIMARY KEY, user_id text NOT NULL, amount integer NOT NULL, bank_name text NOT NULL, account_number text NOT NULL, account_holder text NOT NULL, status text DEFAULT 'pending', admin_notes text, requested_at text DEFAULT (datetime('now')), processed_at text, processed_by text)`,
             `CREATE TABLE IF NOT EXISTS sales_targets (id text PRIMARY KEY, user_id text NOT NULL, month integer NOT NULL, year integer NOT NULL, target_pax integer NOT NULL, set_by text, created_at text DEFAULT (datetime('now')))`,
+            `CREATE TABLE IF NOT EXISTS landing_settings (key text PRIMARY KEY, value text NOT NULL, updated_at text DEFAULT (datetime('now')))`,
         ];
         for (const sql of createSql) {
             try { await c.env.DB.prepare(sql).run(); } catch (_) { /* ignore */ }
@@ -192,7 +195,7 @@ app.get('/api/seed-full', async (c) => {
             'marketing_materials', 'prospects', 'audit_log', 'sales_targets',
             'testimonials', 'equipment_items', 'bank_accounts',
             'package_types', 'airports', 'airlines', 'hotels',
-            'hierarchy_paths', 'users'
+            'hierarchy_paths', 'users', 'landing_settings'
         ];
         for (const t of tables) {
             try { await c.env.DB.prepare(`DELETE FROM ${t}`).run(); } catch (_) { /* table may not exist */ }
@@ -209,14 +212,14 @@ app.get('/api/seed-full', async (c) => {
         const teknisiId = 'usr-teknisi-001';
 
         await db.insert(s.users).values([
-            { id: pusatId, email: 'admin@almadinah.co.id', name: 'H. Muhammad Rizki', password: hp, role: 'pusat', phone: '08118889900', affiliateCode: 'PUSAT001' },
-            { id: cabangJktId, email: 'jakarta@almadinah.co.id', name: 'Cabang Jakarta Selatan', password: hp, role: 'cabang', phone: '08111000001', parentId: pusatId, affiliateCode: 'CJKT001' },
-            { id: cabangSbyId, email: 'surabaya@almadinah.co.id', name: 'Cabang Surabaya', password: hp, role: 'cabang', phone: '08111000002', parentId: pusatId, affiliateCode: 'CSBY001' },
+            { id: pusatId, email: 'admin@almadinahms.com', name: 'Admin', password: hp, role: 'pusat', phone: '08118889900', affiliateCode: 'PUSAT001' },
+            { id: cabangJktId, email: 'jakarta@almadinahms.com', name: 'Cabang Jakarta Selatan', password: hp, role: 'cabang', phone: '08111000001', parentId: pusatId, affiliateCode: 'CJKT001' },
+            { id: cabangSbyId, email: 'surabaya@almadinahms.com', name: 'Cabang Surabaya', password: hp, role: 'cabang', phone: '08111000002', parentId: pusatId, affiliateCode: 'CSBY001' },
             { id: mitraId, email: 'mitra.ahmad@gmail.com', name: 'H. Ahmad Syafii', password: hp, role: 'mitra', phone: '08122000001', parentId: cabangJktId, affiliateCode: 'MTR001' },
             { id: agenAId, email: 'agen.fatimah@gmail.com', name: 'Fatimah Zahra', password: hp, role: 'agen', phone: '08133000001', parentId: mitraId, affiliateCode: 'AGN001' },
             { id: agenBId, email: 'agen.usman@gmail.com', name: 'Usman Hakim', password: hp, role: 'agen', phone: '08133000002', parentId: cabangSbyId, affiliateCode: 'AGN002' },
             { id: resellerId, email: 'reseller.ayu@gmail.com', name: 'Ayu Lestari', password: hp, role: 'reseller', phone: '08155000001', parentId: agenAId, affiliateCode: 'RSL001' },
-            { id: teknisiId, email: 'teknisi@almadinah.co.id', name: 'Budi Teknisi', password: hp, role: 'teknisi', phone: '08166000001' },
+            { id: teknisiId, email: 'teknisi@almadinahms.com', name: 'Budi Teknisi', password: hp, role: 'teknisi', phone: '08166000001' },
         ]);
 
         // Hierarchy paths (self + upline chains)
@@ -565,18 +568,62 @@ app.get('/api/seed-full', async (c) => {
             { id: 'audit-5', userId: pusatId, action: 'update_departure', targetType: 'departure', targetId: 'dep-005', details: 'Status Ramadhan diubah ke last_call' },
         ]);
 
+        // ============ STEP 12: LANDING PAGE SETTINGS ============
+        const landingDefaults = [
+            { key: 'logo_url', value: '/logo.png' },
+            { key: 'brand_name', value: 'AL' },
+            { key: 'brand_highlight', value: 'MADINAH' },
+            { key: 'hero_badge', value: 'Penyelenggara Ibadah Umroh Resmi (PPIU)' },
+            {
+                key: 'hero_slides', value: JSON.stringify([
+                    { image: 'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&q=80&w=2000', title: 'Wujudkan Perjalanan Suci', subtitle: 'Anda Bersama Kami' },
+                    { image: 'https://images.unsplash.com/photo-1590076215667-875d4ef2d7de?auto=format&fit=crop&q=80&w=2000', title: 'Ibadah Nyaman', subtitle: 'di Tanah Suci' },
+                    { image: 'https://images.unsplash.com/photo-1565552645632-d725f8bfc19a?auto=format&fit=crop&q=80&w=2000', title: 'Pelayanan Premium', subtitle: 'Harga Terjangkau' },
+                ])
+            },
+            { key: 'hero_subtitle', value: 'Platform manajemen haji dan umroh terpadu. Booking, cicilan, dokumen digital, dan notifikasi otomatis dalam satu aplikasi.' },
+            { key: 'cta_text', value: 'Cari Paket' },
+            { key: 'cta_link', value: '/register' },
+            { key: 'nav_links', value: JSON.stringify([{ label: 'Paket Umroh', href: '#paket' }, { label: 'Jadwal', href: '#paket' }]) },
+            { key: 'packages_title', value: 'Paket Pilihan' },
+            { key: 'packages_subtitle', value: 'Koleksi paket umroh premium kami yang telah dipilih dengan cermat.' },
+            { key: 'packages_filters', value: JSON.stringify(['Semua', 'Ekonomi', 'Bisnis', 'Luxury VIP']) },
+            {
+                key: 'trust_markers', value: JSON.stringify([
+                    { icon: 'verified_user', label: 'IATA Certified' },
+                    { icon: 'policy', label: 'Kemenag Approved' },
+                    { icon: 'shield_moon', label: 'Halal Guaranteed' },
+                    { icon: 'support_agent', label: 'Support 24/7' },
+                ])
+            },
+            { key: 'footer_description', value: 'Standar emas dalam manajemen perjalanan spiritual. Menghubungkan jamaah dengan agen terpercaya untuk pengalaman ibadah yang sempurna.' },
+            { key: 'footer_links_platform', value: JSON.stringify([{ label: 'Portal Agen', url: '#' }, { label: 'Program Afiliasi', url: '#' }, { label: 'Panduan Visa', url: '#' }, { label: 'Kontak Kami', url: '#' }]) },
+            { key: 'footer_links_support', value: JSON.stringify([{ label: 'Pusat Bantuan', url: '#' }, { label: 'Syarat & Ketentuan', url: '#' }, { label: 'Kebijakan Privasi', url: '#' }]) },
+            { key: 'footer_copyright', value: '© 2025 Al Madinah. Semua hak dilindungi.' },
+            { key: 'whatsapp_number', value: '' },
+            { key: 'instagram_url', value: '' },
+            { key: 'social_media', value: JSON.stringify([]) },
+            { key: 'primary_color', value: '#C8A951' },
+            { key: 'promo_banner', value: JSON.stringify({ enabled: false, text: '', bgColor: '#C8A951' }) },
+        ];
+        for (const ls of landingDefaults) {
+            await c.env.DB.prepare(
+                `INSERT INTO landing_settings (key, value) VALUES (?, ?)`
+            ).bind(ls.key, ls.value).run();
+        }
+
         return c.json({
             success: true,
             message: 'Full seed completed! All data cleared and populated.',
             credentials: {
-                pusat: 'admin@almadinah.co.id / password123',
-                cabangJkt: 'jakarta@almadinah.co.id / password123',
-                cabangSby: 'surabaya@almadinah.co.id / password123',
+                pusat: 'admin@almadinahms.com / password123',
+                cabangJkt: 'jakarta@almadinahms.com / password123',
+                cabangSby: 'surabaya@almadinahms.com / password123',
                 mitra: 'mitra.ahmad@gmail.com / password123',
                 agenA: 'agen.fatimah@gmail.com / password123',
                 agenB: 'agen.usman@gmail.com / password123',
                 reseller: 'reseller.ayu@gmail.com / password123',
-                teknisi: 'teknisi@almadinah.co.id / password123',
+                teknisi: 'teknisi@almadinahms.com / password123',
             },
             summary: {
                 users: 8,

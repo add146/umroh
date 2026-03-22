@@ -209,7 +209,90 @@ const BookingList: React.FC = () => {
 
             {/* Modal Detail Booking */}
             {selectedBooking && (
-                {/* ... existing modal code ... */ }
+                <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={() => setSelectedBooking(null)} />
+                    <div style={{ position: 'relative', background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', width: '95%', maxWidth: '640px', maxHeight: '85vh', overflow: 'auto', padding: '2rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>Detail Booking</h2>
+                            <button onClick={() => setSelectedBooking(null)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '1.5rem', lineHeight: 1 }}>&times;</button>
+                        </div>
+
+                        {/* Booking ID & Status */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }}>
+                            <div>
+                                <p style={{ margin: 0, fontSize: '0.75rem', color: '#888' }}>Kode Booking</p>
+                                <p style={{ margin: '0.25rem 0 0', fontFamily: 'monospace', fontWeight: 700, color: 'var(--color-primary)' }}>{selectedBooking.id?.substring(0, 8).toUpperCase()}</p>
+                            </div>
+                            <span style={getStatusStyle(selectedBooking.paymentStatus)}>{selectedBooking.paymentStatus}</span>
+                        </div>
+
+                        {/* Pilgrim Info */}
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <h3 style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.75rem 0' }}>Data Jamaah</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                <div>
+                                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#888' }}>Nama Lengkap</p>
+                                    <p style={{ margin: '0.125rem 0 0', fontWeight: 600, color: 'white' }}>{selectedBooking.pilgrim?.name || '-'}</p>
+                                </div>
+                                <div>
+                                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#888' }}>No. KTP</p>
+                                    <p style={{ margin: '0.125rem 0 0', fontWeight: 600, color: 'white' }}>{selectedBooking.pilgrim?.noKtp || '-'}</p>
+                                </div>
+                                <div>
+                                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#888' }}>Telepon</p>
+                                    <p style={{ margin: '0.125rem 0 0', fontWeight: 600, color: 'white' }}>{selectedBooking.pilgrim?.phone || '-'}</p>
+                                </div>
+                                <div>
+                                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#888' }}>Jenis Kelamin</p>
+                                    <p style={{ margin: '0.125rem 0 0', fontWeight: 600, color: 'white' }}>{selectedBooking.pilgrim?.sex === 'L' ? 'Laki-laki' : selectedBooking.pilgrim?.sex === 'P' ? 'Perempuan' : '-'}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Package Info */}
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <h3 style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.75rem 0' }}>Paket & Keberangkatan</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                <div>
+                                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#888' }}>Nama Paket</p>
+                                    <p style={{ margin: '0.125rem 0 0', fontWeight: 600, color: 'white' }}>{selectedBooking.departure?.package?.name || '-'}</p>
+                                </div>
+                                <div>
+                                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#888' }}>Jadwal Keberangkatan</p>
+                                    <p style={{ margin: '0.125rem 0 0', fontWeight: 600, color: 'white' }}>{selectedBooking.departure?.tripName || '-'}</p>
+                                </div>
+                                <div>
+                                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#888' }}>Tipe Kamar</p>
+                                    <p style={{ margin: '0.125rem 0 0', fontWeight: 600, color: 'white' }}>{selectedBooking.roomType?.name || '-'}</p>
+                                </div>
+                                <div>
+                                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#888' }}>Total Harga</p>
+                                    <p style={{ margin: '0.125rem 0 0', fontWeight: 800, color: 'var(--color-primary)' }}>Rp {(selectedBooking.totalPrice || 0).toLocaleString('id-ID')}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Affiliator Info */}
+                        {selectedBooking.affiliator && (
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <h3 style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.75rem 0' }}>Afiliator</h3>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '0.5rem' }}>
+                                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontWeight: 700, fontSize: '0.875rem' }}>
+                                        {selectedBooking.affiliator.name?.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <p style={{ margin: 0, fontWeight: 600, color: 'white', fontSize: '0.875rem' }}>{selectedBooking.affiliator.name}</p>
+                                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#888' }}>{selectedBooking.affiliator.role} • {selectedBooking.affiliator.email}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
+                            <button onClick={() => setSelectedBooking(null)} style={{ background: 'var(--color-primary)', color: '#000', border: 'none', padding: '0.625rem 1.5rem', borderRadius: '0.5rem', fontWeight: 700, cursor: 'pointer' }}>Tutup</button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* Broadcast Modal */}

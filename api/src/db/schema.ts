@@ -13,6 +13,10 @@ export const users = sqliteTable('users', {
     parentId: text('parent_id').references((): any => users.id),
     isActive: integer('is_active', { mode: 'boolean' }).default(true),
 
+    wahaApiUrl: text('waha_api_url'),
+    wahaApiKey: text('waha_api_key'),
+    wahaSession: text('waha_session').default('default'),
+
     createdAt: text('created_at').default(sql`(datetime('now'))`),
     updatedAt: text('updated_at').default(sql`(datetime('now'))`),
 });
@@ -610,3 +614,11 @@ export const salesTargetsRelations = relations(salesTargets, ({ one }) => ({
         relationName: 'targetSetter'
     }),
 }));
+
+// --- LANDING PAGE SETTINGS (key-value store) ---
+
+export const landingSettings = sqliteTable('landing_settings', {
+    key: text('key').primaryKey(),
+    value: text('value').notNull(),
+    updatedAt: text('updated_at').default(sql`(datetime('now'))`),
+});

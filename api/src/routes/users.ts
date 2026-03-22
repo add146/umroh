@@ -102,6 +102,26 @@ const updateUserSchema = z.object({
     email: z.string().email().optional().nullable(),
     phone: z.string().min(10).optional(),
     password: z.string().min(6).optional().nullable(),
+    wahaApiUrl: z.string().optional().nullable(),
+    wahaApiKey: z.string().optional().nullable(),
+    wahaSession: z.string().optional().nullable(),
+});
+
+userStore.get('/profile', authMiddleware, async (c) => {
+    const currentUser = c.get('user');
+    const db = getDb(c.env.DB);
+    const { eq } = await import('drizzle-orm');
+    const user = await db.query.users.findFirst({
+        where: eq(users.id, currentUser.id),
+    });
+    if (!user) return c.json({ error: 'Not found' }, 404);
+    return c.json({
+        email: user.email,
+        phone: user.phone,
+        wahaApiUrl: user.wahaApiUrl,
+        wahaApiKey: user.wahaApiKey,
+        wahaSession: user.wahaSession
+    });
 });
 
 userStore.put('/me', authMiddleware, zValidator('json', updateUserSchema), async (c) => {
@@ -137,6 +157,12 @@ userStore.put('/me', authMiddleware, zValidator('json', updateUserSchema), async
         if (body.phone) updateData.phone = normalizePhone(body.phone);
         if (body.password) {
             updateData.password = await hashPassword(body.password);
+        }
+
+        if (currentUser.role === 'pusat') {
+            if (body.wahaApiUrl !== undefined) updateData.wahaApiUrl = body.wahaApiUrl;
+            if (body.wahaApiKey !== undefined) updateData.wahaApiKey = body.wahaApiKey;
+            if (body.wahaSession !== undefined) updateData.wahaSession = body.wahaSession || 'default';
         }
 
         if (Object.keys(updateData).length === 0) {

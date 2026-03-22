@@ -49,6 +49,7 @@ import { ProfileSetting } from './pages/ProfileSetting';
 import { Leaderboard } from './pages/Leaderboard';
 import DisbursementRequest from './pages/DisbursementRequest';
 import TestimonialManage from './pages/admin/TestimonialManage';
+import LandingPageEditor from './pages/admin/LandingPageEditor';
 
 const DashboardRouter = () => {
   const { user } = useAuthStore();
@@ -95,6 +96,7 @@ function App() {
           <Route path="/admin/audit" element={<ProtectedRoute allowedRoles={['pusat']}><DashboardLayout><AuditLogView /></DashboardLayout></ProtectedRoute>} />
           <Route path="/admin/reports/repeat-customers" element={<ProtectedRoute allowedRoles={['pusat']}><DashboardLayout><RepeatCustomerReport /></DashboardLayout></ProtectedRoute>} />
           <Route path="/admin/testimonials" element={<ProtectedRoute allowedRoles={['pusat']}><DashboardLayout><TestimonialManage /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/admin/landing-editor" element={<ProtectedRoute allowedRoles={['pusat', 'cabang']}><DashboardLayout><LandingPageEditor /></DashboardLayout></ProtectedRoute>} />
           <Route path="/teknisi/jamaah" element={<ProtectedRoute allowedRoles={['teknisi', 'pusat']}><DashboardLayout><TeknikJamaahList /></DashboardLayout></ProtectedRoute>} />
 
           <Route path="/downline" element={
@@ -212,11 +214,10 @@ function App() {
           } />
 
           {/* Master Data Routes */}
-          <Route path="/admin/masters/:type" element={
+          <Route path="/admin/masters/hotels" element={
             <ProtectedRoute allowedRoles={['pusat']}>
               <DashboardLayout>
-                {/** The type param is parsed inside MasterDataPage so we don't strictly need it as prop in newer react-router, but we'll cast it to any here to satisfy TS lint for the current implementation */}
-                <MasterDataPage type={null as any} />
+                <MasterDataPage type="hotels" />
               </DashboardLayout>
             </ProtectedRoute>
           } />

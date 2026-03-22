@@ -79,6 +79,7 @@ const menuGroups = [
     {
         label: 'Sistem & Akun',
         items: [
+            { name: 'Edit Landing Page', path: '/admin/landing-editor', icon: 'web', roles: ['pusat', 'cabang'] },
             { name: 'Pengaturan Akun', path: '/profile', icon: 'manage_accounts', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'teknisi'] },
             { name: 'Audit Log System', path: '/admin/audit', icon: 'security', roles: ['pusat'] },
         ]
@@ -107,8 +108,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
         <>
             {/* Logo */}
             <div style={{ padding: '1.25rem 1.25rem', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ width: '38px', height: '38px', background: 'var(--color-primary)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#0a0907', fontVariationSettings: "'FILL' 1" }}>mosque</span>
+                <div style={{ width: '38px', height: '38px', background: 'var(--color-primary)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                    <img src="/logo.png" alt="Logo" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontWeight: 900, fontSize: '0.875rem', letterSpacing: '-0.02em', textTransform: 'uppercase', lineHeight: 1, margin: 0 }}>

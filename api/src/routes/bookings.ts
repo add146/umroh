@@ -140,7 +140,7 @@ api.post('/', zValidator('json', bookingSchema), async (c) => {
         // 7. Send WhatsApp Notification
         try {
             const { WhatsAppService } = await import('../services/whatsapp.js');
-            await WhatsAppService.sendBookingConfirmation(body.pilgrim.phone, {
+            await WhatsAppService.sendBookingConfirmation(db, body.pilgrim.phone, {
                 name: body.pilgrim.name,
                 bookingId: bookingId,
                 packageName: dep.package.name,

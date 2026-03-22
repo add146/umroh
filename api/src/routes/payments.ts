@@ -196,7 +196,7 @@ api.post('/webhook', async (c) => {
                     const [p] = await db.select().from({ ...await import('../db/schema.js') }.pilgrims).where(eq({ ...await import('../db/schema.js') }.pilgrims.id, booking.pilgrimId)).limit(1);
                     if (p) {
                         const { WhatsAppService } = await import('../services/whatsapp.js');
-                        await WhatsAppService.sendPaymentReceipt(p.phone, {
+                        await WhatsAppService.sendPaymentReceipt(db, p.phone, {
                             name: p.name,
                             amount: invoice.amount.toLocaleString('id-ID'),
                             invoiceId: invoice.id
@@ -272,7 +272,7 @@ api.patch('/:invoiceId/verify', authMiddleware, requireRole('pusat'), zValidator
                 const [p] = await db.select().from({ ...await import('../db/schema.js') }.pilgrims).where(eq({ ...await import('../db/schema.js') }.pilgrims.id, booking.pilgrimId)).limit(1);
                 if (p) {
                     const { WhatsAppService } = await import('../services/whatsapp.js');
-                    await WhatsAppService.sendPaymentReceipt(p.phone, {
+                    await WhatsAppService.sendPaymentReceipt(db, p.phone, {
                         name: p.name,
                         amount: invoice.amount.toLocaleString('id-ID'),
                         invoiceId: invoice.id

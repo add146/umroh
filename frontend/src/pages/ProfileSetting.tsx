@@ -12,7 +12,31 @@ export const ProfileSetting: React.FC = () => {
         email: user?.email || '',
         phone: user?.phone || '',
         password: '',
+        wahaApiUrl: '',
+        wahaApiKey: '',
+        wahaSession: 'default',
     });
+
+    React.useEffect(() => {
+        const loadProfile = async () => {
+            try {
+                const data = await apiFetch('/api/users/profile');
+                if (data) {
+                    setFormData(prev => ({
+                        ...prev,
+                        email: data.email || '',
+                        phone: data.phone || '',
+                        wahaApiUrl: data.wahaApiUrl || '',
+                        wahaApiKey: data.wahaApiKey || '',
+                        wahaSession: data.wahaSession || 'default'
+                    }));
+                }
+            } catch (err) {
+                console.error('Gagal memuat profil DB:', err);
+            }
+        };
+        loadProfile();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -25,6 +49,12 @@ export const ProfileSetting: React.FC = () => {
             if (formData.email !== user?.email) payload.email = formData.email || null;
             if (formData.phone !== user?.phone) payload.phone = formData.phone;
             if (formData.password) payload.password = formData.password;
+
+            if (user?.role === 'pusat') {
+                payload.wahaApiUrl = formData.wahaApiUrl;
+                payload.wahaApiKey = formData.wahaApiKey;
+                payload.wahaSession = formData.wahaSession;
+            }
 
             if (Object.keys(payload).length === 0) {
                 setSuccessMsg('Tidak ada perubahan data.');
@@ -142,14 +172,111 @@ export const ProfileSetting: React.FC = () => {
                             />
                         </div>
 
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="btn btn-primary"
-                            style={{ width: '100%', padding: '1rem', marginTop: '0.5rem', borderRadius: '0.75rem' }}
-                        >
-                            {isLoading ? 'Menyimpan...' : 'Simpan Perubahan'}
-                        </button>
+                        {user?.role === 'pusat' && (
+                            <div style={{ marginTop: '1rem', paddingTop: '1.5rem', borderTop: '1px solid #333' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                                    <div style={{ padding: '0.5rem', background: 'rgba(37, 211, 102, 0.1)', borderRadius: '0.5rem', color: '#25D366', display: 'flex' }}>
+                                        <i className="fa-brands fa-whatsapp text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'white', margin: 0 }}>WhatsApp Gateway (WAHA)</h3>
+                                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: 0 }}>Konfigurasi notifikasi WA khusus untuk Super Admin</p>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--color-text-light)', fontWeight: 500 }}>API URL</label>
+                                        <input
+                                            type="text"
+                                            value={formData.wahaApiUrl}
+                                            onChange={e => setFormData({ ...formData, wahaApiUrl: e.target.value })}
+                                            placeholder="https://your-waha-instance.com"
+                                            style={{ width: '100%', padding: '0.875rem', background: '#0a0907', border: '1px solid #333', color: 'white', borderRadius: '0.5rem', outline: 'none' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--color-text-light)', fontWeight: 500 }}>API Key</label>
+                                        <input
+                                            type="text"
+                                            value={formData.wahaApiKey}
+                                            onChange={e => setFormData({ ...formData, wahaApiKey: e.target.value })}
+                                            placeholder="Your WAHA API Key"
+                                            style={{ width: '100%', padding: '0.875rem', background: '#0a0907', border: '1px solid #333', color: 'white', borderRadius: '0.5rem', outline: 'none' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--color-text-light)', fontWeight: 500 }}>Session Name</label>
+                                        <input
+                                            type="text"
+                                            value={formData.wahaSession}
+                                            onChange={e => setFormData({ ...formData, wahaSession: e.target.value })}
+                                            placeholder="default"
+                                            style={{ width: '100%', padding: '0.875rem', background: '#0a0907', border: '1px solid #333', color: 'white', borderRadius: '0.5rem', outline: 'none' }}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="btn btn-primary"
+                                style={{ flex: 1, padding: '1rem', borderRadius: '0.75rem' }}
+                            >
+                                {isLoading ? 'Menyimpan...' : 'Simpan Perubahan'}
+                            </button>
+
+                            {user?.role === 'pusat' && (
+                                <button
+                                    type="button"
+                                    disabled={isLoading}
+                                    onClick={async () => {
+                                        if (!formData.phone) {
+                                            setErrorMsg('Harap isi nomor WhatsApp untuk melakukan tes pesan.');
+                                            return;
+                                        }
+                                        setIsLoading(true);
+                                        setErrorMsg('');
+                                        try {
+                                            const res = await apiFetch('/api/communication/test-wa', {
+                                                method: 'POST',
+                                                body: JSON.stringify({
+                                                    phone: formData.phone,
+                                                    message: `*TEST WAHA AL MADINAH*\n\n✅ Koneksi WhatsApp Gateway berhasil!\n\nIni adalah pesan percobaan dari sistem.\nWaktu: ${new Date().toLocaleString('id-ID')}`
+                                                })
+                                            });
+                                            if (res.success) {
+                                                setSuccessMsg('Pesan tes WAHA berhasil dikirim ke: ' + formData.phone);
+                                            } else {
+                                                setErrorMsg(res.error || 'Gagal mengirim pesan percobaan WAHA.');
+                                            }
+                                        } catch (err: any) {
+                                            setErrorMsg(err.message || 'Terjadi kesalahan saat menguji koneksi WAHA.');
+                                        } finally {
+                                            setIsLoading(false);
+                                        }
+                                    }}
+                                    className="btn btn-secondary"
+                                    style={{
+                                        flex: 1,
+                                        padding: '1rem',
+                                        borderRadius: '0.75rem',
+                                        background: 'rgba(37, 211, 102, 0.1)',
+                                        color: '#25D366',
+                                        border: '1px solid rgba(37, 211, 102, 0.2)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '0.5rem'
+                                    }}
+                                >
+                                    <i className="fa-brands fa-whatsapp text-lg"></i>
+                                    Test WAHA
+                                </button>
+                            )}
+                        </div>
                     </form>
                 </div>
             </div>

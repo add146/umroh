@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../lib/api';
 import { TestimonialGallery } from '../components/TestimonialGallery';
@@ -16,13 +16,106 @@ interface Package {
     facilities?: string;
 }
 
+interface HeroSlide {
+    image: string;
+    title: string;
+    subtitle: string;
+}
+
+interface TrustMarker {
+    icon: string;
+    label: string;
+}
+
+interface NavLink {
+    label: string;
+    href: string;
+}
+
+interface FooterLink {
+    label: string;
+    url: string;
+}
+
+interface PromoBanner {
+    enabled: boolean;
+    text: string;
+    bgColor: string;
+}
+
 const Landing = () => {
     const [packages, setPackages] = useState<Package[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeFilter, setActiveFilter] = useState('Semua');
+    const [currentSlide, setCurrentSlide] = useState(0);
 
-    const filters = ['Semua', 'Ekonomi', 'Bisnis', 'Luxury VIP'];
+    // Dynamic settings state with sensible defaults
+    const [logoUrl, setLogoUrl] = useState('/logo.png');
+    const [brandName, setBrandName] = useState('AL');
+    const [brandHighlight, setBrandHighlight] = useState('MADINAH');
+    const [heroBadge, setHeroBadge] = useState('Penyelenggara Ibadah Umroh Resmi (PPIU)');
+    const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([
+        { image: 'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&q=80&w=2000', title: 'Wujudkan Perjalanan Suci', subtitle: 'Anda Bersama Kami' },
+        { image: 'https://images.unsplash.com/photo-1590076215667-875d4ef2d7de?auto=format&fit=crop&q=80&w=2000', title: 'Ibadah Nyaman', subtitle: 'di Tanah Suci' },
+        { image: 'https://images.unsplash.com/photo-1565552645632-d725f8bfc19a?auto=format&fit=crop&q=80&w=2000', title: 'Pelayanan Premium', subtitle: 'Harga Terjangkau' },
+    ]);
+    const [heroSubtitle, setHeroSubtitle] = useState('Platform manajemen haji dan umroh terpadu. Booking, cicilan, dokumen digital, dan notifikasi otomatis dalam satu aplikasi.');
+    const [ctaText, setCtaText] = useState('Cari Paket');
+    const [ctaLink, setCtaLink] = useState('/register');
+    const [navLinks, setNavLinks] = useState<NavLink[]>([{ label: 'Paket Umroh', href: '#paket' }, { label: 'Jadwal', href: '#paket' }]);
+    const [packagesTitle, setPackagesTitle] = useState('Paket Pilihan');
+    const [packagesSubtitle, setPackagesSubtitle] = useState('Koleksi paket umroh premium kami yang telah dipilih dengan cermat.');
+    const [packagesFilters, setPackagesFilters] = useState<string[]>(['Semua', 'Ekonomi', 'Bisnis', 'Luxury VIP']);
+    const [trustMarkers, setTrustMarkers] = useState<TrustMarker[]>([
+        { icon: 'verified_user', label: 'IATA Certified' },
+        { icon: 'policy', label: 'Kemenag Approved' },
+        { icon: 'shield_moon', label: 'Halal Guaranteed' },
+        { icon: 'support_agent', label: 'Support 24/7' },
+    ]);
+    const [footerDescription, setFooterDescription] = useState('Standar emas dalam manajemen perjalanan spiritual. Menghubungkan jamaah dengan agen terpercaya untuk pengalaman ibadah yang sempurna.');
+    const [footerLinksPlatform, setFooterLinksPlatform] = useState<FooterLink[]>([
+        { label: 'Portal Agen', url: '#' }, { label: 'Program Afiliasi', url: '#' },
+        { label: 'Panduan Visa', url: '#' }, { label: 'Kontak Kami', url: '#' },
+    ]);
+    const [footerLinksSupport, setFooterLinksSupport] = useState<FooterLink[]>([
+        { label: 'Pusat Bantuan', url: '#' }, { label: 'Syarat & Ketentuan', url: '#' },
+        { label: 'Kebijakan Privasi', url: '#' },
+    ]);
+    const [footerCopyright, setFooterCopyright] = useState('© 2025 Al Madinah. Semua hak dilindungi.');
+    const [whatsappNumber, setWhatsappNumber] = useState('');
+    const [instagramUrl, setInstagramUrl] = useState('');
+    const [promoBanner, setPromoBanner] = useState<PromoBanner>({ enabled: false, text: '', bgColor: '#C8A951' });
 
+    // Load settings from API
+    useEffect(() => {
+        apiFetch<{ settings: Record<string, any> }>('/api/landing-settings')
+            .then(data => {
+                const s = data.settings || {};
+                if (s.logo_url) setLogoUrl(s.logo_url);
+                if (s.brand_name) setBrandName(s.brand_name);
+                if (s.brand_highlight) setBrandHighlight(s.brand_highlight);
+                if (s.hero_badge) setHeroBadge(s.hero_badge);
+                if (s.hero_slides && Array.isArray(s.hero_slides) && s.hero_slides.length > 0) setHeroSlides(s.hero_slides.slice(0, 3));
+                if (s.hero_subtitle) setHeroSubtitle(s.hero_subtitle);
+                if (s.cta_text) setCtaText(s.cta_text);
+                if (s.cta_link) setCtaLink(s.cta_link);
+                if (s.nav_links && Array.isArray(s.nav_links)) setNavLinks(s.nav_links);
+                if (s.packages_title) setPackagesTitle(s.packages_title);
+                if (s.packages_subtitle) setPackagesSubtitle(s.packages_subtitle);
+                if (s.packages_filters && Array.isArray(s.packages_filters)) setPackagesFilters(s.packages_filters);
+                if (s.trust_markers && Array.isArray(s.trust_markers)) setTrustMarkers(s.trust_markers);
+                if (s.footer_description) setFooterDescription(s.footer_description);
+                if (s.footer_links_platform && Array.isArray(s.footer_links_platform)) setFooterLinksPlatform(s.footer_links_platform);
+                if (s.footer_links_support && Array.isArray(s.footer_links_support)) setFooterLinksSupport(s.footer_links_support);
+                if (s.footer_copyright) setFooterCopyright(s.footer_copyright);
+                if (s.whatsapp_number !== undefined) setWhatsappNumber(s.whatsapp_number);
+                if (s.instagram_url !== undefined) setInstagramUrl(s.instagram_url);
+                if (s.promo_banner && typeof s.promo_banner === 'object') setPromoBanner(s.promo_banner);
+            })
+            .catch(console.error);
+    }, []);
+
+    // Load packages
     useEffect(() => {
         apiFetch<{ packages: Package[] }>('/api/packages')
             .then(data => setPackages(data.packages || []))
@@ -30,11 +123,39 @@ const Landing = () => {
             .finally(() => setLoading(false));
     }, []);
 
+    // Hero slide auto-advance
+    const nextSlide = useCallback(() => {
+        setCurrentSlide(prev => (prev + 1) % heroSlides.length);
+    }, [heroSlides.length]);
+
+    useEffect(() => {
+        if (heroSlides.length <= 1) return;
+        const timer = setInterval(nextSlide, 5000);
+        return () => clearInterval(timer);
+    }, [nextSlide, heroSlides.length]);
+
+    const currentHero = heroSlides[currentSlide] || heroSlides[0];
+
     return (
         <div className="min-h-screen" style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}>
 
+            {/* ===== PROMO BANNER ===== */}
+            {promoBanner.enabled && promoBanner.text && (
+                <div style={{
+                    background: promoBanner.bgColor || 'var(--color-primary)',
+                    padding: '0.5rem 1rem', textAlign: 'center',
+                    fontWeight: 700, fontSize: '0.8125rem', color: '#fff',
+                    position: 'fixed', top: 0, left: 0, right: 0, zIndex: 60,
+                }}>
+                    {promoBanner.text}
+                </div>
+            )}
+
             {/* ===== STICKY NAV ===== */}
-            <nav className="glass-nav fixed top-0 w-full z-50" style={{ borderBottom: '1px solid var(--color-border)' }}>
+            <nav className="glass-nav fixed top-0 w-full z-50" style={{
+                borderBottom: '1px solid var(--color-border)',
+                top: promoBanner.enabled && promoBanner.text ? '32px' : 0,
+            }}>
                 <div className="container" style={{ height: '72px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     {/* Logo */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -42,23 +163,22 @@ const Landing = () => {
                             width: '40px', height: '40px',
                             background: 'var(--color-primary)', borderRadius: '0.5rem',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'var(--color-bg)', fontWeight: 900
+                            overflow: 'hidden'
                         }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '22px', fontVariationSettings: "'FILL' 1" }}>mosque</span>
+                            <img src={logoUrl} alt="Logo" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
                         </div>
                         <span style={{ fontSize: '1.125rem', fontWeight: 900, letterSpacing: '-0.03em', textTransform: 'uppercase' }}>
-                            AL<span style={{ color: 'var(--color-primary)' }}>MADINAH</span>
+                            {brandName}<span style={{ color: 'var(--color-primary)' }}>{brandHighlight}</span>
                         </span>
                     </div>
 
                     {/* Links */}
                     <div className="landing-nav-links" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-                        <a href="#paket" style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)', transition: 'color 0.2s' }}
-                            onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-primary)')}
-                            onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}>Paket Umroh</a>
-                        <a href="#paket" style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)', transition: 'color 0.2s' }}
-                            onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-primary)')}
-                            onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}>Jadwal</a>
+                        {navLinks.map((link, idx) => (
+                            <a key={idx} href={link.href} style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)', transition: 'color 0.2s' }}
+                                onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-primary)')}
+                                onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}>{link.label}</a>
+                        ))}
                     </div>
 
                     <div className="landing-nav-actions" style={{ display: 'flex', gap: '0.75rem' }}>
@@ -76,20 +196,30 @@ const Landing = () => {
                 </div>
             </nav>
 
-            {/* ===== HERO ===== */}
-            <section style={{ position: 'relative', minHeight: '90vh', display: 'flex', alignItems: 'center', paddingTop: '72px', overflow: 'hidden' }}>
-                {/* BG Image */}
-                <div style={{ position: 'absolute', inset: 0 }}>
-                    <img
-                        src="https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&q=80&w=2000"
-                        alt="Ka'bah Makkah"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.45 }}
-                    />
-                    <div style={{
+            {/* ===== HERO WITH SLIDES ===== */}
+            <section style={{
+                position: 'relative', minHeight: '90vh', display: 'flex', alignItems: 'center',
+                paddingTop: promoBanner.enabled && promoBanner.text ? '104px' : '72px', overflow: 'hidden'
+            }}>
+                {/* Slide BG Images */}
+                {heroSlides.map((slide, idx) => (
+                    <div key={idx} style={{
                         position: 'absolute', inset: 0,
-                        background: 'linear-gradient(to top, var(--color-bg) 0%, rgba(10,9,7,0.4) 60%, transparent 100%)'
-                    }} />
-                </div>
+                        opacity: currentSlide === idx ? 1 : 0,
+                        transition: 'opacity 1s ease-in-out',
+                    }}>
+                        <img
+                            src={slide.image}
+                            alt={slide.title}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.45 }}
+                        />
+                    </div>
+                ))}
+                <div style={{
+                    position: 'absolute', inset: 0,
+                    background: 'linear-gradient(to top, var(--color-bg) 0%, rgba(10,9,7,0.4) 60%, transparent 100%)',
+                    zIndex: 1,
+                }} />
 
                 <div className="container" style={{ position: 'relative', zIndex: 10, paddingBottom: '5rem', paddingTop: '5rem' }}>
                     <div style={{ maxWidth: '720px' }}>
@@ -102,19 +232,19 @@ const Landing = () => {
                             textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1.5rem'
                         }}>
                             <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>verified</span>
-                            Penyelenggara Ibadah Umroh Resmi (PPIU)
+                            {heroBadge}
                         </div>
 
                         <h1 style={{
                             fontSize: 'clamp(2.5rem, 6vw, 5rem)', fontWeight: 900,
-                            lineHeight: 1.05, marginBottom: '1.5rem', letterSpacing: '-0.03em'
+                            lineHeight: 1.05, marginBottom: '1.5rem', letterSpacing: '-0.03em',
                         }}>
-                            Wujudkan Perjalanan Suci<br />
-                            <span style={{ color: 'var(--color-primary)', fontStyle: 'italic' }}>Anda Bersama Kami</span>
+                            {currentHero.title}<br />
+                            <span style={{ color: 'var(--color-primary)', fontStyle: 'italic' }}>{currentHero.subtitle}</span>
                         </h1>
 
                         <p style={{ fontSize: '1.125rem', color: 'var(--color-text-muted)', maxWidth: '520px', lineHeight: 1.7, marginBottom: '2.5rem' }}>
-                            Platform manajemen haji dan umroh terpadu. Booking, cicilan, dokumen digital, dan notifikasi otomatis dalam satu aplikasi.
+                            {heroSubtitle}
                         </p>
 
                         {/* Search Box */}
@@ -140,16 +270,30 @@ const Landing = () => {
                                     </div>
                                 </div>
                             ))}
-                            <Link to="/register" style={{
+                            <Link to={ctaLink} style={{
                                 background: 'var(--color-primary)', color: 'var(--color-bg)',
                                 fontWeight: 800, padding: '0.875rem 2rem', borderRadius: '0.75rem',
                                 display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none',
                                 fontSize: '0.875rem', whiteSpace: 'nowrap'
                             }}>
                                 <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>search</span>
-                                Cari Paket
+                                {ctaText}
                             </Link>
                         </div>
+
+                        {/* Slide Indicators */}
+                        {heroSlides.length > 1 && (
+                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '2rem' }}>
+                                {heroSlides.map((_, idx) => (
+                                    <button key={idx} onClick={() => setCurrentSlide(idx)} style={{
+                                        width: currentSlide === idx ? '2rem' : '0.5rem', height: '0.5rem',
+                                        borderRadius: '9999px', border: 'none', cursor: 'pointer',
+                                        background: currentSlide === idx ? 'var(--color-primary)' : 'rgba(255,255,255,0.3)',
+                                        transition: 'all 0.3s',
+                                    }} />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </section>
@@ -160,8 +304,8 @@ const Landing = () => {
                     {/* Header */}
                     <div className="package-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
                         <div>
-                            <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Paket Pilihan</h2>
-                            <p style={{ color: 'var(--color-text-muted)' }}>Koleksi paket umroh premium kami yang telah dipilih dengan cermat.</p>
+                            <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>{packagesTitle}</h2>
+                            <p style={{ color: 'var(--color-text-muted)' }}>{packagesSubtitle}</p>
                         </div>
                         {/* Filter tabs */}
                         <div style={{
@@ -169,7 +313,7 @@ const Landing = () => {
                             background: 'rgba(255,255,255,0.05)', borderRadius: '0.5rem',
                             border: '1px solid var(--color-border)'
                         }}>
-                            {filters.map(f => (
+                            {packagesFilters.map(f => (
                                 <button key={f} onClick={() => setActiveFilter(f)} style={{
                                     padding: '0.375rem 1rem', borderRadius: '0.375rem', fontSize: '0.8125rem', fontWeight: 600,
                                     background: activeFilter === f ? 'var(--color-primary)' : 'transparent',
@@ -280,64 +424,88 @@ const Landing = () => {
                         ))}
                     </div>
                 </div>
-            </section >
+            </section>
 
             {/* ===== TESTIMONIALS ===== */}
             <TestimonialGallery />
 
-            {/* ===== TRUST MARKERS ===== */}
-            < section style={{ background: 'rgba(255,255,255,0.03)', borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)', padding: '3rem 0' }}>
-                <div className="container">
-                    <div className="trust-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2rem', opacity: 0.7 }}>
-                        {[
-                            { icon: 'verified_user', label: 'IATA Certified' },
-                            { icon: 'policy', label: 'Kemenag Approved' },
-                            { icon: 'shield_moon', label: 'Halal Guaranteed' },
-                            { icon: 'support_agent', label: 'Support 24/7' },
-                        ].map(item => (
-                            <div key={item.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
-                                <span className="material-symbols-outlined" style={{ fontSize: '2rem', color: 'var(--color-primary)' }}>{item.icon}</span>
-                                <span style={{ fontWeight: 700, fontSize: '0.875rem' }}>{item.label}</span>
-                            </div>
-                        ))}
+            {/* ===== INSTAGRAM EMBED ===== */}
+            {instagramUrl && (
+                <section style={{ padding: '4rem 0', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid var(--color-border)' }}>
+                    <div className="container">
+                        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                            <h2 style={{ fontSize: '1.75rem', fontWeight: 900, marginBottom: '0.5rem' }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '1.75rem', verticalAlign: 'middle', marginRight: '0.5rem', color: 'var(--color-primary)' }}>photo_camera</span>
+                                Follow Kami di Instagram
+                            </h2>
+                            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Lihat kegiatan dan pengalaman jamaah kami</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <iframe
+                                src={`${instagramUrl.replace(/\/$/, '')}/embed`}
+                                width="100%"
+                                height="480"
+                                frameBorder="0"
+                                style={{ borderRadius: '1rem', border: '1px solid var(--color-border)', maxWidth: '540px', background: '#fff' }}
+                                title="Instagram Feed"
+                            />
+                        </div>
                     </div>
-                </div>
-            </section >
+                </section>
+            )}
+
+            {/* ===== TRUST MARKERS ===== */}
+            {trustMarkers.length > 0 && (
+                <section style={{ background: 'rgba(255,255,255,0.03)', borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)', padding: '3rem 0' }}>
+                    <div className="container">
+                        <div className="trust-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(trustMarkers.length, 4)}, 1fr)`, gap: '2rem', opacity: 0.7 }}>
+                            {trustMarkers.map((item, idx) => (
+                                <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '2rem', color: 'var(--color-primary)' }}>{item.icon}</span>
+                                    <span style={{ fontWeight: 700, fontSize: '0.875rem' }}>{item.label}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* ===== FOOTER ===== */}
-            < footer style={{ padding: '4rem 0 2rem', background: 'var(--color-bg)' }}>
+            <footer style={{ padding: '4rem 0 2rem', background: 'var(--color-bg)' }}>
                 <div className="container">
                     <div className="footer-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '3rem', marginBottom: '3rem' }}>
                         <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                                <div style={{ width: '36px', height: '36px', background: 'var(--color-primary)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--color-bg)', fontVariationSettings: "'FILL' 1" }}>mosque</span>
+                                <div style={{ width: '36px', height: '36px', background: 'var(--color-primary)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                    <img src={logoUrl} alt="Logo" style={{ width: '26px', height: '26px', objectFit: 'contain' }} />
                                 </div>
-                                <span style={{ fontWeight: 900, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>AL<span style={{ color: 'var(--color-primary)' }}>MADINAH</span></span>
+                                <span style={{ fontWeight: 900, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
+                                    {brandName}<span style={{ color: 'var(--color-primary)' }}>{brandHighlight}</span>
+                                </span>
                             </div>
                             <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', lineHeight: 1.7, maxWidth: '300px' }}>
-                                Standar emas dalam manajemen perjalanan spiritual. Menghubungkan jamaah dengan agen terpercaya untuk pengalaman ibadah yang sempurna.
+                                {footerDescription}
                             </p>
                         </div>
                         <div>
                             <h4 style={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: '1.25rem' }}>Platform</h4>
                             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-                                {['Portal Agen', 'Program Afiliasi', 'Panduan Visa', 'Kontak Kami'].map(l => (
-                                    <li key={l}><a href="#" style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', transition: 'color 0.2s' }}>{l}</a></li>
+                                {footerLinksPlatform.map((l, idx) => (
+                                    <li key={idx}><a href={l.url} style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', transition: 'color 0.2s' }}>{l.label}</a></li>
                                 ))}
                             </ul>
                         </div>
                         <div>
                             <h4 style={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: '1.25rem' }}>Dukungan</h4>
                             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-                                {['Pusat Bantuan', 'Syarat & Ketentuan', 'Kebijakan Privasi'].map(l => (
-                                    <li key={l}><a href="#" style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', transition: 'color 0.2s' }}>{l}</a></li>
+                                {footerLinksSupport.map((l, idx) => (
+                                    <li key={idx}><a href={l.url} style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', transition: 'color 0.2s' }}>{l.label}</a></li>
                                 ))}
                             </ul>
                         </div>
                     </div>
                     <div className="footer-bottom" style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>© 2025 Al Madinah. Semua hak dilindungi.</p>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>{footerCopyright}</p>
                         <div style={{ display: 'flex', gap: '1.5rem' }}>
                             {['Privasi', 'Ketentuan'].map(l => (
                                 <a key={l} href="#" style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>{l}</a>
@@ -345,33 +513,35 @@ const Landing = () => {
                         </div>
                     </div>
                 </div>
-            </footer >
+            </footer>
 
             {/* WhatsApp Floating */}
-            < a href="https://wa.me/" style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 100 }}>
-                <div style={{ position: 'relative' }}>
-                    <div style={{
-                        position: 'absolute', inset: 0, borderRadius: '9999px',
-                        background: '#25D366', animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite', opacity: 0.3
-                    }} />
-                    <div style={{
-                        position: 'relative', width: '60px', height: '60px', borderRadius: '9999px',
-                        background: '#25D366', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 8px 32px rgba(37,211,102,0.4)', transition: 'transform 0.2s'
-                    }}>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="white" width="28" height="28">
-                            <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.06 3.97l-1.128 4.125 4.223-1.108a7.843 7.843 0 0 0 3.784.975h.002c4.368 0 7.926-3.558 7.93-7.93a7.897 7.897 0 0 0-2.333-5.59z" />
-                        </svg>
+            {whatsappNumber && (
+                <a href={`https://wa.me/${whatsappNumber}`} style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 100 }}>
+                    <div style={{ position: 'relative' }}>
+                        <div style={{
+                            position: 'absolute', inset: 0, borderRadius: '9999px',
+                            background: '#25D366', animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite', opacity: 0.3
+                        }} />
+                        <div style={{
+                            position: 'relative', width: '60px', height: '60px', borderRadius: '9999px',
+                            background: '#25D366', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: '0 8px 32px rgba(37,211,102,0.4)', transition: 'transform 0.2s'
+                        }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="white" width="28" height="28">
+                                <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.06 3.97l-1.128 4.125 4.223-1.108a7.843 7.843 0 0 0 3.784.975h.002c4.368 0 7.926-3.558 7.93-7.93a7.897 7.897 0 0 0-2.333-5.59z" />
+                            </svg>
+                        </div>
                     </div>
-                </div>
-            </a >
+                </a>
+            )}
 
             <style>{`
                 @keyframes ping {
                     75%, 100% { transform: scale(2); opacity: 0; }
                 }
             `}</style>
-        </div >
+        </div>
     );
 };
 
