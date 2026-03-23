@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
+import imageCompression from 'browser-image-compression';
 
 interface HeroSlide {
     image: string;
@@ -184,9 +185,17 @@ const LandingPageEditor = () => {
 
     // File upload helper
     const handleImageUpload = async (file: File, callback: (url: string) => void) => {
-        const fd = new FormData();
-        fd.append('image', file);
         try {
+            const options = {
+                maxSizeMB: 0.5, // 500KB limit for aggressive ~90% compression of typical 5MB photos
+                maxWidthOrHeight: 1920,
+                useWebWorker: true,
+            };
+            const compressedFile = await imageCompression(file, options);
+
+            const fd = new FormData();
+            fd.append('image', compressedFile);
+
             const res = await apiFetch<{ url: string }>('/api/upload/imgbb', { method: 'POST', body: fd });
             if (res.url) callback(res.url);
         } catch (err: any) {
