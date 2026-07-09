@@ -87,10 +87,13 @@ api.post('/package-image', authMiddleware, requireRole('pusat'), async (c) => {
 
         await StorageService.upload(c.env.R2_DOCUMENTS, key, buffer, file.type);
 
+        const urlInfo = new URL(c.req.url);
+        const absoluteUrl = `${urlInfo.origin}/api/upload/package-image/${encodeURIComponent(key)}`;
+
         return c.json({
             success: true,
             key,
-            url: `/api/upload/package-image/${encodeURIComponent(key)}`,
+            url: absoluteUrl,
         });
     } catch (err: any) {
         console.error('Package image upload error:', err);

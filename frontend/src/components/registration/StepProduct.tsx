@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
 
 interface StepProductProps { packageId?: string; }
@@ -10,13 +11,19 @@ const sectionDesc: React.CSSProperties = { fontSize: '0.8125rem', color: '#888',
 
 const StepProduct: React.FC<StepProductProps> = ({ packageId: initialPackageId }) => {
     const { register, setValue, watch } = useFormContext();
+    const [searchParams] = useSearchParams();
     const [packages, setPackages] = useState<any[]>([]);
     const [selectedPackageId, setSelectedPackageId] = useState<string>(initialPackageId || '');
     const [departures, setDepartures] = useState<any[]>([]);
     const [roomTypes, setRoomTypes] = useState<any[]>([]);
+    const [boardingPoints, setBoardingPoints] = useState<any[]>([]);
     const [loadingPackages, setLoadingPackages] = useState(true);
     const [loadingDepartures, setLoadingDepartures] = useState(false);
     const selectedDepartureId = watch('departureId');
+
+    const initialDepartureId = searchParams.get('departure') || '';
+    const initialRoomTypeId = searchParams.get('roomType') || '';
+    const initialBoardingPointId = searchParams.get('boardingPoint') || '';
 
     useEffect(() => {
         const fetchPackages = async () => {
@@ -37,26 +44,58 @@ const StepProduct: React.FC<StepProductProps> = ({ packageId: initialPackageId }
             try {
                 const data = await apiFetch(`/api/departures?packageId=${selectedPackageId}`);
                 setDepartures(data.departures || []);
-                if (data.departures?.length > 0) { setValue('departureId', data.departures[0].id); } else { setValue('departureId', ''); setRoomTypes([]); }
+                if (data.departures?.length > 0) {
+                    const matchedDepId = data.departures.some((d: any) => d.id === initialDepartureId)
+                        ? initialDepartureId
+                        : data.departures[0].id;
+                    setValue('departureId', matchedDepId);
+                } else {
+                    setValue('departureId', '');
+                    setRoomTypes([]);
+                    setBoardingPoints([]);
+                }
             } catch (error) { console.error('Failed to fetch departures:', error); }
             finally { setLoadingDepartures(false); }
         };
         fetchDepartures();
-    }, [selectedPackageId, setValue]);
+    }, [selectedPackageId, setValue, initialDepartureId]);
 
     useEffect(() => {
-        const fetchRooms = async () => {
-            if (!selectedDepartureId) { setRoomTypes([]); return; }
+        const fetchRoomsAndBoardingPoints = async () => {
+            if (!selectedDepartureId) { 
+                setRoomTypes([]); 
+                setBoardingPoints([]); 
+                return; 
+            }
             try {
                 const data = await apiFetch(`/api/departures/${selectedDepartureId}`);
-                setRoomTypes(data.departure?.roomTypes || data.roomTypes || []);
-                if (data.departure?.roomTypes?.length > 0) { setValue('roomTypeId', data.departure.roomTypes[0].id); }
-                else if (data.roomTypes?.length > 0) { setValue('roomTypeId', data.roomTypes[0].id); }
-                else { setValue('roomTypeId', ''); }
-            } catch (error) { console.error('Failed to fetch room types:', error); }
+                const dep = data.departure;
+                setRoomTypes(dep?.roomTypes || data.roomTypes || []);
+                setBoardingPoints(dep?.boardingPoints || []);
+                
+                // Prefill room type
+                if (dep?.roomTypes?.length > 0) {
+                    const matchedRoom = dep.roomTypes.some((r: any) => r.id === initialRoomTypeId)
+                        ? initialRoomTypeId
+                        : dep.roomTypes[0].id;
+                    setValue('roomTypeId', matchedRoom);
+                } else {
+                    setValue('roomTypeId', '');
+                }
+
+                // Prefill boarding point
+                if (dep?.boardingPoints?.length > 0) {
+                    const matchedBp = dep.boardingPoints.some((b: any) => b.id === initialBoardingPointId)
+                        ? initialBoardingPointId
+                        : (dep.boardingPoints.find((b: any) => b.isOrigin)?.id || dep.boardingPoints[0].id);
+                    setValue('boardingPointId', matchedBp);
+                } else {
+                    setValue('boardingPointId', '');
+                }
+            } catch (error) { console.error('Failed to fetch room types / boarding points:', error); }
         };
-        fetchRooms();
-    }, [selectedDepartureId, setValue]);
+        fetchRoomsAndBoardingPoints();
+    }, [selectedDepartureId, setValue, initialRoomTypeId, initialBoardingPointId]);
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -105,6 +144,45 @@ const StepProduct: React.FC<StepProductProps> = ({ packageId: initialPackageId }
                     )}
                 </div>
             </div>
+
+            {/* Boarding Points */}
+            {boardingPoints.length > 1 && (
+                <div>
+                    <h2 style={sectionTitle}>Pilih Kota Keberangkatan</h2>
+                    <p style={sectionDesc}>Tentukan bandara asal / transit keberangkatan Anda.</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                        {boardingPoints
+                            .slice()
+                            .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
+                            .map((bp) => (
+                                <label key={bp.id} style={{
+                                    display: 'flex', flexDirection: 'column', padding: '1rem', borderRadius: '0.5rem', cursor: 'pointer', transition: 'all 0.2s',
+                                    border: watch('boardingPointId') === bp.id ? '2px solid var(--color-primary)' : '2px solid #333',
+                                    background: watch('boardingPointId') === bp.id ? 'var(--color-primary-bg)' : '#0a0907',
+                                }}>
+                                    <input type="radio" value={bp.id} {...register('boardingPointId')} style={{ display: 'none' }} />
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.375rem' }}>
+                                        <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'white' }}>
+                                            {bp.airport?.city} ({bp.airport?.code})
+                                        </span>
+                                        <span style={{ fontSize: '0.6875rem', padding: '0.125rem 0.5rem', background: 'rgba(255,255,255,0.1)', borderRadius: '0.25rem', fontWeight: 700, color: '#ccc' }}>
+                                            {bp.isOrigin ? 'Asal' : 'Transit'}
+                                        </span>
+                                    </div>
+                                    <span style={{ fontWeight: 800, color: 'var(--color-primary)', fontSize: '0.8125rem' }}>
+                                        {bp.priceAdjustment === 0 
+                                            ? 'Tipe Base' 
+                                            : bp.priceAdjustment > 0 
+                                                ? `+ Rp ${new Intl.NumberFormat('id-ID').format(bp.priceAdjustment)}` 
+                                                : `- Rp ${new Intl.NumberFormat('id-ID').format(Math.abs(bp.priceAdjustment))}`
+                                        }
+                                    </span>
+                                    {bp.notes && <p style={{ fontSize: '0.6875rem', color: '#888', margin: '0.25rem 0 0 0' }}>{bp.notes}</p>}
+                                </label>
+                            ))}
+                    </div>
+                </div>
+            )}
 
             {/* Room Types */}
             <div>

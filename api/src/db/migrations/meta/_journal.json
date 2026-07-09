@@ -106,6 +106,20 @@
       "when": 1772010188278,
       "tag": "0014_futuristic_next_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1776317103910,
+      "tag": "0015_exotic_spitfire",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1780657266616,
+      "tag": "0016_supreme_elektra",
+      "breakpoints": true
     }
   ]
 }

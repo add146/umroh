@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { eq, sql, inArray } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
-import { bookings, pilgrims, departures, roomTypes, users } from '../db/schema.js';
+import { bookings, pilgrims, departures, roomTypes, users, documents, departureBoardingPoints } from '../db/schema.js';
 import { checkAvailability } from '../services/availability.js';
 import { useLock } from '../services/seats.js';
 import { authMiddleware } from '../middleware/auth.js';
@@ -18,8 +18,11 @@ const api = new Hono<{ Bindings: Env }>();
 const bookingSchema = z.object({
     departureId: z.string().uuid(),
     roomTypeId: z.string().uuid(),
+    boardingPointId: z.string().uuid().optional(),
     lockKey: z.string().optional(),
     affiliatorId: z.string().optional(),
+
+    pilgrimId: z.string().optional(),
 
     // Section B-F: Pilgrim Data (27 fields)
     pilgrim: z.object({
@@ -48,7 +51,7 @@ const bookingSchema = z.object({
         famContact: z.string(),
 
         sourceFrom: z.string(),
-    })
+    }).optional()
 });
 
 api.post('/', zValidator('json', bookingSchema), async (c) => {
@@ -68,21 +71,7 @@ api.post('/', zValidator('json', bookingSchema), async (c) => {
         }
     }
 
-    // 2. Duplicate Detection (NIK / Phone)
-    const existingPilgrim = await checkDuplicatePilgrim(
-        c.env.DB,
-        body.pilgrim.noKtp,
-        body.pilgrim.phone,
-        body.pilgrim.noPassport
-    );
-
-    if (existingPilgrim) {
-        return c.json({
-            error: `Pendaftaran ditolak: NIK atau Nomor HP sudah terdaftar atas nama ${existingPilgrim.name}.`,
-            isDuplicate: true,
-            pilgrim: existingPilgrim
-        }, 400); // Bad Request
-    }
+    // 2. Duplicate Detection - Allow repeat customers, do not block booking.
 
     // 3. Start Transaction (D1 batch)
     try {
@@ -99,24 +88,38 @@ api.post('/', zValidator('json', bookingSchema), async (c) => {
 
         if (!dep || !dep.package || !room) return c.json({ error: 'Departure, Package or Room Type invalid' }, 400);
 
-        const totalPrice = dep.package.basePrice + room.priceAdjustment;
+        let bpPriceAdjustment = 0;
+        if (body.boardingPointId) {
+            const bp = await db.query.departureBoardingPoints.findFirst({
+                where: eq(departureBoardingPoints.id, body.boardingPointId)
+            });
+            if (bp) {
+                bpPriceAdjustment = bp.priceAdjustment;
+            }
+        }
+
+        const totalPrice = dep.package.basePrice + room.priceAdjustment + bpPriceAdjustment;
 
 
-        // Use a manual batch/transaction approach for D1
-        const pilgrimId = crypto.randomUUID();
+        let finalPilgrimId = body.pilgrimId;
         const bookingId = crypto.randomUUID();
 
         // In a real D1/Drizzle env, we'd use db.batch()
-        await db.insert(pilgrims).values({
-            id: pilgrimId,
-            ...body.pilgrim
-        });
+        if (!finalPilgrimId) {
+            if (!body.pilgrim) return c.json({ error: 'Pilgrim data required' }, 400);
+            finalPilgrimId = crypto.randomUUID();
+            await db.insert(pilgrims).values({
+                id: finalPilgrimId,
+                ...body.pilgrim
+            });
+        }
 
         await db.insert(bookings).values({
             id: bookingId,
             departureId: body.departureId,
-            pilgrimId: pilgrimId,
+            pilgrimId: finalPilgrimId,
             roomTypeId: body.roomTypeId,
+            boardingPointId: body.boardingPointId || null,
             affiliatorId: body.affiliatorId || null,
             totalPrice: totalPrice,
             paymentStatus: 'unpaid',
@@ -140,12 +143,25 @@ api.post('/', zValidator('json', bookingSchema), async (c) => {
         // 7. Send WhatsApp Notification
         try {
             const { WhatsAppService } = await import('../services/whatsapp.js');
-            await WhatsAppService.sendBookingConfirmation(db, body.pilgrim.phone, {
-                name: body.pilgrim.name,
-                bookingId: bookingId,
-                packageName: dep.package.name,
-                amount: dpAmount.toLocaleString('id-ID')
-            });
+            let phone = body.pilgrim?.phone;
+            let name = body.pilgrim?.name;
+
+            if (!phone || !name) {
+                const existing = await db.query.pilgrims.findFirst({ where: eq(pilgrims.id, finalPilgrimId) });
+                if (existing) {
+                    phone = existing.phone;
+                    name = existing.name;
+                }
+            }
+
+            if (phone && name) {
+                await WhatsAppService.sendBookingConfirmation(db, phone, {
+                    name: name,
+                    bookingId: bookingId,
+                    packageName: dep.package.name,
+                    amount: dpAmount.toLocaleString('id-ID')
+                });
+            }
         } catch (waError) {
             console.error('Failed to send WA notification:', waError);
         }
@@ -172,6 +188,7 @@ api.get('/', authMiddleware, async (c) => {
     const db = getDb(c.env.DB);
     const cabangId = c.req.query('cabang_id');
 
+    let data: any[] = [];
     if (user.role === 'pusat') {
         // Pusat sees all bookings with pilgrim data
         let targetUserId = user.id;
@@ -184,21 +201,82 @@ api.get('/', authMiddleware, async (c) => {
             if (visibleBookingIds.length === 0) return c.json({ bookings: [] });
             conditions = inArray(bookings.id, visibleBookingIds);
         }
-        const data = await db.query.bookings.findMany({
+        data = await db.query.bookings.findMany({
             where: conditions,
-            with: { pilgrim: true, departure: { with: { package: true } } }
+            with: { pilgrim: true, departure: { with: { package: true } }, affiliator: true }
         });
-        return c.json({ bookings: data });
     } else {
         // Non-pusat: only see OWN jamaah (direct affiliator) with full detail
         const ownIds = await getOwnBookingIds(c.env.DB, user.id);
         if (ownIds.length === 0) return c.json({ bookings: [] });
-        const data = await db.query.bookings.findMany({
+        data = await db.query.bookings.findMany({
             where: inArray(bookings.id, ownIds),
-            with: { pilgrim: true, departure: { with: { package: true } } }
+            with: { pilgrim: true, departure: { with: { package: true } }, affiliator: true }
         });
-        return c.json({ bookings: data });
     }
+
+    // Fetch documents
+    const pilgrimIds = data.map(b => b.pilgrimId);
+    const allDocs = pilgrimIds.length > 0 
+        ? await db.query.documents.findMany({ where: inArray(documents.pilgrimId, pilgrimIds) })
+        : [];
+    const docTypes = ['ktp', 'passport', 'visa', 'other'];
+    const bookingsWithDocs = data.map((b: any) => {
+        const docs = allDocs.filter((d: any) => d.pilgrimId === b.pilgrimId);
+        const status: any = {};
+        docTypes.forEach(t => {
+            const d = docs.find((doc: any) => doc.docType === t);
+            status[t] = {
+                uploaded: !!d,
+                verified: d ? d.isVerified : false
+            };
+        });
+        const uploadedCount = ['ktp', 'passport', 'visa'].filter(t => status[t].uploaded).length;
+        return {
+            ...b,
+            documentStatus: status,
+            documentCount: { uploaded: uploadedCount, total: 3 }
+        };
+    });
+
+    return c.json({ bookings: bookingsWithDocs });
+});
+
+api.get('/agent/pilgrims', authMiddleware, async (c) => {
+    const user = c.get('user');
+    const db = getDb(c.env.DB);
+    
+    // Fetch all bookings for this agent
+    const ownIds = await getOwnBookingIds(c.env.DB, user.id);
+    if (ownIds.length === 0) return c.json({ pilgrims: [] });
+
+    const agentBookings = await db.query.bookings.findMany({
+        where: inArray(bookings.id, ownIds),
+        with: { pilgrim: true, departure: { with: { package: true } } }
+    });
+
+    // Group by pilgrimId
+    const pilgrimMap = new Map();
+    for (const b of agentBookings) {
+        if (!b.pilgrim) continue;
+        if (!pilgrimMap.has(b.pilgrim.id)) {
+            pilgrimMap.set(b.pilgrim.id, {
+                ...b.pilgrim,
+                history: []
+            });
+        }
+        const p = pilgrimMap.get(b.pilgrim.id);
+        p.history.push({
+            bookingId: b.id,
+            packageName: b.departure?.package?.name || '',
+            departureDate: b.departure?.departureDate || '',
+            bookingStatus: b.bookingStatus,
+            paymentStatus: b.paymentStatus
+        });
+    }
+
+    const uniquePilgrims = Array.from(pilgrimMap.values());
+    return c.json({ pilgrims: uniquePilgrims });
 });
 
 // Opsi A: Downline stats (aggregate only, no contact data)
@@ -210,16 +288,43 @@ api.get('/stats/downline', authMiddleware, async (c) => {
 
 api.get('/check-duplicate', async (c) => {
     const nik = c.req.query('nik');
-    const phone = c.req.query('phone');
-    const passport = c.req.query('passport');
+    if (!nik || nik.length !== 16) return c.json({ isDuplicate: false });
 
-    if (!nik && !phone && !passport) {
-        return c.json({ isDuplicate: false });
-    }
+    const db = getDb(c.env.DB);
+    
+    // Cari all pilgrims with this NIK first
+    const pilgrimRecords = await db.select({ id: pilgrims.id })
+        .from(pilgrims)
+        .where(eq(pilgrims.noKtp, nik));
+        
+    if (pilgrimRecords.length === 0) return c.json({ isDuplicate: false });
+    
+    const pilgrimIds = pilgrimRecords.map((p: any) => p.id);
+    
+    // Cari semua booking dengan NIK ini
+    const existingBookings = await db.query.bookings.findMany({
+        where: inArray(bookings.pilgrimId, pilgrimIds),
+        with: {
+            pilgrim: true,
+            affiliator: true,  // INFO AGEN
+            departure: { with: { package: true } }
+        }
+    });
 
-    const existing = await checkDuplicatePilgrim(c.env.DB, nik, phone, passport);
-    if (existing) {
-        return c.json({ isDuplicate: true, pilgrim: existing });
+    if (existingBookings.length > 0) {
+        const latest = existingBookings[existingBookings.length - 1];
+        return c.json({
+            isDuplicate: true,
+            pilgrimName: latest.pilgrim?.name,
+            agent: latest.affiliator ? {
+                name: latest.affiliator.name,
+                phone: latest.affiliator.phone,
+                role: latest.affiliator.role
+            } : null,
+            bookingCount: existingBookings.length,
+            lastPackage: latest.departure?.package?.name,
+            message: 'Jamaah ini sudah terdaftar. Silakan hubungi agen terkait.'
+        });
     }
     return c.json({ isDuplicate: false });
 });
@@ -238,12 +343,32 @@ api.get('/:id/status', async (c) => {
                     package: true
                 }
             },
-            invoices: true
+            invoices: true,
+            affiliator: true
         }
     });
 
     if (!data) return c.json({ error: 'Booking not found' }, 404);
-    return c.json(data);
+
+    const docs = await db.query.documents.findMany({
+        where: eq(documents.pilgrimId, data.pilgrimId)
+    });
+    const docTypes = ['ktp', 'passport', 'visa', 'other'];
+    const status: any = {};
+    docTypes.forEach(t => {
+        const d = docs.find((doc: any) => doc.docType === t);
+        status[t] = {
+            uploaded: !!d,
+            verified: d ? d.isVerified : false
+        };
+    });
+    const uploadedCount = ['ktp', 'passport', 'visa'].filter(t => status[t].uploaded).length;
+
+    return c.json({
+        ...data,
+        documentStatus: status,
+        documentCount: { uploaded: uploadedCount, total: 3 }
+    });
 });
 
 // Follow up WA action

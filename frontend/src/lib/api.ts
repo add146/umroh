@@ -5,13 +5,17 @@ const API_URL = import.meta.env.VITE_API_URL || 'https://umroh-api.khibroh.worke
 export async function apiFetch<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const { accessToken, updateAccessToken, logout } = useAuthStore.getState();
 
+    const headers = new Headers(options.headers);
+    if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
+        headers.set('Content-Type', 'application/json');
+    }
+    if (accessToken) {
+        headers.set('Authorization', `Bearer ${accessToken}`);
+    }
+
     const config = {
         ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {}),
-            ...options.headers,
-        },
+        headers,
     };
 
     try {

@@ -8,6 +8,25 @@ export const LoginPage: React.FC = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    
+    // Dynamic settings state
+    const [logoUrl, setLogoUrl] = useState('/logo.png');
+    const [brandName, setBrandName] = useState('Al');
+    const [brandHighlight, setBrandHighlight] = useState('Madinah');
+
+    React.useEffect(() => {
+        apiFetch<{ settings: Record<string, any> }>('/api/landing-settings')
+            .then(data => {
+                const s = data.settings || {};
+                const API_URL = import.meta.env.VITE_API_URL || 'https://umroh-api.khibroh.workers.dev';
+                const enforceAbsolute = (url?: string) => (url && url.startsWith('/') ? `${API_URL}${url}` : url);
+
+                if (s.logo_url) setLogoUrl(enforceAbsolute(s.logo_url) || '');
+                if (s.brand_name) setBrandName(s.brand_name);
+                if (s.brand_highlight) setBrandHighlight(s.brand_highlight);
+            })
+            .catch(console.error);
+    }, []);
 
     const setAuth = useAuthStore((state) => state.setAuth);
     const navigate = useNavigate();
@@ -55,8 +74,10 @@ export const LoginPage: React.FC = () => {
                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
             }}>
                 <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-                    <img src="/logo.png" alt="Al Madinah" style={{ width: '64px', height: '64px', objectFit: 'contain', margin: '0 auto 1rem' }} />
-                    <h1 style={{ color: 'var(--color-primary)', fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.025em' }}>Al Madinah</h1>
+                    <img src={logoUrl} alt="Logo" style={{ width: '64px', height: '64px', objectFit: 'contain', margin: '0 auto 1rem' }} />
+                    <h1 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.025em', textTransform: 'uppercase' }}>
+                        {brandName}<span style={{ color: 'var(--color-primary)' }}>{brandHighlight}</span>
+                    </h1>
                     <p style={{ color: 'var(--color-text-muted)', marginTop: '0.5rem', fontSize: '0.875rem', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Management System Login</p>
                 </div>
 

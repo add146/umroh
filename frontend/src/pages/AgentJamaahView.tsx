@@ -6,6 +6,15 @@ export const AgentJamaahView: React.FC = () => {
     const { accessToken } = useAuthStore();
     const [bookings, setBookings] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
+
+    const toggleExpand = (id: string) => {
+        setExpandedCards(prev => ({
+            ...prev,
+            [id]: !prev[id]
+        }));
+    };
 
     // Document states
     const [selectedDocPilgrim, setSelectedDocPilgrim] = useState<any>(null);
@@ -90,6 +99,7 @@ export const AgentJamaahView: React.FC = () => {
                 alert('Dokumen berhasil diunggah!');
                 setDocFile(null);
                 fetchDocuments(selectedDocPilgrim.id);
+                fetchBookings();
             } else {
                 alert('Gagal: ' + data.error);
             }
@@ -117,102 +127,258 @@ export const AgentJamaahView: React.FC = () => {
         }
     };
 
-    // Filter bookings into columns
-    const unpaidBookings = bookings.filter(b => b.paymentStatus === 'unpaid' && b.bookingStatus !== 'cancelled');
-    const partialBookings = bookings.filter(b => b.paymentStatus === 'partial' && b.bookingStatus !== 'cancelled');
-    const paidBookings = bookings.filter(b => b.paymentStatus === 'paid' && b.bookingStatus !== 'cancelled');
+    // Filter bookings based on search query and active status
+    const filteredBookings = bookings.filter(b => {
+        // Hide past bookings from Data Jamaahku
+        if (b.departure?.departureDate) {
+            const departureDate = new Date(b.departure.departureDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset time for accurate date comparison
+            if (departureDate < today) return false;
+        }
 
-    const renderCard = (b: any) => (
-        <div key={b.id} style={{
-            backgroundColor: 'rgb(30, 29, 27)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '0.5rem',
-            padding: '1rem',
-            marginBottom: '1rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem'
-        }}>
-            <div>
-                <h4 style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600 }}>{b.pilgrim?.name || 'Anon'}</h4>
-                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>{b.pilgrim?.phone || '-'}</p>
-            </div>
+        if (!searchQuery) return true;
+        const q = searchQuery.toLowerCase();
+        const name = (b.pilgrim?.name || '').toLowerCase();
+        const nik = (b.pilgrim?.noKtp || '').toLowerCase();
+        const phone = (b.pilgrim?.phone || '').toLowerCase();
+        return name.includes(q) || nik.includes(q) || phone.includes(q);
+    });
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{
-                    padding: '0.2rem 0.5rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 700,
-                    backgroundColor: b.paymentStatus === 'paid' ? 'rgba(22, 163, 74, 0.15)' : b.paymentStatus === 'partial' ? 'rgba(217, 119, 6, 0.15)' : 'rgba(220, 38, 38, 0.15)',
-                    color: b.paymentStatus === 'paid' ? '#4ade80' : b.paymentStatus === 'partial' ? '#fbbf24' : '#f87171'
-                }}>
-                    {b.paymentStatus.toUpperCase()}
-                </span>
-                <span style={{
-                    padding: '0.2rem 0.5rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 700,
-                    backgroundColor: 'rgba(12, 165, 233, 0.15)', color: '#38bdf8'
-                }}>
-                    {b.bookingStatus.toUpperCase()}
-                </span>
-            </div>
+    const unpaidBookings = filteredBookings.filter(b => b.paymentStatus === 'unpaid' && b.bookingStatus !== 'cancelled');
+    const partialBookings = filteredBookings.filter(b => b.paymentStatus === 'partial' && b.bookingStatus !== 'cancelled');
+    const paidBookings = filteredBookings.filter(b => b.paymentStatus === 'paid' && b.bookingStatus !== 'cancelled');
 
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
-                <button
-                    className="btn btn-secondary"
-                    style={{ flex: 1, padding: '0.5rem', borderRadius: '0.375rem', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', border: 'none', cursor: 'pointer' }}
-                    onClick={() => setSelectedDocPilgrim(b.pilgrim)}
-                    title="Dokumen Jamaah"
-                >
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px', marginRight: '4px' }}>folder_open</span>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Dokumen</span>
-                </button>
-                {b.pilgrim?.phone && (
-                    <button
-                        className="btn btn-secondary"
-                        style={{ flex: 1, padding: '0.5rem', borderRadius: '0.375rem', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(37, 211, 102, 0.1)', color: '#25D366', border: 'none', cursor: 'pointer' }}
-                        onClick={() => handleWhatsApp(b.id, b.pilgrim.phone, b.pilgrim.name)}
-                        title="Hubungi WhatsApp"
-                    >
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px', marginRight: '4px' }}>chat</span>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>WA</span>
-                    </button>
-                )}
-                {b.bookingStatus === 'pending' && (
-                    <button
-                        className="btn btn-primary"
-                        style={{ flex: 1, padding: '0.5rem', fontSize: '0.75rem', borderRadius: '0.375rem', textTransform: 'uppercase', fontWeight: 700, border: 'none', cursor: 'pointer' }}
-                        onClick={() => handleReadyReview(b.id)}
-                    >
-                        Review
-                    </button>
-                )}
-                {b.bookingStatus === 'ready_review' && (
-                    <span style={{
-                        flex: 1,
-                        padding: '0.5rem',
-                        fontSize: '0.7rem',
-                        borderRadius: '0.375rem',
-                        textTransform: 'uppercase',
-                        fontWeight: 700,
-                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                        color: 'var(--color-text-muted)',
-                        textAlign: 'center',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}>
-                        Sedang Direview
-                    </span>
+    const renderCard = (b: any) => {
+        const isExpanded = expandedCards[b.id] || false;
+        const packageName = b.departure?.package?.name || '';
+        const tripName = b.departure?.tripName || '';
+        const nameToCompare = (packageName + ' ' + tripName).toLowerCase();
+        const packageLabel = nameToCompare.includes('haji') ? 'Haji' : 'Umroh';
+
+        return (
+            <div key={b.id} style={{
+                backgroundColor: 'rgb(30, 29, 27)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '0.5rem',
+                padding: '1rem',
+                marginBottom: '1rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: isExpanded ? '0 10px 15px -3px rgba(0, 0, 0, 0.3)' : 'none'
+            }} onClick={() => toggleExpand(b.id)}>
+                {/* Header (Always Visible) */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                    <div style={{ flex: 1 }}>
+                        <h4 style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color: 'white' }}>{b.pilgrim?.name || 'Anon'}</h4>
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                            NIK: {b.pilgrim?.noKtp || '-'}
+                        </p>
+                        <p style={{ margin: 0, fontSize: '0.725rem', color: 'var(--color-primary)', fontWeight: 600, marginTop: '0.25rem' }}>
+                            {packageLabel}: {packageName || 'Tanpa Paket'}
+                        </p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={(e) => e.stopPropagation()}>
+                        {!isExpanded && b.documentCount && (
+                            <span style={{
+                                padding: '0.125rem 0.375rem',
+                                borderRadius: '4px',
+                                fontSize: '0.65rem',
+                                fontWeight: 700,
+                                background: b.documentCount.uploaded === b.documentCount.total ? 'rgba(34,197,94,0.1)' : 'rgba(234,179,8,0.1)',
+                                color: b.documentCount.uploaded === b.documentCount.total ? '#22c55e' : '#eab308'
+                            }}>
+                                {b.documentCount.uploaded}/{b.documentCount.total}
+                            </span>
+                        )}
+                        <button 
+                            onClick={() => toggleExpand(b.id)}
+                            style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', display: 'flex', padding: 0 }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                                {isExpanded ? 'expand_less' : 'expand_more'}
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Collapsible Content */}
+                {isExpanded && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }} onClick={(e) => e.stopPropagation()}>
+                        {/* Document Checklist Info */}
+                        <div style={{
+                            background: 'rgba(255, 255, 255, 0.02)',
+                            border: '1px solid rgba(255, 255, 255, 0.05)',
+                            borderRadius: '0.375rem',
+                            padding: '0.5rem 0.75rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.375rem'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
+                                <span>Ceklist Dokumen</span>
+                                <span>{b.documentCount?.uploaded || 0} / {b.documentCount?.total || 3}</span>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.375rem', marginTop: '0.125rem' }}>
+                                {['ktp', 'passport', 'visa', 'other'].map(t => {
+                                    const status = b.documentStatus?.[t] || { uploaded: false, verified: false };
+                                    const docLabels: Record<string, string> = {
+                                        ktp: 'KTP',
+                                        passport: 'Paspor',
+                                        visa: 'Visa',
+                                        other: 'Lainnya'
+                                    };
+                                    let textColor = 'var(--color-text-muted)';
+                                    let icon = 'circle';
+                                    let iconColor = 'rgba(255,255,255,0.1)';
+                                    if (status.uploaded) {
+                                        if (status.verified) {
+                                            textColor = '#4ade80';
+                                            icon = 'check_circle';
+                                            iconColor = '#4ade80';
+                                        } else {
+                                            textColor = '#fbbf24';
+                                            icon = 'info';
+                                            iconColor = '#fbbf24';
+                                        }
+                                    } else {
+                                        if (t === 'other') {
+                                            textColor = '#888888';
+                                            icon = 'circle';
+                                            iconColor = '#888888';
+                                        } else {
+                                            textColor = '#f87171';
+                                            icon = 'cancel';
+                                            iconColor = '#f87171';
+                                        }
+                                    }
+                                    return (
+                                        <div key={t} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.7rem' }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '11px', color: iconColor }}>{icon}</span>
+                                            <span style={{ color: textColor, fontWeight: 500 }}>
+                                                {docLabels[t]}{t === 'other' && !status.uploaded ? ' (Opsional)' : ''}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Status Badges */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span style={{
+                                padding: '0.2rem 0.5rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 700,
+                                backgroundColor: b.paymentStatus === 'paid' ? 'rgba(22, 163, 74, 0.15)' : b.paymentStatus === 'partial' ? 'rgba(217, 119, 6, 0.15)' : 'rgba(220, 38, 38, 0.15)',
+                                color: b.paymentStatus === 'paid' ? '#4ade80' : b.paymentStatus === 'partial' ? '#fbbf24' : '#f87171'
+                            }}>
+                                {b.paymentStatus.toUpperCase()}
+                            </span>
+                            <span style={{
+                                padding: '0.2rem 0.5rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 700,
+                                backgroundColor: 'rgba(12, 165, 233, 0.15)', color: '#38bdf8'
+                            }}>
+                                {b.bookingStatus.toUpperCase()}
+                            </span>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+                            <button
+                                className="btn btn-secondary"
+                                style={{ flex: 1, padding: '0.5rem', borderRadius: '0.375rem', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', border: 'none', cursor: 'pointer' }}
+                                onClick={() => setSelectedDocPilgrim(b.pilgrim)}
+                                title="Dokumen Jamaah"
+                            >
+                                <span className="material-symbols-outlined" style={{ fontSize: '16px', marginRight: '4px' }}>folder_open</span>
+                                <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Dokumen</span>
+                            </button>
+                            {b.pilgrim?.phone && (
+                                <button
+                                    className="btn btn-secondary"
+                                    style={{ flex: 1, padding: '0.5rem', borderRadius: '0.375rem', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(37, 211, 102, 0.1)', color: '#25D366', border: 'none', cursor: 'pointer' }}
+                                    onClick={() => handleWhatsApp(b.id, b.pilgrim.phone, b.pilgrim.name)}
+                                    title="Hubungi WhatsApp"
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '16px', marginRight: '4px' }}>chat</span>
+                                    <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>WA</span>
+                                </button>
+                            )}
+                            {b.bookingStatus === 'pending' && (
+                                <button
+                                    className="btn btn-primary"
+                                    style={{ flex: 1, padding: '0.5rem', fontSize: '0.75rem', borderRadius: '0.375rem', textTransform: 'uppercase', fontWeight: 700, border: 'none', cursor: 'pointer' }}
+                                    onClick={() => handleReadyReview(b.id)}
+                                >
+                                    Review
+                                </button>
+                            )}
+                            {b.bookingStatus === 'ready_review' && (
+                                <span style={{
+                                    flex: 1,
+                                    padding: '0.5rem',
+                                    fontSize: '0.7rem',
+                                    borderRadius: '0.375rem',
+                                    textTransform: 'uppercase',
+                                    fontWeight: 700,
+                                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                    color: 'var(--color-text-muted)',
+                                    textAlign: 'center',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}>
+                                    Sedang Direview
+                                </span>
+                            )}
+                        </div>
+                    </div>
                 )}
             </div>
-        </div>
-    );
+        );
+    };
 
     return (
         <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <div>
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-primary)' }}>Data Jamaah (Follow-Up)</h1>
                     <p style={{ color: 'var(--color-text-light)' }}>Pantau dan verifikasi data jamaah Anda sebelum direview Cabang</p>
                 </div>
+            </div>
+
+            {/* Search Bar */}
+            <div style={{
+                marginBottom: '2rem',
+                position: 'relative',
+                maxWidth: '400px'
+            }}>
+                <span className="material-symbols-outlined" style={{
+                    position: 'absolute',
+                    left: '0.75rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: '#888',
+                    fontSize: '20px'
+                }}>search</span>
+                <input
+                    type="text"
+                    placeholder="Cari nama, NIK, atau nomor HP..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem 0.75rem 2.5rem',
+                        backgroundColor: 'rgb(30, 29, 27)',
+                        border: '1px solid var(--color-border)',
+                        color: 'white',
+                        borderRadius: '0.5rem',
+                        outline: 'none',
+                        fontSize: '0.875rem'
+                    }}
+                />
             </div>
 
             {isLoading ? (

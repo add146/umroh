@@ -14,7 +14,36 @@ export const DownlineManage: React.FC = () => {
         phone: '',
         password: '',
         targetRole: '',
+        nik: '',
     });
+
+    const [nikError, setNikError] = useState<string | null>(null);
+    const [checkingNik, setCheckingNik] = useState(false);
+
+    useEffect(() => {
+        if (!formData.nik || formData.nik.length !== 16) {
+            setNikError(null);
+            return;
+        }
+
+        const verifyNik = async () => {
+            setCheckingNik(true);
+            try {
+                const response = await apiFetch<any>(`/api/users/check-nik?nik=${formData.nik}`);
+                if (response.exists) {
+                    setNikError(`NIK sudah terdaftar atas nama ${response.user.name} (${response.user.role})`);
+                } else {
+                    setNikError(null);
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setCheckingNik(false);
+            }
+        };
+
+        verifyNik();
+    }, [formData.nik]);
 
     const fetchDownlines = async () => {
         setIsLoading(true);
@@ -34,13 +63,22 @@ export const DownlineManage: React.FC = () => {
 
     const handleCreateDownline = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (formData.nik.length !== 16) {
+            alert('NIK harus 16 digit');
+            return;
+        }
+        if (nikError) {
+            alert('Gagal: ' + nikError);
+            return;
+        }
         try {
             await apiFetch('/api/users', {
                 method: 'POST',
                 body: JSON.stringify(formData),
             });
             setIsModalOpen(false);
-            setFormData({ name: '', email: '', phone: '', password: '', targetRole: '' });
+            setFormData({ name: '', email: '', phone: '', password: '', targetRole: '', nik: '' });
+            setNikError(null);
             fetchDownlines();
         } catch (err: any) {
             alert(err.message || 'Failed to add downline');
@@ -125,6 +163,24 @@ export const DownlineManage: React.FC = () => {
                             <div style={{ marginBottom: '1rem' }}>
                                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Nama Lengkap *</label>
                                 <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', background: 'var(--color-bg-alt)', color: 'var(--color-text)' }} />
+                            </div>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>NIK KTP *</label>
+                                <input 
+                                    type="text" 
+                                    value={formData.nik} 
+                                    onChange={e => setFormData({ ...formData, nik: e.target.value.replace(/[^0-9]/g, '') })} 
+                                    required 
+                                    maxLength={16} 
+                                    placeholder="16 Digit NIK KTP" 
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', background: 'var(--color-bg-alt)', color: 'var(--color-text)', fontFamily: 'monospace' }} 
+                                />
+                                {checkingNik && (
+                                    <p style={{ color: '#eab308', fontSize: '0.75rem', marginTop: '0.25rem', margin: 0 }}>Mengecek NIK...</p>
+                                )}
+                                {nikError && (
+                                    <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.25rem', margin: 0 }}>{nikError}</p>
+                                )}
                             </div>
                             <div style={{ marginBottom: '1rem' }}>
                                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>No. WhatsApp *</label>

@@ -3,7 +3,7 @@ export class WhatsAppService {
     private static DEFAULT_BASE_URL = 'https://waha.khibroh.com';
     private static DEFAULT_SESSION = 'default';
 
-    /** Fetch WAHA config from admin user in DB */
+    /** Fetch Evolution API config from admin user in DB */
     static async getWahaConfig(db: any) {
         const { eq } = await import('drizzle-orm');
         const { users } = await import('../db/schema.js');
@@ -23,88 +23,81 @@ export class WhatsAppService {
         return phone.startsWith('0') ? '62' + phone.substring(1) : phone;
     }
 
-    /** Start typing indicator via WAHA API */
-    static async startTyping(baseUrl: string, apiKey: string, session: string, chatId: string) {
-        try {
-            await fetch(`${baseUrl}/api/startTyping`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Api-Key': apiKey.trim()
-                },
-                body: JSON.stringify({ chatId, session })
-            });
-        } catch (err) {
-            console.error('Typing indicator error (non-fatal):', err);
+    /** ── Evolution API Helpers ─────────────────────────────── */
+
+    /** Get QR code for an instance (Evolution API) */
+    static async getQRCode(baseUrl: string, apiKey: string, instanceName: string) {
+        const res = await fetch(`${baseUrl}/instance/fetchInstances`, {
+            headers: { 'apikey': apiKey.trim(), 'Content-Type': 'application/json' }
+        });
+        if (!res.ok) throw new Error('Gagal menghubungi Evolution API');
+
+        // Try connect endpoint which returns QR
+        const connectRes = await fetch(`${baseUrl}/instance/connect/${instanceName}`, {
+            headers: { 'apikey': apiKey.trim() }
+        });
+        if (!connectRes.ok) {
+            const err = await connectRes.json().catch(() => ({}));
+            throw new Error(err.message || 'Gagal mendapatkan QR code');
         }
+        const data = await connectRes.json();
+        return data; // { base64, code, count, pairingCode }
     }
 
-    /** Stop typing indicator via WAHA API */
-    static async stopTyping(baseUrl: string, apiKey: string, session: string, chatId: string) {
-        try {
-            await fetch(`${baseUrl}/api/stopTyping`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Api-Key': apiKey.trim()
-                },
-                body: JSON.stringify({ chatId, session })
-            });
-        } catch (err) {
-            // non-fatal
-        }
+    /** Get instance connection state */
+    static async getConnectionState(baseUrl: string, apiKey: string, instanceName: string) {
+        const res = await fetch(`${baseUrl}/instance/connectionState/${instanceName}`, {
+            headers: { 'apikey': apiKey.trim() }
+        });
+        if (!res.ok) throw new Error('Gagal mendapatkan status koneksi');
+        return res.json();
     }
 
-    /** Random delay between min and max milliseconds */
-    static delay(minMs: number, maxMs: number): Promise<void> {
-        const ms = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
-        return new Promise(resolve => setTimeout(resolve, ms));
+    /** Logout / disconnect instance */
+    static async logoutInstance(baseUrl: string, apiKey: string, instanceName: string) {
+        const res = await fetch(`${baseUrl}/instance/logout/${instanceName}`, {
+            method: 'DELETE',
+            headers: { 'apikey': apiKey.trim() }
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.message || 'Gagal logout dari WhatsApp');
+        }
+        return res.json();
     }
 
     /**
-     * Send a single message with typing indicator + delay.
-     * Used for both individual send and each iteration of bulk send.
+     * Send message via Evolution API
+     * POST /message/sendText/{instance}
      */
     static async sendMessage(db: any, to: string, message: string) {
         const formattedTo = this.formatPhone(to);
-        const chatId = `${formattedTo}@c.us`;
 
         try {
             const config = await this.getWahaConfig(db);
 
-            // 1. Start typing indicator
-            await this.startTyping(config.baseUrl, config.apiKey, config.session, chatId);
-
-            // 2. Wait random 3-8 seconds (simulates human typing)
-            await this.delay(3000, 8000);
-
-            // 3. Stop typing
-            await this.stopTyping(config.baseUrl, config.apiKey, config.session, chatId);
-
-            // 4. Send the actual message
-            const response = await fetch(`${config.baseUrl}/api/sendText`, {
+            const response = await fetch(`${config.baseUrl}/message/sendText/${config.session}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Api-Key': config.apiKey.trim()
+                    'apikey': config.apiKey.trim()
                 },
                 body: JSON.stringify({
-                    chatId,
+                    number: formattedTo,
                     text: message,
-                    session: config.session
                 })
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                console.error('WhatsApp API Error:', errorData);
-                return { success: false, error: errorData };
+                const errorData = await response.json().catch(() => ({}));
+                console.error('Evolution API Error:', errorData);
+                return { success: false, error: errorData.message || JSON.stringify(errorData) };
             }
 
             return { success: true };
-        } catch (error) {
+        } catch (error: any) {
             console.error('WhatsApp Service Error:', error);
-            return { success: false, error };
+            return { success: false, error: error.message };
         }
     }
 

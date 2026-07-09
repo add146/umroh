@@ -15,6 +15,7 @@ import StepReview from '../components/registration/StepReview';
 const registrationSchema = z.object({
     departureId: z.string().uuid(),
     roomTypeId: z.string().uuid(),
+    boardingPointId: z.string().uuid().optional().nullable(),
     pilgrim: z.object({
         name: z.string().min(3, "Nama minimal 3 karakter"),
         noKtp: z.string().length(16, "KTP harus 16 digit"),
@@ -87,6 +88,25 @@ const Registration = () => {
     const [lockKey] = useState<string | null>(null);
     const [, setVisitedSteps] = useState<Set<number>>(new Set([1]));
     const [referrer, setReferrer] = useState<{ id: string; name: string; code: string } | null>(null);
+
+    // Dynamic branding state
+    const [logoUrl, setLogoUrl] = useState('/logo.png');
+    const [brandName, setBrandName] = useState('AL');
+    const [brandHighlight, setBrandHighlight] = useState('MADINAH');
+
+    useEffect(() => {
+        apiFetch<{ settings: Record<string, any> }>('/api/landing-settings')
+            .then(data => {
+                const s = data.settings || {};
+                const API_URL = import.meta.env.VITE_API_URL || 'https://umroh-api.khibroh.workers.dev';
+                const enforceAbsolute = (url?: string) => (url && url.startsWith('/') ? `${API_URL}${url}` : url);
+
+                if (s.logo_url) setLogoUrl(enforceAbsolute(s.logo_url) || '');
+                if (s.brand_name) setBrandName(s.brand_name);
+                if (s.brand_highlight) setBrandHighlight(s.brand_highlight);
+            })
+            .catch(console.error);
+    }, []);
 
     const methods = useForm<RegistrationData>({
         resolver: zodResolver(registrationSchema),
@@ -184,14 +204,21 @@ const Registration = () => {
 
             navigate(`/payment/${response.bookingId}`);
         } catch (error: any) {
-            // Enhanced Error Handling for Duplicates
-            if (error.message.includes('Pendaftaran ditolak')) {
-                alert(`⚠️ ${error.message}`);
-            } else {
-                alert('Pendaftaran gagal: ' + error.message);
-            }
+            alert('Pendaftaran gagal: ' + error.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const onSubmitError = (errors: any) => {
+        console.error('Validation errors:', errors);
+        const missing = getMissingFields();
+        if (missing.length > 0) {
+            const firstMissingStep = missing[0];
+            alert(`Pendaftaran belum bisa disubmit. Mohon lengkapi data wajib di langkah "${firstMissingStep.label}" terlebih dahulu.`);
+            goToStep(firstMissingStep.step);
+        } else {
+            alert('Mohon lengkapi seluruh formulir yang wajib diisi sebelum mendaftar.');
         }
     };
 
@@ -227,10 +254,10 @@ const Registration = () => {
             <nav style={{ background: '#131210', borderBottom: '1px solid var(--color-border)', padding: '0 1.5rem', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <div style={{ width: '36px', height: '36px', background: 'var(--color-primary)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                        <img src="/logo.png" alt="Logo" style={{ width: '26px', height: '26px', objectFit: 'contain' }} />
+                        <img src={logoUrl} alt="Logo" style={{ width: '26px', height: '26px', objectFit: 'contain' }} />
                     </div>
                     <span style={{ fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.02em' }}>
-                        AL<span style={{ color: 'var(--color-primary)' }}>MADINAH</span>
+                        {brandName}<span style={{ color: 'var(--color-primary)' }}>{brandHighlight}</span>
                     </span>
                 </div>
                 <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
@@ -300,7 +327,7 @@ const Registration = () => {
                     </div>
 
                     <FormProvider {...methods}>
-                        <form onSubmit={methods.handleSubmit(onSubmit)}>
+                        <form onSubmit={methods.handleSubmit(onSubmit, onSubmitError)}>
                             {currentStep === 1 && <StepProduct packageId={searchParams.get('package') || ''} />}
                             {currentStep === 2 && <StepPersonal />}
                             {currentStep === 3 && <StepPassport />}

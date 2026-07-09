@@ -99,22 +99,30 @@ const LandingPageEditor = () => {
         apiFetch<{ settings: Record<string, any> }>('/api/landing-settings')
             .then(data => {
                 const s = data.settings || {};
-                if (s.logo_url) setLogoUrl(s.logo_url);
+                const API_URL = import.meta.env.VITE_API_URL || 'https://umroh-api.khibroh.workers.dev';
+                const enforceAbsolute = (url?: string) => (url && url.startsWith('/') ? `${API_URL}${url}` : url);
+
+                if (s.logo_url) setLogoUrl(enforceAbsolute(s.logo_url) || '');
                 if (s.brand_name) setBrandName(s.brand_name);
                 if (s.brand_highlight) setBrandHighlight(s.brand_highlight);
                 if (s.primary_color) setPrimaryColor(s.primary_color);
                 if (s.hero_badge) setHeroBadge(s.hero_badge);
-                if (s.hero_slides) {
-                    const slides = Array.isArray(s.hero_slides) ? s.hero_slides : [];
-                    // Ensure exactly 3 slides
-                    while (slides.length < 3) slides.push({ image: '', title: '', subtitle: '' });
-                    setHeroSlides(slides.slice(0, 3));
-                }
                 if (s.hero_subtitle) setHeroSubtitle(s.hero_subtitle);
                 if (s.cta_text) setCtaText(s.cta_text);
                 if (s.cta_link) setCtaLink(s.cta_link);
                 if (s.packages_title) setPackagesTitle(s.packages_title);
                 if (s.packages_subtitle) setPackagesSubtitle(s.packages_subtitle);
+
+                // Fix hero slides URLs too
+                if (s.hero_slides && Array.isArray(s.hero_slides)) {
+                    const slides = s.hero_slides.map((slide: any) => ({
+                        ...slide,
+                        image: enforceAbsolute(slide.image) || slide.image
+                    }));
+                    while (slides.length < 3) slides.push({ image: '', title: '', subtitle: '' });
+                    setHeroSlides(slides.slice(0, 3));
+                }
+
                 if (s.packages_filters) setPackagesFilters(Array.isArray(s.packages_filters) ? s.packages_filters : ['Semua']);
                 if (s.nav_links) setNavLinks(Array.isArray(s.nav_links) ? s.nav_links : []);
                 if (s.trust_markers) setTrustMarkers(Array.isArray(s.trust_markers) ? s.trust_markers : []);
@@ -122,7 +130,7 @@ const LandingPageEditor = () => {
                 if (s.footer_links_platform) setFooterLinksPlatform(Array.isArray(s.footer_links_platform) ? s.footer_links_platform : []);
                 if (s.footer_links_support) setFooterLinksSupport(Array.isArray(s.footer_links_support) ? s.footer_links_support : []);
                 if (s.footer_copyright) setFooterCopyright(s.footer_copyright);
-                if (s.whatsapp_number !== undefined) setWhatsappNumber(s.whatsapp_number);
+                if (s.whatsapp_number !== undefined) setWhatsappNumber(String(s.whatsapp_number));
                 if (s.instagram_url !== undefined) setInstagramUrl(s.instagram_url);
                 if (s.social_media) setSocialMedia(Array.isArray(s.social_media) ? s.social_media : []);
                 if (s.promo_banner) setPromoBanner(typeof s.promo_banner === 'object' ? s.promo_banner : { enabled: false, text: '', bgColor: '#C8A951' });
@@ -196,8 +204,12 @@ const LandingPageEditor = () => {
             const fd = new FormData();
             fd.append('image', compressedFile);
 
-            const res = await apiFetch<{ url: string }>('/api/upload/imgbb', { method: 'POST', body: fd });
-            if (res.url) callback(res.url);
+            const res = await apiFetch<{ url: string }>('/api/upload/package-image', { method: 'POST', body: fd });
+            if (res.url) {
+                const API_URL = import.meta.env.VITE_API_URL || 'https://umroh-api.khibroh.workers.dev';
+                const finalUrl = res.url.startsWith('/') ? `${API_URL}${res.url}` : res.url;
+                callback(finalUrl);
+            }
         } catch (err: any) {
             showToast('Upload gagal: ' + err.message, 'error');
         }

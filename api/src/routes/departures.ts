@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { eq, and } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
-import { departures, roomTypes } from '../db/schema.js';
+import { departures, roomTypes, departureBoardingPoints } from '../db/schema.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { requireRole } from '../middleware/rbac.js';
 import { Env } from '../index.js';
@@ -30,6 +30,14 @@ const roomTypeSchema = z.object({
     priceAdjustment: z.number().int(),
 });
 
+const boardingPointSchema = z.object({
+    airportId: z.string().uuid(),
+    isOrigin: z.boolean().default(false),
+    sortOrder: z.number().int().default(0),
+    priceAdjustment: z.number().int().default(0),
+    notes: z.string().optional().nullable(),
+});
+
 api.get('/', async (c) => {
     const packageId = c.req.query('packageId');
     const db = getDb(c.env.DB);
@@ -44,6 +52,11 @@ api.get('/', async (c) => {
                 departureAirport: true,
                 arrivalAirport: true,
                 roomTypes: true,
+                boardingPoints: {
+                    with: {
+                        airport: true
+                    }
+                }
             }
         });
 
@@ -69,6 +82,11 @@ api.get('/', async (c) => {
             departureAirport: true,
             arrivalAirport: true,
             roomTypes: true,
+            boardingPoints: {
+                with: {
+                    airport: true
+                }
+            }
         }
     });
 
@@ -98,7 +116,12 @@ api.get('/:id', async (c) => {
             returnAirline: true,
             departureAirport: true,
             arrivalAirport: true,
-            roomTypes: true
+            roomTypes: true,
+            boardingPoints: {
+                with: {
+                    airport: true
+                }
+            }
         }
     });
 
@@ -108,11 +131,12 @@ api.get('/:id', async (c) => {
 });
 
 const departureCreateSchema = departureSchema.extend({
-    roomTypes: z.array(roomTypeSchema).optional()
+    roomTypes: z.array(roomTypeSchema).optional(),
+    boardingPoints: z.array(boardingPointSchema).optional()
 });
 
 api.post('/', authMiddleware, requireRole('pusat'), zValidator('json', departureCreateSchema), async (c) => {
-    const { roomTypes: roomTypesData, ...depData } = c.req.valid('json');
+    const { roomTypes: roomTypesData, boardingPoints: boardingPointsData, ...depData } = c.req.valid('json');
     const db = getDb(c.env.DB);
 
     try {
@@ -122,6 +146,11 @@ api.post('/', authMiddleware, requireRole('pusat'), zValidator('json', departure
         if (roomTypesData && roomTypesData.length > 0) {
             const roomsWithId = roomTypesData.map(r => ({ ...r, departureId: dep.id }));
             await db.insert(roomTypes).values(roomsWithId);
+        }
+
+        if (boardingPointsData && boardingPointsData.length > 0) {
+            const bpsWithId = boardingPointsData.map(bp => ({ ...bp, departureId: dep.id }));
+            await db.insert(departureBoardingPoints).values(bpsWithId);
         }
 
         return c.json({ departure: dep }, 201);
@@ -145,8 +174,9 @@ api.delete('/:id', authMiddleware, requireRole('pusat'), async (c) => {
     const db = getDb(c.env.DB);
 
     try {
-        // Hapus child (roomTypes) terlebih dahulu
+        // Hapus child terlebih dahulu
         await db.delete(roomTypes).where(eq(roomTypes.departureId, id));
+        await db.delete(departureBoardingPoints).where(eq(departureBoardingPoints.departureId, id));
         // Hapus parent
         await db.delete(departures).where(eq(departures.id, id));
         return c.json({ message: 'Departure deleted' });

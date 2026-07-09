@@ -21,17 +21,30 @@ api.post('/', authMiddleware, requireRole('cabang', 'pusat'), async (c) => {
     const category = body['category'] as string;
     const packageId = body['packageId'] as string | undefined;
     const description = body['description'] as string | undefined;
-    const file = body['file'] as File;
+    const file = body['file'] as File | undefined;
 
-    if (!title || !category || !file) {
-        return c.json({ error: 'Missing required fields' }, 400);
+    if (!title || !category) {
+        return c.json({ error: 'Judul dan kategori wajib diisi' }, 400);
+    }
+
+    // For non-copywriting categories, file is required
+    if (category !== 'copywriting' && !file) {
+        return c.json({ error: 'File wajib diupload untuk kategori ini' }, 400);
     }
 
     try {
-        const key = `marketing/${user.id}/${Date.now()}_${file.name}`;
-        await c.env.R2_DOCUMENTS.put(key, await file.arrayBuffer(), {
-            httpMetadata: { contentType: file.type }
-        });
+        let key = '';
+        let fileName = '';
+        let mimeType = '';
+
+        if (file && file.size > 0) {
+            key = `marketing/${user.id}/${Date.now()}_${file.name}`;
+            await c.env.R2_DOCUMENTS.put(key, await file.arrayBuffer(), {
+                httpMetadata: { contentType: file.type }
+            });
+            fileName = file.name;
+            mimeType = file.type;
+        }
 
         const newMaterial = await db.insert(marketingMaterials).values({
             uploadedBy: user.id,
@@ -39,8 +52,8 @@ api.post('/', authMiddleware, requireRole('cabang', 'pusat'), async (c) => {
             category: category as any,
             packageId,
             r2Key: key,
-            fileName: file.name,
-            mimeType: file.type,
+            fileName,
+            mimeType,
             description,
         }).returning();
 
@@ -95,7 +108,37 @@ api.get('/:id/download', authMiddleware, async (c) => {
     return c.body(file.body, 200);
 });
 
-// 3. Delete material
+// 3. Update material metadata (title, category, description)
+api.patch('/:id', authMiddleware, requireRole('cabang', 'pusat'), async (c) => {
+    const id = c.req.param('id');
+    const user = c.get('user');
+    const db = getDb(c.env.DB);
+
+    const existing = await db.query.marketingMaterials.findFirst({
+        where: eq(marketingMaterials.id, id)
+    });
+
+    if (!existing) return c.json({ error: 'Not found' }, 404);
+    if (existing.uploadedBy !== user.id && user.role !== 'pusat') {
+        return c.json({ error: 'Unauthorized' }, 403);
+    }
+
+    const body = await c.req.json();
+    const { title, category, description } = body;
+
+    const updated = await db.update(marketingMaterials)
+        .set({
+            ...(title && { title }),
+            ...(category && { category: category as any }),
+            ...(description !== undefined && { description }),
+        })
+        .where(eq(marketingMaterials.id, id))
+        .returning();
+
+    return c.json({ message: 'Updated successfully', material: updated[0] });
+});
+
+// 4. Delete material
 api.delete('/:id', authMiddleware, requireRole('cabang', 'pusat'), async (c) => {
     const id = c.req.param('id');
     const user = c.get('user');

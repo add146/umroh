@@ -1,11 +1,42 @@
+import { useState, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import OCRUpload from './OCRUpload';
+import { apiFetch } from '../../lib/api';
 
 const inputStyle: React.CSSProperties = { width: '100%', padding: '0.875rem', background: '#0a0907', border: '1px solid #333', color: 'white', borderRadius: '0.5rem', outline: 'none', fontSize: '0.875rem' };
 const labelStyle: React.CSSProperties = { display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.5rem' };
 
 const StepPersonal: React.FC = () => {
-    const { register, setValue, formState: { errors } } = useFormContext();
+    const { register, setValue, watch, formState: { errors } } = useFormContext();
+    const nikValue = watch('pilgrim.noKtp');
+
+    const [nikInfo, setNikInfo] = useState<any>(null);
+    const [checkingNik, setCheckingNik] = useState(false);
+
+    useEffect(() => {
+        if (!nikValue || nikValue.length !== 16) {
+            setNikInfo(null);
+            return;
+        }
+
+        const checkNik = async () => {
+            setCheckingNik(true);
+            try {
+                const response = await apiFetch<any>(`/api/bookings/check-duplicate?nik=${nikValue}`);
+                if (response.isDuplicate) {
+                    setNikInfo(response);
+                } else {
+                    setNikInfo(null);
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setCheckingNik(false);
+            }
+        };
+
+        checkNik();
+    }, [nikValue]);
 
     const handleOCRSuccess = (data: any) => {
         if (data.name) setValue('pilgrim.name', data.name);
@@ -42,7 +73,71 @@ const StepPersonal: React.FC = () => {
                 <div>
                     <label style={labelStyle}>Nomor KTP (NIK)</label>
                     <input type="text" {...register('pilgrim.noKtp')} maxLength={16} placeholder="16 Digit NIK" style={{ ...inputStyle, fontFamily: 'monospace' }} />
+                    {checkingNik && (
+                        <p style={{ color: '#eab308', fontSize: '0.75rem', marginTop: '0.25rem' }}>Mengecek status NIK...</p>
+                    )}
+                    {errors.pilgrim && (errors.pilgrim as any).noKtp && (
+                        <p style={{ color: '#ef4444', fontSize: '0.6875rem', marginTop: '0.25rem' }}>{(errors.pilgrim as any).noKtp.message}</p>
+                    )}
                 </div>
+
+                {nikInfo && (
+                    <div style={{
+                        gridColumn: '1 / -1',
+                        padding: '1rem',
+                        background: 'rgba(234, 179, 8, 0.1)',
+                        border: '1px solid rgba(234, 179, 8, 0.3)',
+                        borderRadius: '0.5rem',
+                        color: '#fef08a',
+                        fontSize: '0.8125rem',
+                        marginBottom: '0.5rem'
+                    }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', fontWeight: 700, alignItems: 'center' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#eab308' }}>info</span>
+                            <span>Jamaah Sudah Terdaftar</span>
+                        </div>
+                        <p style={{ margin: '0 0 0.5rem 0' }}>
+                            Jamaah dengan nama <strong>{nikInfo.pilgrimName}</strong> sudah terdaftar di bawah agen berikut:
+                        </p>
+                        {nikInfo.agent ? (
+                            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '0.75rem', borderRadius: '0.375rem', marginBottom: '0.75rem' }}>
+                                <div>Nama Agen: <strong>{nikInfo.agent.name} ({nikInfo.agent.role})</strong></div>
+                                <div>WhatsApp: {nikInfo.agent.phone}</div>
+                                {nikInfo.lastPackage && <div>Paket Terakhir: {nikInfo.lastPackage}</div>}
+                                {nikInfo.bookingCount && <div>Jumlah Pendaftaran: {nikInfo.bookingCount}x</div>}
+                            </div>
+                        ) : (
+                            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '0.75rem', borderRadius: '0.375rem', marginBottom: '0.75rem' }}>
+                                Tidak ada data agen terkait (terdaftar langsung di pusat).
+                            </div>
+                        )}
+                        <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.75rem', color: '#fcd34d' }}>
+                            Pendaftaran tetap dapat dilanjutkan. Silakan hubungi agen terkait jika diperlukan koordinasi lebih lanjut.
+                        </p>
+                        {nikInfo.agent && nikInfo.agent.phone && (
+                            <a
+                                href={`https://wa.me/${nikInfo.agent.phone.replace(/[^0-9]/g, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.375rem',
+                                    background: '#22c55e',
+                                    color: 'white',
+                                    padding: '0.5rem 0.875rem',
+                                    borderRadius: '0.375rem',
+                                    fontWeight: 700,
+                                    textDecoration: 'none',
+                                    fontSize: '0.75rem'
+                                }}
+                            >
+                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>chat</span>
+                                Hubungi Agen via WhatsApp
+                            </a>
+                        )}
+                    </div>
+                )}
 
                 <div>
                     <label style={labelStyle}>Jenis Kelamin</label>

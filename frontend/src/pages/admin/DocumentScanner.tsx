@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { apiFetch } from '../../lib/api';
+import DocumentChecklist from '../../components/DocumentChecklist';
 
 const inputStyle: React.CSSProperties = {
     width: '100%', padding: '0.875rem', background: '#0a0907', border: '1px solid #333', color: 'white', borderRadius: '0.5rem', outline: 'none', fontSize: '0.875rem',
@@ -24,8 +25,17 @@ const DocumentScanner: React.FC = () => {
             const found = data.bookings.filter(b =>
                 b.pilgrim?.name.toLowerCase().includes(searchQuery.toLowerCase()) || b.pilgrim?.noKtp.includes(searchQuery)
             );
-            setPilgrims(found.map(b => b.pilgrim));
+            setPilgrims(found);
         } catch (error) { console.error(error); }
+    };
+
+    const reloadBookingStatus = async (bookingId: string) => {
+        try {
+            const data = await apiFetch<any>(`/api/bookings/${bookingId}/status`);
+            setSelectedPilgrim(data);
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     const handleUpload = async () => {
@@ -34,14 +44,18 @@ const DocumentScanner: React.FC = () => {
         setOcrResult(null);
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('pilgrimId', selectedPilgrim.id);
+        formData.append('pilgrimId', selectedPilgrim.pilgrimId);
         formData.append('docType', docType);
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8787'}/api/documents/upload`, {
                 method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }, body: formData
             });
             const data = await res.json();
-            if (data.success) { setOcrResult(data.ocr); alert('Dokumen berhasil diunggah dan diproses OCR'); }
+            if (data.success) { 
+                setOcrResult(data.ocr); 
+                alert('Dokumen berhasil diunggah dan diproses OCR');
+                await reloadBookingStatus(selectedPilgrim.id);
+            }
             else { alert('Gagal: ' + data.error); }
         } catch (error) { console.error(error); alert('Terjadi kesalahan saat upload'); }
         finally { setUploading(false); }
@@ -67,8 +81,8 @@ const DocumentScanner: React.FC = () => {
                         <div style={{ maxHeight: '160px', overflowY: 'auto', marginBottom: '1rem', border: '1px solid #333', borderRadius: '0.5rem', padding: '0.375rem' }}>
                             {pilgrims.map(p => (
                                 <div key={p.id} onClick={() => setSelectedPilgrim(p)} style={{ padding: '0.625rem', cursor: 'pointer', borderRadius: '0.375rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span style={{ fontWeight: 700, color: '#ccc' }}>{p.name}</span>
-                                    <span style={{ fontSize: '0.75rem', color: '#888', fontFamily: 'monospace' }}>{p.noKtp}</span>
+                                    <span style={{ fontWeight: 700, color: '#ccc' }}>{p.pilgrim?.name}</span>
+                                    <span style={{ fontSize: '0.75rem', color: '#888', fontFamily: 'monospace' }}>{p.pilgrim?.noKtp}</span>
                                 </div>
                             ))}
                         </div>
@@ -78,9 +92,15 @@ const DocumentScanner: React.FC = () => {
                         <div style={{ background: 'var(--color-primary-bg)', padding: '0.875rem', borderRadius: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                             <div>
                                 <p style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', margin: '0 0 0.125rem 0' }}>Jamaah Terpilih</p>
-                                <p style={{ fontWeight: 700, color: 'white', margin: 0 }}>{selectedPilgrim.name}</p>
+                                <p style={{ fontWeight: 700, color: 'white', margin: 0 }}>{selectedPilgrim.pilgrim?.name}</p>
                             </div>
                             <button onClick={() => setSelectedPilgrim(null)} style={{ background: 'none', border: 'none', color: '#ef4444', fontWeight: 700, cursor: 'pointer', fontSize: '0.8125rem' }}>Ganti</button>
+                        </div>
+                    )}
+
+                    {selectedPilgrim && (
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <DocumentChecklist documentStatus={selectedPilgrim.documentStatus} />
                         </div>
                     )}
 

@@ -9,12 +9,18 @@ export const authMiddleware = createMiddleware<{
     }
 }>(async (c, next) => {
 
+    let token = '';
     const authHeader = c.req.header('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return c.json({ error: 'Unauthorized: No token provided' }, 401);
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+    } else if (c.req.query('token')) {
+        token = c.req.query('token') as string;
     }
 
-    const token = authHeader.split(' ')[1];
+    if (!token) {
+        return c.json({ error: 'Unauthorized: No token provided' }, 401);
+    }
     const jwtSecret = c.env.JWT_SECRET || 'fallback-secret-for-dev';
 
     console.log('Verifying token with secret length:', jwtSecret.length);

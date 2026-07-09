@@ -6,17 +6,18 @@ interface QuickBookModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess?: (bookingId: string) => void;
+    pilgrim?: any; // Existing pilgrim
 }
 
-export const QuickBookModal: React.FC<QuickBookModalProps> = ({ isOpen, onClose, onSuccess }) => {
+export const QuickBookModal: React.FC<QuickBookModalProps> = ({ isOpen, onClose, onSuccess, pilgrim }) => {
     const { user } = useAuthStore();
     const [departures, setDepartures] = useState<any[]>([]);
     const [roomTypes, setRoomTypes] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
     const [formData, setFormData] = useState({
-        name: '',
-        phone: '',
+        name: pilgrim?.name || '',
+        phone: pilgrim?.phone || '',
         departureId: '',
         roomTypeId: '',
         notes: ''
@@ -27,7 +28,7 @@ export const QuickBookModal: React.FC<QuickBookModalProps> = ({ isOpen, onClose,
             fetchOptions();
             resetForm();
         }
-    }, [isOpen]);
+    }, [isOpen, pilgrim]);
 
     const fetchOptions = async () => {
         try {
@@ -44,8 +45,8 @@ export const QuickBookModal: React.FC<QuickBookModalProps> = ({ isOpen, onClose,
 
     const resetForm = () => {
         setFormData({
-            name: '',
-            phone: '',
+            name: pilgrim?.name || '',
+            phone: pilgrim?.phone || '',
             departureId: '',
             roomTypeId: '',
             notes: ''
@@ -57,13 +58,16 @@ export const QuickBookModal: React.FC<QuickBookModalProps> = ({ isOpen, onClose,
         setLoading(true);
 
         try {
-            // Map Quick Book data to the standard booking payload structure
-            // Missing fields will be filled with placeholders
-            const payload = {
+            const payload: any = {
                 departureId: formData.departureId,
                 roomTypeId: formData.roomTypeId,
                 affiliatorId: user?.id,
-                pilgrim: {
+            };
+
+            if (pilgrim && pilgrim.id) {
+                payload.pilgrimId = pilgrim.id;
+            } else {
+                payload.pilgrim = {
                     name: formData.name,
                     phone: formData.phone,
                     noKtp: '0000000000000000', // Placeholder
@@ -78,8 +82,8 @@ export const QuickBookModal: React.FC<QuickBookModalProps> = ({ isOpen, onClose,
                     famContactName: '-',
                     famContact: '0000',
                     sourceFrom: 'Quick Register Agent'
-                }
-            };
+                };
+            }
 
             const response = await apiFetch<{ bookingId: string, error?: string }>('/api/bookings', {
                 method: 'POST',
@@ -122,31 +126,43 @@ export const QuickBookModal: React.FC<QuickBookModalProps> = ({ isOpen, onClose,
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}>Nama Jamaah</label>
-                        <input
-                            required
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.05)', color: 'var(--color-text)' }}
-                            placeholder="Contoh: Budi Santoso"
-                        />
-                    </div>
+                    {!pilgrim && (
+                        <>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}>Nama Jamaah</label>
+                                <input
+                                    required
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.05)', color: 'var(--color-text)' }}
+                                    placeholder="Contoh: Budi Santoso"
+                                />
+                            </div>
 
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}>Nomor WhatsApp / HP</label>
-                        <input
-                            required
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.05)', color: 'var(--color-text)' }}
-                            placeholder="081234567890"
-                        />
-                    </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}>Nomor WhatsApp / HP</label>
+                                <input
+                                    required
+                                    type="tel"
+                                    name="phone"
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.05)', color: 'var(--color-text)' }}
+                                    placeholder="081234567890"
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    {pilgrim && (
+                        <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.5rem', marginBottom: '0.5rem' }}>
+                            <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>Mendaftarkan Paket Untuk:</div>
+                            <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{pilgrim.name}</div>
+                            <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>NIK: {pilgrim.noKtp} | HP: {pilgrim.phone}</div>
+                        </div>
+                    )}
 
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}>Pilih Keberangkatan</label>

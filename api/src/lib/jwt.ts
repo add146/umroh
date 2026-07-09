@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose';
 
-const JWT_ACCESS_EXPIRATION = '15m';
-const JWT_REFRESH_EXPIRATION = '7d';
+const JWT_ACCESS_EXPIRATION = '14d';
+const JWT_REFRESH_EXPIRATION = '30d';
 
 export async function signAccessToken(payload: any, secret: string) {
     const secretKey = new TextEncoder().encode(secret);

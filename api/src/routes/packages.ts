@@ -61,6 +61,15 @@ api.get('/', async (c) => {
         with: {
             makkahHotel: true,
             madinahHotel: true,
+            departures: {
+                with: {
+                    boardingPoints: {
+                        with: {
+                            airport: true
+                        }
+                    }
+                }
+            },
         }
     });
     return c.json({ packages: data });
@@ -82,6 +91,11 @@ api.get('/:id', async (c) => {
                     returnAirline: true,
                     departureAirport: true,
                     arrivalAirport: true,
+                    boardingPoints: {
+                        with: {
+                            airport: true
+                        }
+                    }
                 }
             }
         }

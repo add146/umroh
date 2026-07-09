@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../lib/api';
 import { TestimonialGallery } from '../components/TestimonialGallery';
@@ -9,12 +9,25 @@ interface Package {
     slug: string;
     description: string;
     basePrice: number;
+    currency?: string;
     image?: string;
     packageType?: string;
     makkahHotel?: any;
     madinahHotel?: any;
     facilities?: string;
+    departures?: any[];
 }
+
+const fmt = (n: any, currency = 'IDR') => {
+    const num = Number(n);
+    if (isNaN(num)) return '';
+    if (currency === 'USD') return `$ ${num.toLocaleString('en-US')}`;
+    if (num >= 1000000) {
+        const millions = num / 1000000;
+        return `Rp ${millions.toLocaleString('id-ID', { maximumFractionDigits: 1 })} Juta`;
+    }
+    return `Rp ${num.toLocaleString('id-ID')}`;
+};
 
 interface HeroSlide {
     image: string;
@@ -49,6 +62,20 @@ const Landing = () => {
     const [activeFilter, setActiveFilter] = useState('Semua');
     const [currentSlide, setCurrentSlide] = useState(0);
 
+    // Search Box Dropdown States
+    const [selectedDestinasi, setSelectedDestinasi] = useState('Semua Destinasi');
+    const [selectedBoardingPoint, setSelectedBoardingPoint] = useState('Semua Kota');
+    const [selectedBulan, setSelectedBulan] = useState('Semua Bulan');
+    const [selectedTipe, setSelectedTipe] = useState('Semua Tipe');
+    const [openDropdown, setOpenDropdown] = useState<'destinasi' | 'boardingPoint' | 'bulan' | 'tipe' | null>(null);
+
+    const [activeFilters, setActiveFilters] = useState({
+        destinasi: 'Semua Destinasi',
+        boardingPoint: 'Semua Kota',
+        bulan: 'Semua Bulan',
+        tipe: 'Semua Tipe'
+    });
+
     // Dynamic settings state with sensible defaults
     const [logoUrl, setLogoUrl] = useState('/logo.png');
     const [brandName, setBrandName] = useState('AL');
@@ -61,7 +88,6 @@ const Landing = () => {
     ]);
     const [heroSubtitle, setHeroSubtitle] = useState('Platform manajemen haji dan umroh terpadu. Booking, cicilan, dokumen digital, dan notifikasi otomatis dalam satu aplikasi.');
     const [ctaText, setCtaText] = useState('Cari Paket');
-    const [ctaLink, setCtaLink] = useState('/register');
     const [navLinks, setNavLinks] = useState<NavLink[]>([{ label: 'Paket Umroh', href: '#paket' }, { label: 'Jadwal', href: '#paket' }]);
     const [packagesTitle, setPackagesTitle] = useState('Paket Pilihan');
     const [packagesSubtitle, setPackagesSubtitle] = useState('Koleksi paket umroh premium kami yang telah dipilih dengan cermat.');
@@ -91,14 +117,22 @@ const Landing = () => {
         apiFetch<{ settings: Record<string, any> }>('/api/landing-settings')
             .then(data => {
                 const s = data.settings || {};
-                if (s.logo_url) setLogoUrl(s.logo_url);
+                const API_URL = import.meta.env.VITE_API_URL || 'https://umroh-api.khibroh.workers.dev';
+                const enforceAbsolute = (url?: string) => (url && url.startsWith('/') ? `${API_URL}${url}` : url);
+
+                if (s.logo_url) setLogoUrl(enforceAbsolute(s.logo_url) || '');
                 if (s.brand_name) setBrandName(s.brand_name);
                 if (s.brand_highlight) setBrandHighlight(s.brand_highlight);
                 if (s.hero_badge) setHeroBadge(s.hero_badge);
-                if (s.hero_slides && Array.isArray(s.hero_slides) && s.hero_slides.length > 0) setHeroSlides(s.hero_slides.slice(0, 3));
+                if (s.hero_slides && Array.isArray(s.hero_slides) && s.hero_slides.length > 0) {
+                    const slides = s.hero_slides.slice(0, 3).map((slide: any) => ({
+                        ...slide,
+                        image: enforceAbsolute(slide.image) || slide.image
+                    }));
+                    setHeroSlides(slides);
+                }
                 if (s.hero_subtitle) setHeroSubtitle(s.hero_subtitle);
                 if (s.cta_text) setCtaText(s.cta_text);
-                if (s.cta_link) setCtaLink(s.cta_link);
                 if (s.nav_links && Array.isArray(s.nav_links)) setNavLinks(s.nav_links);
                 if (s.packages_title) setPackagesTitle(s.packages_title);
                 if (s.packages_subtitle) setPackagesSubtitle(s.packages_subtitle);
@@ -108,7 +142,7 @@ const Landing = () => {
                 if (s.footer_links_platform && Array.isArray(s.footer_links_platform)) setFooterLinksPlatform(s.footer_links_platform);
                 if (s.footer_links_support && Array.isArray(s.footer_links_support)) setFooterLinksSupport(s.footer_links_support);
                 if (s.footer_copyright) setFooterCopyright(s.footer_copyright);
-                if (s.whatsapp_number !== undefined) setWhatsappNumber(s.whatsapp_number);
+                if (s.whatsapp_number !== undefined) setWhatsappNumber(String(s.whatsapp_number));
                 if (s.instagram_url !== undefined) setInstagramUrl(s.instagram_url);
                 if (s.promo_banner && typeof s.promo_banner === 'object') setPromoBanner(s.promo_banner);
             })
@@ -123,6 +157,124 @@ const Landing = () => {
             .finally(() => setLoading(false));
     }, []);
 
+    // Close dropdowns on outside click
+    useEffect(() => {
+        const handleClose = () => setOpenDropdown(null);
+        document.addEventListener('click', handleClose);
+        return () => document.removeEventListener('click', handleClose);
+    }, []);
+
+    // Extract dynamic filters from departures and packages
+    const availableMonths = useMemo(() => {
+        const monthMap = new Map<string, Date>();
+        packages.forEach(pkg => {
+            pkg.departures?.forEach((d: any) => {
+                if (d.departureDate) {
+                    const date = new Date(d.departureDate);
+                    if (isNaN(date.getTime())) return;
+                    const key = date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+                    if (!monthMap.has(key)) {
+                        monthMap.set(key, new Date(date.getFullYear(), date.getMonth(), 1));
+                    }
+                }
+            });
+        });
+        return Array.from(monthMap.entries())
+            .sort((a, b) => a[1].getTime() - b[1].getTime())
+            .map(e => e[0]);
+    }, [packages]);
+
+    const availableBoardingPoints = useMemo(() => {
+        const bpMap = new Map<string, string>(); // code -> city
+        packages.forEach(pkg => {
+            pkg.departures?.forEach((d: any) => {
+                d.boardingPoints?.forEach((bp: any) => {
+                    if (bp.airport) {
+                        bpMap.set(bp.airport.code, bp.airport.city);
+                    }
+                });
+            });
+        });
+        return Array.from(bpMap.entries())
+            .sort((a, b) => a[1].localeCompare(b[1]))
+            .map(([code, city]) => `${city} (${code})`);
+    }, [packages]);
+
+    const availableTypes = useMemo(() => {
+        const types = new Set<string>();
+        packages.forEach(pkg => {
+            if (pkg.packageType) types.add(pkg.packageType);
+        });
+        return Array.from(types);
+    }, [packages]);
+
+    // Combined package filtering logic
+    const filteredPackages = useMemo(() => {
+        return packages.filter(pkg => {
+            // 1. Tab category filter (activeFilter)
+            if (activeFilter !== 'Semua') {
+                const f = activeFilter.toLowerCase();
+                const type = (pkg.packageType || '').toLowerCase();
+                const name = (pkg.name || '').toLowerCase();
+                if (!type.includes(f) && !name.includes(f)) return false;
+            }
+
+            // 2. Destinasi filter
+            if (activeFilters.destinasi !== 'Semua Destinasi') {
+                const dest = activeFilters.destinasi;
+                if (dest === 'Makkah' && !pkg.makkahHotel) return false;
+                if (dest === 'Madinah' && !pkg.madinahHotel) return false;
+                if (dest === 'Makkah & Madinah' && (!pkg.makkahHotel || !pkg.madinahHotel)) return false;
+            }
+
+            // 2.5. Boarding Point filter
+            if (activeFilters.boardingPoint !== 'Semua Kota') {
+                const targetCode = activeFilters.boardingPoint.match(/\(([^)]+)\)/)?.[1]; // e.g. "SUB"
+                if (targetCode) {
+                    const hasMatchingBoardingPoint = pkg.departures?.some((d: any) => {
+                        return d.boardingPoints?.some((bp: any) => bp.airport?.code === targetCode);
+                    });
+                    if (!hasMatchingBoardingPoint) return false;
+                }
+            }
+
+            // 3. Bulan filter
+            if (activeFilters.bulan !== 'Semua Bulan') {
+                const hasMatchingDeparture = pkg.departures?.some((d: any) => {
+                    if (!d.departureDate) return false;
+                    const date = new Date(d.departureDate);
+                    if (isNaN(date.getTime())) return false;
+                    const formatted = date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+                    return formatted === activeFilters.bulan;
+                });
+                if (!hasMatchingDeparture) return false;
+            }
+
+            // 4. Tipe filter
+            if (activeFilters.tipe !== 'Semua Tipe') {
+                const type = (pkg.packageType || '').toLowerCase();
+                const filter = activeFilters.tipe.toLowerCase();
+                if (!type.includes(filter)) return false;
+            }
+
+            return true;
+        });
+    }, [packages, activeFilter, activeFilters]);
+
+    const handleSearch = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setActiveFilters({
+            destinasi: selectedDestinasi,
+            boardingPoint: selectedBoardingPoint,
+            bulan: selectedBulan,
+            tipe: selectedTipe
+        });
+        const element = document.getElementById('paket');
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
     // Hero slide auto-advance
     const nextSlide = useCallback(() => {
         setCurrentSlide(prev => (prev + 1) % heroSlides.length);
@@ -133,6 +285,32 @@ const Landing = () => {
         const timer = setInterval(nextSlide, 5000);
         return () => clearInterval(timer);
     }, [nextSlide, heroSlides.length]);
+
+    // Re-process Instagram embeds on mount robustly
+    useEffect(() => {
+        let script = document.getElementById('ig-embed-script') as HTMLScriptElement;
+        if (!script) {
+            script = document.createElement('script');
+            script.id = 'ig-embed-script';
+            script.src = 'https://www.instagram.com/embed.js';
+            script.async = true;
+            document.body.appendChild(script);
+        }
+        
+        const processIg = () => {
+            if ((window as any).instgrm) {
+                (window as any).instgrm.Embeds.process();
+            }
+        };
+
+        script.onload = processIg;
+        
+        // If it was already loaded or cached, run process immediately
+        if ((window as any).instgrm) {
+            // Small timeout to allow blockquotes to render first
+            setTimeout(processIg, 100);
+        }
+    }, []);
 
     const currentHero = heroSlides[currentSlide] || heroSlides[0];
 
@@ -199,7 +377,8 @@ const Landing = () => {
             {/* ===== HERO WITH SLIDES ===== */}
             <section style={{
                 position: 'relative', minHeight: '90vh', display: 'flex', alignItems: 'center',
-                paddingTop: promoBanner.enabled && promoBanner.text ? '104px' : '72px', overflow: 'hidden'
+                paddingTop: promoBanner.enabled && promoBanner.text ? '104px' : '72px', overflow: 'visible',
+                zIndex: 20
             }}>
                 {/* Slide BG Images */}
                 {heroSlides.map((slide, idx) => (
@@ -222,7 +401,8 @@ const Landing = () => {
                 }} />
 
                 <div className="container" style={{ position: 'relative', zIndex: 10, paddingBottom: '5rem', paddingTop: '5rem' }}>
-                    <div style={{ maxWidth: '720px' }}>
+                    {/* Text content wrapped in its own max-width container */}
+                    <div style={{ maxWidth: '720px', marginBottom: '3rem' }}>
                         {/* Badge */}
                         <div style={{
                             display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
@@ -243,61 +423,310 @@ const Landing = () => {
                             <span style={{ color: 'var(--color-primary)', fontStyle: 'italic' }}>{currentHero.subtitle}</span>
                         </h1>
 
-                        <p style={{ fontSize: '1.125rem', color: 'var(--color-text-muted)', maxWidth: '520px', lineHeight: 1.7, marginBottom: '2.5rem' }}>
+                        <p style={{ fontSize: '1.125rem', color: 'var(--color-text-muted)', maxWidth: '520px', lineHeight: 1.7, marginBottom: '0' }}>
                             {heroSubtitle}
                         </p>
-
-                        {/* Search Box */}
-                        <div className="hero-search-box" style={{
-                            background: 'rgba(10,9,7,0.85)', backdropFilter: 'blur(16px)',
-                            border: '1px solid var(--color-border)', borderRadius: '1rem',
-                            padding: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem'
-                        }}>
-                            {[
-                                { label: 'Destinasi', value: 'Makkah & Madinah', icon: 'location_on' },
-                                { label: 'Bulan', value: 'Ramadan 2025', icon: 'calendar_month' },
-                                { label: 'Tipe Paket', value: 'Luxury 5-Star', icon: 'workspace_premium' },
-                            ].map(item => (
-                                <div key={item.label} style={{
-                                    flex: 1, minWidth: '150px', padding: '0.75rem 1rem',
-                                    display: 'flex', flexDirection: 'column', gap: '0.25rem',
-                                    borderRight: '1px solid var(--color-border)', cursor: 'pointer'
-                                }}>
-                                    <span style={{ fontSize: '0.625rem', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{item.label}</span>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                                        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--color-text-muted)' }}>{item.icon}</span>
-                                        <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{item.value}</span>
-                                    </div>
-                                </div>
-                            ))}
-                            <Link to={ctaLink} style={{
-                                background: 'var(--color-primary)', color: 'var(--color-bg)',
-                                fontWeight: 800, padding: '0.875rem 2rem', borderRadius: '0.75rem',
-                                display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none',
-                                fontSize: '0.875rem', whiteSpace: 'nowrap'
-                            }}>
-                                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>search</span>
-                                {ctaText}
-                            </Link>
-                        </div>
-
-                        {/* Slide Indicators */}
-                        {heroSlides.length > 1 && (
-                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '2rem' }}>
-                                {heroSlides.map((_, idx) => (
-                                    <button key={idx} onClick={() => setCurrentSlide(idx)} style={{
-                                        width: currentSlide === idx ? '2rem' : '0.5rem', height: '0.5rem',
-                                        borderRadius: '9999px', border: 'none', cursor: 'pointer',
-                                        background: currentSlide === idx ? 'var(--color-primary)' : 'rgba(255,255,255,0.3)',
-                                        transition: 'all 0.3s',
-                                    }} />
-                                ))}
-                            </div>
-                        )}
                     </div>
+
+                    {/* Search Box - Outside the text container to allow more width */}
+                    <div className="hero-search-box" style={{
+                        background: 'rgba(15, 14, 12, 0.75)',
+                        backdropFilter: 'blur(24px)',
+                        WebkitBackdropFilter: 'blur(24px)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '1.5rem',
+                        padding: '0.75rem',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '0.5rem',
+                        width: '100%',
+                        maxWidth: '1000px',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                    }}>
+                        {[
+                            { id: 'destinasi', label: 'Destinasi', value: selectedDestinasi, icon: 'location_on', options: ['Semua Destinasi', 'Makkah & Madinah', 'Makkah', 'Madinah'] },
+                            { id: 'boardingPoint', label: 'Keberangkatan', value: selectedBoardingPoint, icon: 'flight_takeoff', options: ['Semua Kota', ...availableBoardingPoints] },
+                            { id: 'bulan', label: 'Bulan', value: selectedBulan, icon: 'calendar_month', options: ['Semua Bulan', ...availableMonths] },
+                            { id: 'tipe', label: 'Tipe Paket', value: selectedTipe, icon: 'workspace_premium', options: ['Semua Tipe', ...availableTypes] },
+                        ].map((item, idx, arr) => (
+                            <div 
+                                key={item.label} 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenDropdown(openDropdown === item.id ? null : item.id as any);
+                                }}
+                                style={{
+                                    flex: 1,
+                                    minWidth: '160px',
+                                    padding: '1.25rem 1.5rem',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '0.375rem',
+                                    borderRight: idx === arr.length - 1 ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
+                                    cursor: 'pointer',
+                                    transition: 'background 0.2s',
+                                    borderRadius: '1rem',
+                                    position: 'relative'
+                                }}
+                                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
+                                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                            >
+                                <span style={{ 
+                                    fontSize: '0.6875rem', 
+                                    fontWeight: 800, 
+                                    color: 'var(--color-primary)', 
+                                    textTransform: 'uppercase', 
+                                    letterSpacing: '0.15em',
+                                    opacity: 0.9
+                                }}>
+                                    {item.label}
+                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', justifyContent: 'space-between' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--color-primary)', opacity: 0.8 }}>{item.icon}</span>
+                                        <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }} title={item.value}>{item.value}</span>
+                                    </div>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'rgba(255,255,255,0.4)' }}>
+                                        {openDropdown === item.id ? 'expand_less' : 'expand_more'}
+                                    </span>
+                                </div>
+
+                                {openDropdown === item.id && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: 'calc(100% + 0.5rem)',
+                                        left: 0,
+                                        right: 0,
+                                        background: 'rgba(25, 23, 20, 0.95)',
+                                        backdropFilter: 'blur(16px)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '1rem',
+                                        padding: '0.5rem',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '0.25rem',
+                                        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)',
+                                        zIndex: 99,
+                                        maxHeight: '250px',
+                                        overflowY: 'auto'
+                                    }}>
+                                        {item.options.map(opt => (
+                                            <div 
+                                                key={opt} 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (item.id === 'destinasi') setSelectedDestinasi(opt);
+                                                    else if (item.id === 'boardingPoint') setSelectedBoardingPoint(opt);
+                                                    else if (item.id === 'bulan') setSelectedBulan(opt);
+                                                    else if (item.id === 'tipe') setSelectedTipe(opt);
+                                                    setOpenDropdown(null);
+                                                }} 
+                                                style={{
+                                                    padding: '0.75rem 1rem',
+                                                    borderRadius: '0.75rem',
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: 600,
+                                                    color: item.value === opt ? 'var(--color-primary)' : 'white',
+                                                    background: item.value === opt ? 'rgba(212, 175, 55, 0.1)' : 'transparent',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.15s ease',
+                                                    textAlign: 'left',
+                                                }}
+                                                onMouseEnter={e => {
+                                                    if (item.value !== opt) e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                                                }}
+                                                onMouseLeave={e => {
+                                                    if (item.value !== opt) e.currentTarget.style.background = 'transparent';
+                                                }}
+                                            >
+                                                {opt}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                        <button 
+                            onClick={handleSearch}
+                            style={{
+                                background: 'var(--color-primary)',
+                                color: 'var(--color-bg)',
+                                border: 'none',
+                                fontWeight: 850,
+                                padding: '1rem 3rem',
+                                borderRadius: '1.125rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.75rem',
+                                cursor: 'pointer',
+                                fontSize: '0.9375rem',
+                                whiteSpace: 'nowrap',
+                                boxShadow: '0 10px 20px -5px rgba(200, 168, 81, 0.3)',
+                                transition: 'all 0.3s ease'
+                            }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 15px 30px -5px rgba(200, 168, 81, 0.5)';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 10px 20px -5px rgba(200, 168, 81, 0.3)';
+                            }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '22px', fontWeight: 'bold' }}>search</span>
+                            {ctaText}
+                        </button>
+                    </div>
+
+                    {/* Slide Indicators */}
+                    {heroSlides.length > 1 && (
+                        <div style={{ display: 'flex', gap: '0.625rem', marginTop: '3rem' }}>
+                            {heroSlides.map((_, idx) => (
+                                <button key={idx} onClick={() => setCurrentSlide(idx)} style={{
+                                    width: currentSlide === idx ? '2.5rem' : '0.625rem', height: '0.625rem',
+                                    borderRadius: '9999px', border: 'none', cursor: 'pointer',
+                                    background: currentSlide === idx ? 'var(--color-primary)' : 'rgba(255,255,255,0.2)',
+                                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                }} />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </section>
 
+            {/* ===== INSTAGRAM FEED ===== */}
+            <section style={{
+                padding: '4rem 0 5rem',
+                background: 'var(--color-bg)',
+                borderTop: '1px solid var(--color-border)',
+                borderBottom: '1px solid var(--color-border)',
+            }}>
+                <div className="container">
+                    {/* Header */}
+                    <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+                        <a
+                            href="https://www.instagram.com/almadinahms/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                                display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '0.375rem',
+                                textDecoration: 'none', color: 'inherit',
+                                transition: 'transform 0.3s ease',
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.03)')}
+                            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                        >
+                            <div style={{
+                                display: 'flex', alignItems: 'center', gap: '0.625rem',
+                                fontSize: '1.125rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase',
+                            }}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#ig-gradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <defs>
+                                        <linearGradient id="ig-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+                                            <stop offset="0%" stopColor="#FCAF45" />
+                                            <stop offset="25%" stopColor="#F77737" />
+                                            <stop offset="50%" stopColor="#FD1D1D" />
+                                            <stop offset="75%" stopColor="#C13584" />
+                                            <stop offset="100%" stopColor="#833AB4" />
+                                        </linearGradient>
+                                    </defs>
+                                    <rect x="2" y="2" width="20" height="20" rx="5" />
+                                    <circle cx="12" cy="12" r="5" />
+                                    <circle cx="17.5" cy="6.5" r="1.5" fill="url(#ig-gradient)" stroke="none" />
+                                </svg>
+                                <span>Follow Kami di Instagram</span>
+                            </div>
+                            <div style={{
+                                fontSize: '2rem', fontWeight: 900,
+                                background: 'linear-gradient(90deg, #833AB4, #C13584, #FD1D1D, #F77737, #FCAF45)',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                backgroundClip: 'text',
+                            }}>
+                                @almadinahms
+                            </div>
+                        </a>
+                    </div>
+
+                    {/* Instagram Official Embeds - 3 Posts */}
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gap: '1.5rem',
+                        alignItems: 'start',
+                    }} className="ig-embed-grid">
+                        {[
+                            'https://www.instagram.com/almadinahms/p/DZr8rUWIATp/',
+                            'https://www.instagram.com/almadinahms/p/DCtKZREP1Fn/',
+                            'https://www.instagram.com/almadinahms/reel/C85_uP3PYkW/',
+                        ].map((embedUrl, idx) => (
+                            <div key={idx} style={{
+                                borderRadius: '0.75rem',
+                                overflow: 'hidden',
+                                border: '1px solid var(--color-border)',
+                                background: '#fff',
+                            }}>
+                                <blockquote
+                                    className="instagram-media"
+                                    data-instgrm-permalink={embedUrl}
+                                    data-instgrm-version="14"
+                                    style={{
+                                        background: '#FFF',
+                                        border: '0',
+                                        borderRadius: '3px',
+                                        boxShadow: '0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15)',
+                                        margin: '1px',
+                                        maxWidth: '540px',
+                                        minWidth: '326px',
+                                        padding: '0',
+                                        width: 'calc(100% - 2px)',
+                                    }}
+                                >
+                                </blockquote>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* CTA Button */}
+                    <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+                        <a
+                            href="https://www.instagram.com/almadinahms/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.75rem 2rem',
+                                borderRadius: '0.75rem',
+                                background: 'linear-gradient(135deg, #833AB4, #C13584, #FD1D1D, #F77737)',
+                                color: '#fff',
+                                fontWeight: 700,
+                                fontSize: '0.9375rem',
+                                textDecoration: 'none',
+                                transition: 'all 0.3s ease',
+                                boxShadow: '0 4px 15px rgba(193,53,132,0.3)',
+                            }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 8px 25px rgba(193,53,132,0.4)';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 4px 15px rgba(193,53,132,0.3)';
+                            }}
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="2" y="2" width="20" height="20" rx="5" />
+                                <circle cx="12" cy="12" r="5" />
+                                <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none" />
+                            </svg>
+                            Kunjungi Instagram Kami
+                        </a>
+                    </div>
+                </div>
+            </section>
             {/* ===== PACKAGES ===== */}
             <section id="paket" style={{ padding: '5rem 0' }}>
                 <div className="container">
@@ -328,14 +757,14 @@ const Landing = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
                         {loading ? [1, 2, 3].map(i => (
                             <div key={i} style={{ height: '440px', borderRadius: '1rem' }} className="skeleton" />
-                        )) : packages.length === 0 ? (
+                        )) : filteredPackages.length === 0 ? (
                             <div style={{
                                 gridColumn: '1 / -1', padding: '5rem', textAlign: 'center', color: 'var(--color-text-muted)',
                                 border: '2px dashed var(--color-border)', borderRadius: '1rem'
                             }}>
-                                Belum ada paket yang tersedia.
+                                Belum ada paket yang tersedia dengan kriteria pencarian ini.
                             </div>
-                        ) : packages.map((pkg, idx) => (
+                        ) : filteredPackages.map((pkg, idx) => (
                             <div key={pkg.id} className="dark-card" style={{
                                 borderRadius: '1rem', overflow: 'hidden',
                                 display: 'flex', flexDirection: 'column', transition: 'all 0.3s'
@@ -363,9 +792,9 @@ const Landing = () => {
 
                                 {/* Body */}
                                 <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                                        <div>
-                                            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '0.25rem' }}>{pkg.name}</h3>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '0.25rem', wordBreak: 'break-word' }}>{pkg.name}</h3>
                                             <div style={{ display: 'flex', gap: '2px', color: 'var(--color-primary)' }}>
                                                 {[...Array(pkg.makkahHotel?.starRating || 4)].map((_, i) => (
                                                     <span key={i} className="material-symbols-outlined" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>star</span>
@@ -373,10 +802,10 @@ const Landing = () => {
                                                 <span style={{ fontSize: '0.625rem', color: '#888', marginLeft: '6px', alignSelf: 'center' }}>({pkg.packageType || 'Reguler'})</span>
                                             </div>
                                         </div>
-                                        <div style={{ textAlign: 'right' }}>
+                                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
                                             <span style={{ fontSize: '0.625rem', textTransform: 'uppercase', fontWeight: 700, color: 'var(--color-text-muted)' }}>Mulai dari</span>
-                                            <div style={{ fontSize: '1.375rem', fontWeight: 900, color: 'var(--color-primary)' }}>
-                                                {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(pkg.basePrice)}
+                                            <div style={{ fontSize: '1.375rem', fontWeight: 900, color: 'var(--color-primary)', whiteSpace: 'nowrap' }}>
+                                                {fmt(pkg.basePrice, pkg.currency)}
                                             </div>
                                         </div>
                                     </div>

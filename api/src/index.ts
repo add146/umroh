@@ -42,19 +42,22 @@ app.use(
                 'http://localhost:5174',
                 'http://localhost:3000',
                 c.env.FRONTEND_URL,
+                'https://almadinahms.com',
+                'https://www.almadinahms.com',
             ].filter(Boolean);
 
             // Jika origin cocok dgn yg di whitelist, izinkan. Termasuk domain preview pages.dev.
             if (
                 allowedOrigins.includes(origin) ||
                 /^https:\/\/[a-z0-9-]+\.pages\.dev$/.test(origin) ||
-                /^https:\/\/[a-z0-9-]+\.umroh-3vl\.pages\.dev$/.test(origin)
+                /^https:\/\/[a-z0-9-]+\.umroh-3vl\.pages\.dev$/.test(origin) ||
+                /^https:\/\/(?:[a-z0-9-]+\.)?almadinahms\.com$/.test(origin)
             ) {
                 return origin;
             }
 
             // Jika tidak cocok, tolak dan fallback ke url production. Ini mungkin menyebabkan CORS error tapi aman dari sniffing.
-            return c.env.FRONTEND_URL || 'https://umroh.khibroh.com';
+            return c.env.FRONTEND_URL || 'https://almadinahms.com';
         },
         credentials: true,
         allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

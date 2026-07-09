@@ -8,6 +8,13 @@ const inputStyle: React.CSSProperties = { width: '100%', padding: '0.875rem', ba
 const labelStyle: React.CSSProperties = { display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: 'var(--color-text-light)', fontWeight: 600 };
 const sectionTitle: React.CSSProperties = { fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' };
 
+const fmt = (n: any, currency = 'IDR') => {
+    const num = Number(n);
+    if (isNaN(num)) return '';
+    if (currency === 'USD') return `$ ${num.toLocaleString('en-US')}`;
+    return `Rp ${num.toLocaleString('id-ID')}`;
+};
+
 export default function PackageDetail() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -17,7 +24,12 @@ export default function PackageDetail() {
     const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
     const [activeDepartureId, setActiveDepartureId] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [departureForm, setDepartureForm] = useState({ date: '', airport: '', seats: 45 });
+    const [departureForm, setDepartureForm] = useState({
+        date: '',
+        airport: '', // legacy
+        seats: 45,
+        boardingPoints: [] as { airportId: string; isOrigin: boolean; sortOrder: number; priceAdjustment: number; notes: string }[]
+    });
     const [roomForm, setRoomForm] = useState({ name: '', capacity: 4, priceAdjustment: 0 });
     const [masters, setMasters] = useState({ airports: [] as any[] });
 
@@ -34,11 +46,38 @@ export default function PackageDetail() {
     useEffect(() => { if (id) fetchPackageDetail(); }, [id]);
 
     const handleCreateDeparture = async (e: React.FormEvent) => {
-        e.preventDefault(); setIsSubmitting(true);
+        e.preventDefault();
+        if (departureForm.boardingPoints.length === 0) {
+            toast.error('Minimal harus ada 1 kota keberangkatan');
+            return;
+        }
+        setIsSubmitting(true);
         try {
-            await apiFetch('/api/departures', { method: 'POST', body: JSON.stringify({ packageId: id, departureDate: departureForm.date, airport: departureForm.airport, totalSeats: departureForm.seats }) });
-            toast.success('Jadwal keberangkatan ditambahkan'); setIsDepartureModalOpen(false); setDepartureForm({ date: '', airport: '', seats: 45 }); fetchPackageDetail();
-        } catch (error) { toast.error('Gagal menambah jadwal keberangkatan'); } finally { setIsSubmitting(false); }
+            // Find origin boarding point to populate legacy 'airport' field
+            const originBp = departureForm.boardingPoints.find(bp => bp.isOrigin);
+            const legacyAirportCode = originBp 
+                ? (masters.airports.find((a: any) => a.id === originBp.airportId)?.code || 'CGK') 
+                : 'CGK';
+
+            await apiFetch('/api/departures', { 
+                method: 'POST', 
+                body: JSON.stringify({ 
+                    packageId: id, 
+                    departureDate: departureForm.date, 
+                    airport: legacyAirportCode, // legacy field
+                    totalSeats: departureForm.seats,
+                    boardingPoints: departureForm.boardingPoints
+                }) 
+            });
+            toast.success('Jadwal keberangkatan ditambahkan'); 
+            setIsDepartureModalOpen(false); 
+            setDepartureForm({ date: '', airport: '', seats: 45, boardingPoints: [] }); 
+            fetchPackageDetail();
+        } catch (error) { 
+            toast.error('Gagal menambah jadwal keberangkatan'); 
+        } finally { 
+            setIsSubmitting(false); 
+        }
     };
 
     const handleCreateRoom = async (e: React.FormEvent) => {
@@ -80,7 +119,7 @@ export default function PackageDetail() {
                             <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'white', margin: 0 }}>{pkg.name}</h1>
                             <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#888', background: 'rgba(255,255,255,0.05)', padding: '0.25rem 0.5rem', borderRadius: '0.25rem' }}>{pkg.id.split('-')[0]}</span>
                         </div>
-                        <p style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-primary)', margin: 0 }}>Base: Rp{pkg.basePrice.toLocaleString('id-ID')}</p>
+                        <p style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-primary)', margin: 0 }}>Base: {fmt(pkg.basePrice, pkg.currency)}</p>
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem' }}>
                         <button onClick={() => navigate(`/admin/packages/${pkg.id}/edit`)} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', padding: '0.75rem 1.25rem', background: 'transparent', border: '1px solid #333', color: 'white', borderRadius: '0.75rem', fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem' }}>
@@ -130,18 +169,22 @@ export default function PackageDetail() {
 
                 <div style={cardStyle}>
                     <h3 style={sectionTitle}><span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>check_circle</span> Fasilitas Termasuk</h3>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', width: '100%' }}>
                         {(() => {
-                            try {
-                                const facs = JSON.parse(pkg.facilities || '[]');
-                                if (facs.length === 0) return <span style={{ color: '#888', fontStyle: 'italic', fontSize: '0.875rem' }}>Belum ada data fasilitas</span>;
-                                return facs.map((fac: any, idx: number) => (
-                                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', padding: '0.375rem 0.625rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.375rem', border: '1px solid rgba(255,255,255,0.1)', fontSize: '0.8125rem' }}>
-                                        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--color-primary)' }}>{fac.icon || 'check_circle'}</span>
-                                        <span style={{ color: '#ccc' }}>{fac.name}</span>
-                                    </div>
-                                ));
-                            } catch (e) { return <span style={{ color: '#ef4444', fontSize: '0.875rem' }}>Format fasilitas error</span>; }
+                            const val = pkg.facilities || '';
+                            if (!val) return <span style={{ color: '#888', fontStyle: 'italic', fontSize: '0.875rem' }}>Belum ada data fasilitas</span>;
+                            if (val.trim().startsWith('[') && val.trim().endsWith(']')) {
+                                try {
+                                    const facs = JSON.parse(val);
+                                    return facs.map((fac: any, idx: number) => (
+                                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', padding: '0.375rem 0.625rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.375rem', border: '1px solid rgba(255,255,255,0.1)', fontSize: '0.8125rem' }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--color-primary)' }}>{fac.icon || 'check_circle'}</span>
+                                            <span style={{ color: '#ccc' }}>{fac.name}</span>
+                                        </div>
+                                    ));
+                                } catch (e) { }
+                            }
+                            return <div dangerouslySetInnerHTML={{ __html: val }} style={{ lineHeight: '1.7', fontSize: '0.875rem', color: '#ccc' }} />;
                         })()}
                     </div>
                 </div>
@@ -150,19 +193,23 @@ export default function PackageDetail() {
                     <h3 style={sectionTitle}><span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>route</span> Itinerary (Singkat)</h3>
                     <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
                         {(() => {
-                            try {
-                                const itins = JSON.parse(pkg.itinerary || '[]');
-                                if (itins.length === 0) return <span style={{ color: '#888', fontStyle: 'italic', fontSize: '0.875rem' }}>Belum ada data itinerary</span>;
-                                return itins.map((it: any, idx: number) => (
-                                    <div key={idx} style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                                        <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--color-primary-bg)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6875rem', fontWeight: 800, flexShrink: 0 }}>{it.day}</div>
-                                        <div>
-                                            <p style={{ fontWeight: 700, color: 'white', margin: '0 0 0.125rem 0', fontSize: '0.875rem' }}>{it.title || 'Agenda Baru'}</p>
-                                            <p style={{ fontSize: '0.75rem', color: '#888', margin: 0 }}>{it.desc}</p>
+                            const val = pkg.itinerary || '';
+                            if (!val) return <span style={{ color: '#888', fontStyle: 'italic', fontSize: '0.875rem' }}>Belum ada data itinerary</span>;
+                            if (val.trim().startsWith('[') && val.trim().endsWith(']')) {
+                                try {
+                                    const itins = JSON.parse(val);
+                                    return itins.map((it: any, idx: number) => (
+                                        <div key={idx} style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                            <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--color-primary-bg)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6875rem', fontWeight: 800, flexShrink: 0 }}>{it.day}</div>
+                                            <div>
+                                                <p style={{ fontWeight: 700, color: 'white', margin: '0 0 0.125rem 0', fontSize: '0.875rem' }}>{it.title || 'Agenda Baru'}</p>
+                                                <p style={{ fontSize: '0.75rem', color: '#888', margin: 0 }}>{it.desc}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                ));
-                            } catch (e) { return <span style={{ color: '#ef4444', fontSize: '0.875rem' }}>Format itinerary error</span>; }
+                                    ));
+                                } catch (e) { }
+                            }
+                            return <div dangerouslySetInnerHTML={{ __html: val }} style={{ lineHeight: '1.7', fontSize: '0.875rem', color: '#ccc' }} />;
                         })()}
                     </div>
                 </div>
@@ -193,9 +240,19 @@ export default function PackageDetail() {
                                         </div>
                                         <div>
                                             <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.6875rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.25rem' }}>
-                                                <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>location_on</span> Bandara
+                                                <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>location_on</span> Bandara / Rute
                                             </span>
-                                            <p style={{ fontWeight: 700, color: 'white', margin: 0 }}>{dep.airport}</p>
+                                            <p style={{ fontWeight: 700, color: 'white', margin: 0 }}>
+                                                {dep.boardingPoints && dep.boardingPoints.length > 0 ? (
+                                                    dep.boardingPoints
+                                                        .slice()
+                                                        .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
+                                                        .map((bp: any) => bp.airport?.code || '?')
+                                                        .join(' ➔ ')
+                                                ) : (
+                                                    dep.airport
+                                                )}
+                                            </p>
                                         </div>
                                         <div>
                                             <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.6875rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.25rem' }}>
@@ -242,11 +299,11 @@ export default function PackageDetail() {
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                                                     <div>
                                                         <p style={{ fontSize: '0.6875rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.03em', margin: '0 0 0.25rem 0' }}>Total Harga Pax</p>
-                                                        <p style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--color-primary)', margin: 0 }}>Rp{(pkg.basePrice + room.priceAdjustment).toLocaleString('id-ID')}</p>
+                                                        <p style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--color-primary)', margin: 0 }}>{fmt(pkg.basePrice + room.priceAdjustment, pkg.currency)}</p>
                                                     </div>
                                                     <div style={{ textAlign: 'right' }}>
-                                                        {room.priceAdjustment > 0 && <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#ef4444' }}>+Rp{room.priceAdjustment.toLocaleString('id-ID')}</span>}
-                                                        {room.priceAdjustment < 0 && <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#22c55e' }}>-Rp{Math.abs(room.priceAdjustment).toLocaleString('id-ID')}</span>}
+                                                        {room.priceAdjustment > 0 && <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#ef4444' }}>+{fmt(room.priceAdjustment, pkg.currency)}</span>}
+                                                        {room.priceAdjustment < 0 && <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#22c55e' }}>-{fmt(Math.abs(room.priceAdjustment), pkg.currency)}</span>}
                                                         {room.priceAdjustment === 0 && <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#888' }}>Base Price</span>}
                                                     </div>
                                                 </div>
@@ -263,29 +320,110 @@ export default function PackageDetail() {
             {/* Departure Modal */}
             {isDepartureModalOpen && (
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', zIndex: 60 }}>
-                    <div style={{ maxWidth: '28rem', width: '100%', background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', overflow: 'hidden' }}>
+                    <div style={{ maxWidth: '36rem', width: '100%', background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', overflow: 'hidden' }}>
                         <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)' }}>
                             <h3 style={{ margin: 0, fontWeight: 700, fontSize: '1.125rem' }}>Tambah Keberangkatan</h3>
                             <button onClick={() => setIsDepartureModalOpen(false)} style={{ padding: '0.375rem', background: 'none', border: 'none', color: '#888', cursor: 'pointer' }}>
                                 <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
                             </button>
                         </div>
-                        <form onSubmit={handleCreateDeparture} style={{ padding: '1.5rem' }}>
+                        <form onSubmit={handleCreateDeparture} style={{ padding: '1.5rem', maxHeight: '80vh', overflowY: 'auto' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 <div>
                                     <label style={labelStyle}>Tanggal Keberangkatan</label>
                                     <input type="date" required value={departureForm.date} onChange={(e) => setDepartureForm({ ...departureForm, date: e.target.value })} style={inputStyle} />
                                 </div>
                                 <div>
-                                    <label style={labelStyle}>Bandara</label>
-                                    <select required value={departureForm.airport} onChange={(e) => setDepartureForm({ ...departureForm, airport: e.target.value })} style={inputStyle}>
-                                        <option value="">Pilih Bandara</option>
-                                        {masters.airports.map(a => <option key={a.id} value={a.code}>{a.name} ({a.code})</option>)}
-                                    </select>
-                                </div>
-                                <div>
                                     <label style={labelStyle}>Kuota Seat Tersedia</label>
                                     <input type="number" required min="1" value={departureForm.seats} onChange={(e) => setDepartureForm({ ...departureForm, seats: parseInt(e.target.value) || 0 })} style={inputStyle} />
+                                </div>
+
+                                {/* Boarding Points Repeater */}
+                                <div>
+                                    <label style={labelStyle}>Rute & Kota Keberangkatan (Boarding Points)</label>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
+                                        {departureForm.boardingPoints.map((bp, index) => (
+                                            <div key={index} style={{ border: '1px solid var(--color-border)', borderRadius: '0.5rem', padding: '0.75rem', background: '#252422' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary)' }}>Titik {index + 1}</span>
+                                                    <button type="button" onClick={() => {
+                                                        const newBps = [...departureForm.boardingPoints];
+                                                        newBps.splice(index, 1);
+                                                        setDepartureForm({ ...departureForm, boardingPoints: newBps });
+                                                    }} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>delete</span> Hapus
+                                                    </button>
+                                                </div>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                                    <select required value={bp.airportId} onChange={(e) => {
+                                                        const newBps = [...departureForm.boardingPoints];
+                                                        newBps[index].airportId = e.target.value;
+                                                        setDepartureForm({ ...departureForm, boardingPoints: newBps });
+                                                    }} style={inputStyle}>
+                                                        <option value="">Pilih Bandara</option>
+                                                        {masters.airports.map(a => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
+                                                    </select>
+                                                    
+                                                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--color-text-muted)', cursor: 'pointer' }}>
+                                                            <input type="radio" name={`isOrigin-${index}`} checked={bp.isOrigin} onChange={() => {
+                                                                const newBps = departureForm.boardingPoints.map((b, i) => ({ ...b, isOrigin: i === index }));
+                                                                setDepartureForm({ ...departureForm, boardingPoints: newBps });
+                                                            }} />
+                                                            Kota Asal (Origin)
+                                                        </label>
+                                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--color-text-muted)', cursor: 'pointer' }}>
+                                                            <input type="radio" name={`isOrigin-${index}`} checked={!bp.isOrigin} onChange={() => {
+                                                                const newBps = [...departureForm.boardingPoints];
+                                                                newBps[index].isOrigin = false;
+                                                                setDepartureForm({ ...departureForm, boardingPoints: newBps });
+                                                            }} />
+                                                            Transit
+                                                        </label>
+                                                    </div>
+
+                                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                        <div style={{ flex: 1 }}>
+                                                            <label style={{ fontSize: '0.6875rem', color: '#888' }}>Penyesuaian Harga (IDR)</label>
+                                                            <input type="number" placeholder="Contoh: -2000000" value={bp.priceAdjustment} onChange={(e) => {
+                                                                const newBps = [...departureForm.boardingPoints];
+                                                                newBps[index].priceAdjustment = parseInt(e.target.value) || 0;
+                                                                setDepartureForm({ ...departureForm, boardingPoints: newBps });
+                                                            }} style={{ ...inputStyle, padding: '0.375rem 0.75rem', fontSize: '0.75rem' }} />
+                                                        </div>
+                                                        <div style={{ flex: 1 }}>
+                                                            <label style={{ fontSize: '0.6875rem', color: '#888' }}>Urutan Transit</label>
+                                                            <input type="number" min="1" value={bp.sortOrder} onChange={(e) => {
+                                                                const newBps = [...departureForm.boardingPoints];
+                                                                newBps[index].sortOrder = parseInt(e.target.value) || 0;
+                                                                setDepartureForm({ ...departureForm, boardingPoints: newBps });
+                                                            }} style={{ ...inputStyle, padding: '0.375rem 0.75rem', fontSize: '0.75rem' }} />
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <input type="text" placeholder="Catatan khusus (mis. Meeting point)" value={bp.notes} onChange={(e) => {
+                                                            const newBps = [...departureForm.boardingPoints];
+                                                            newBps[index].notes = e.target.value;
+                                                            setDepartureForm({ ...departureForm, boardingPoints: newBps });
+                                                        }} style={{ ...inputStyle, padding: '0.375rem 0.75rem', fontSize: '0.75rem' }} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        <button type="button" onClick={() => {
+                                            setDepartureForm({
+                                                ...departureForm,
+                                                boardingPoints: [
+                                                    ...departureForm.boardingPoints,
+                                                    { airportId: '', isOrigin: departureForm.boardingPoints.length === 0, sortOrder: departureForm.boardingPoints.length + 1, priceAdjustment: 0, notes: '' }
+                                                ]
+                                            });
+                                        }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem', padding: '0.5rem', border: '1px dashed #444', borderRadius: '0.5rem', background: 'none', color: 'var(--color-primary)', fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem' }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span> Tambah Kota Keberangkatan
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
@@ -296,6 +434,7 @@ export default function PackageDetail() {
                     </div>
                 </div>
             )}
+
 
             {/* Room Modal */}
             {isRoomModalOpen && (
@@ -309,12 +448,21 @@ export default function PackageDetail() {
                         </div>
                         <form onSubmit={handleCreateRoom} style={{ padding: '1.5rem' }}>
                             <div style={{ padding: '0.75rem', background: 'var(--color-primary-bg)', borderRadius: '0.5rem', marginBottom: '1rem', textAlign: 'center', fontSize: '0.8125rem', fontWeight: 700, color: 'var(--color-primary)' }}>
-                                Harga Dasar Paket: Rp {(pkg?.basePrice || 0).toLocaleString('id-ID')}
+                                Harga Dasar Paket: {fmt(pkg?.basePrice || 0, pkg?.currency)}
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 <div>
                                     <label style={labelStyle}>Nama Kapasitas / Tipe Bed</label>
-                                    <input type="text" required value={roomForm.name} onChange={(e) => setRoomForm({ ...roomForm, name: e.target.value })} placeholder="Misal: Quad Bed (4 Orang)" style={inputStyle} />
+                                    <input type="text" required value={roomForm.name} onChange={(e) => {
+                                        const val = e.target.value;
+                                        let autoCap = roomForm.capacity;
+                                        const lower = val.toLowerCase();
+                                        if (lower.includes('quad')) autoCap = 4;
+                                        else if (lower.includes('triple')) autoCap = 3;
+                                        else if (lower.includes('double')) autoCap = 2;
+                                        else if (lower.includes('single')) autoCap = 1;
+                                        setRoomForm({ ...roomForm, name: val, capacity: autoCap });
+                                    }} placeholder="Misal: Quad Bed (4 Orang)" style={inputStyle} />
                                 </div>
                                 <div>
                                     <label style={labelStyle}>Kapasitas (Orang)</label>
@@ -327,7 +475,7 @@ export default function PackageDetail() {
                                     {roomForm.priceAdjustment !== 0 && (
                                         <div style={{ marginTop: '0.5rem', padding: '0.625rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', fontWeight: 700 }}>
                                             <span style={{ color: '#888' }}>Total Harga Jamaah:</span>
-                                            <span style={{ color: 'white' }}>Rp {((pkg?.basePrice || 0) + (roomForm.priceAdjustment || 0)).toLocaleString('id-ID')}</span>
+                                            <span style={{ color: 'white' }}>{fmt((pkg?.basePrice || 0) + (roomForm.priceAdjustment || 0), pkg?.currency)}</span>
                                         </div>
                                     )}
                                 </div>

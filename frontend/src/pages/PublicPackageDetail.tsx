@@ -29,6 +29,7 @@ export default function PublicPackageDetail() {
     const [loading, setLoading] = useState(true);
     const [selectedDep, setSelectedDep] = useState<any>(null);
     const [selectedRoom, setSelectedRoom] = useState<any>(null);
+    const [selectedBoardingPoint, setSelectedBoardingPoint] = useState<any>(null);
     const [pax, setPax] = useState(1);
     const [mainImage, setMainImage] = useState('');
     const [activeTab, setActiveTab] = useState('facilities');
@@ -48,6 +49,10 @@ export default function PublicPackageDetail() {
                     const dep = avail.length ? avail[0] : p.departures[0];
                     setSelectedDep(dep);
                     if (dep.roomTypes?.length) setSelectedRoom(dep.roomTypes[0]);
+                    if (dep.boardingPoints?.length) {
+                        const origin = dep.boardingPoints.find((bp: any) => bp.isOrigin) || dep.boardingPoints[0];
+                        setSelectedBoardingPoint(origin);
+                    }
                 }
             })
             .catch(() => navigate('/'))
@@ -71,8 +76,9 @@ export default function PublicPackageDetail() {
 
     const totalPrice = useMemo(() => {
         if (!pkg || !selectedRoom) return 0;
-        return (pkg.basePrice + (selectedRoom.priceAdjustment || 0)) * pax;
-    }, [pkg, selectedRoom, pax]);
+        const bpAdj = selectedBoardingPoint?.priceAdjustment || 0;
+        return (pkg.basePrice + (selectedRoom.priceAdjustment || 0) + bpAdj) * pax;
+    }, [pkg, selectedRoom, selectedBoardingPoint, pax]);
 
     if (loading) return (
         <div style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -131,11 +137,22 @@ export default function PublicPackageDetail() {
                             {new Date(selectedDep.departureDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </span>
                     )}
-                    {selectedDep?.departureAirport && (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+                    {(selectedDep?.boardingPoints && selectedDep.boardingPoints.length > 0) ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8125rem', color: 'var(--color-text-muted)', flexWrap: 'wrap' }}>
                             <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>flight_takeoff</span>
-                            {selectedDep.departureAirport.city} ({selectedDep.departureAirport.code})
+                            Rute: {selectedDep.boardingPoints
+                                .slice()
+                                .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
+                                .map((bp: any) => `${bp.airport?.city || ''} (${bp.airport?.code || ''})`)
+                                .join(' ➔ ')}
                         </span>
+                    ) : (
+                        selectedDep?.departureAirport && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>flight_takeoff</span>
+                                {selectedDep.departureAirport.city} ({selectedDep.departureAirport.code})
+                            </span>
+                        )
                     )}
                     {pkg.starRating && (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8125rem', color: 'var(--color-primary)' }}>
@@ -347,6 +364,12 @@ export default function PublicPackageDetail() {
                                     const dep = pkg.departures.find((d: any) => d.id === e.target.value);
                                     setSelectedDep(dep);
                                     if (dep?.roomTypes?.length) setSelectedRoom(dep.roomTypes[0]);
+                                    if (dep?.boardingPoints?.length) {
+                                        const origin = dep.boardingPoints.find((bp: any) => bp.isOrigin) || dep.boardingPoints[0];
+                                        setSelectedBoardingPoint(origin);
+                                    } else {
+                                        setSelectedBoardingPoint(null);
+                                    }
                                 }} style={{
                                     width: '100%', padding: '0.75rem', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
                                     borderRadius: '0.5rem', color: 'var(--color-text)', fontSize: '0.875rem',
@@ -357,6 +380,49 @@ export default function PublicPackageDetail() {
                                         </option>
                                     ))}
                                 </select>
+                            </div>
+                        )}
+
+                        {/* Boarding Point Selector */}
+                        {selectedDep?.boardingPoints?.length > 1 && (
+                            <div style={{ marginBottom: '1.25rem' }}>
+                                <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>
+                                    Pilih Kota Keberangkatan
+                                </div>
+                                {selectedDep.boardingPoints
+                                    .slice()
+                                    .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
+                                    .map((bp: any) => (
+                                        <label key={bp.id} onClick={() => setSelectedBoardingPoint(bp)} style={{
+                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                            padding: '0.875rem 1rem', borderRadius: '0.75rem', cursor: 'pointer',
+                                            background: selectedBoardingPoint?.id === bp.id ? 'rgba(212,175,55,0.1)' : 'transparent',
+                                            border: selectedBoardingPoint?.id === bp.id ? '1px solid rgba(212,175,55,0.3)' : '1px solid rgba(255,255,255,0.06)',
+                                            marginBottom: '0.5rem', transition: 'all 0.2s',
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <div style={{
+                                                    width: '18px', height: '18px', borderRadius: '50%',
+                                                    border: selectedBoardingPoint?.id === bp.id ? '5px solid var(--color-primary)' : '2px solid rgba(255,255,255,0.2)',
+                                                    background: selectedBoardingPoint?.id === bp.id ? 'transparent' : 'transparent',
+                                                }} />
+                                                <div>
+                                                    <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{bp.airport?.city} ({bp.airport?.code})</div>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                                                        {bp.isOrigin ? 'Kota Asal' : 'Transit'}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <span style={{ color: 'var(--color-primary)', fontWeight: 700, fontSize: '0.875rem' }}>
+                                                {bp.priceAdjustment === 0 
+                                                    ? 'Tipe Base' 
+                                                    : bp.priceAdjustment > 0 
+                                                        ? `+ ${fmt(bp.priceAdjustment, pkg.currency)}` 
+                                                        : `- ${fmt(Math.abs(bp.priceAdjustment), pkg.currency)}`
+                                                }
+                                            </span>
+                                        </label>
+                                    ))}
                             </div>
                         )}
 
@@ -420,6 +486,14 @@ export default function PublicPackageDetail() {
                                 <span>Subtotal ({pax} Pax)</span>
                                 <span>{fmt(totalPrice, pkg.currency)}</span>
                             </div>
+                            {selectedBoardingPoint && selectedBoardingPoint.priceAdjustment !== 0 && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.375rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+                                    <span>Penyesuaian Kota ({selectedBoardingPoint.airport?.code})</span>
+                                    <span style={{ color: selectedBoardingPoint.priceAdjustment > 0 ? '#ef4444' : '#22c55e' }}>
+                                        {selectedBoardingPoint.priceAdjustment > 0 ? '+' : ''}{fmt(selectedBoardingPoint.priceAdjustment, pkg.currency)}
+                                    </span>
+                                </div>
+                            )}
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.375rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
                                 <span>Tax & Surcharge</span>
                                 <span>Termasuk</span>
@@ -431,7 +505,7 @@ export default function PublicPackageDetail() {
                         </div>
 
                         {/* CTA Buttons */}
-                        <button onClick={() => navigate(`/register?package=${pkg.id}`)} style={{
+                        <button onClick={() => navigate(`/register?package=${pkg.id}&departure=${selectedDep?.id}&roomType=${selectedRoom?.id}${selectedBoardingPoint ? `&boardingPoint=${selectedBoardingPoint.id}` : ''}`)} style={{
                             width: '100%', padding: '0.875rem', background: 'var(--color-primary)', color: 'var(--color-bg)',
                             border: 'none', borderRadius: '0.75rem', fontWeight: 800, fontSize: '0.9375rem', cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem',

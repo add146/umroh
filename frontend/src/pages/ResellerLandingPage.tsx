@@ -7,6 +7,7 @@ interface PackageData {
     name: string;
     description: string;
     basePrice: number;
+    currency?: string;
     image: string | null;
     duration: string | null;
     departures: Array<{
@@ -14,8 +15,16 @@ interface PackageData {
     }>;
 }
 
-const formatCurrency = (n: number) =>
-    new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
+const formatCurrency = (n: any, currency = 'IDR') => {
+    const num = Number(n);
+    if (isNaN(num)) return '';
+    if (currency === 'USD') return `$ ${num.toLocaleString('en-US')}`;
+    if (num >= 1000000) {
+        const millions = num / 1000000;
+        return `Rp ${millions.toLocaleString('id-ID', { maximumFractionDigits: 1 })} Juta`;
+    }
+    return `Rp ${num.toLocaleString('id-ID')}`;
+};
 
 const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -120,7 +129,7 @@ export const ResellerLandingPage: React.FC = () => {
 
                                         <div style={{ marginTop: 'auto', paddingTop: '1.5rem', borderTop: '1px solid var(--color-border)' }}>
                                             <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>Mulai dari</p>
-                                            <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-primary)' }}>{formatCurrency(pkg.basePrice)}</p>
+                                            <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-primary)' }}>{formatCurrency(pkg.basePrice, pkg.currency)}</p>
                                         </div>
 
                                         <Link

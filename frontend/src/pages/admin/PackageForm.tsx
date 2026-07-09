@@ -432,9 +432,17 @@ export default function PackageForm() {
                                 </select>
                             </div>
                             <div>
-                                <label style={labelStyle}>Harga</label>
-                                <input type="number" placeholder="15000000" value={room.priceAdjustment || ''}
+                                <label style={labelStyle}>Penyesuaian Harga (Rp)</label>
+                                <input type="number" placeholder="Contoh: 1500000" value={room.priceAdjustment || ''}
                                     onChange={e => updateRoom(idx, 'priceAdjustment', parseInt(e.target.value) || 0)} style={inputStyle} />
+                                <div style={{ fontSize: '0.6875rem', color: '#888', marginTop: '0.25rem', display: 'flex', justifyContent: 'space-between' }}>
+                                    <span>Selisih harga (0 jika base price)</span>
+                                    {form.basePrice && (
+                                        <span style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>
+                                            Total: Rp {((parseInt(form.basePrice) || 0) + (room.priceAdjustment || 0)).toLocaleString('id-ID')}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                             <button type="button" onClick={() => removeRoom(idx)} style={{ padding: '0.875rem', color: 'var(--color-error)', background: 'rgba(239,68,68,0.1)', borderRadius: '0.5rem', border: 'none', cursor: 'pointer' }}>
                                 <span className="material-symbols-outlined" style={{ fontSize: '18px', display: 'block' }}>delete</span>

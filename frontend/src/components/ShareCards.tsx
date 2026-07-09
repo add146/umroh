@@ -7,6 +7,7 @@ interface PackageData {
     name: string;
     description: string;
     basePrice: number;
+    currency?: string;
     image: string | null;
     duration: string | null;
     departures: Array<{
@@ -19,8 +20,16 @@ interface ShareCardsProps {
     resellerName: string;
 }
 
-const formatCurrency = (n: number) =>
-    new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
+const formatCurrency = (n: any, currency = 'IDR') => {
+    const num = Number(n);
+    if (isNaN(num)) return '';
+    if (currency === 'USD') return `$ ${num.toLocaleString('en-US')}`;
+    if (num >= 1000000) {
+        const millions = num / 1000000;
+        return `Rp ${millions.toLocaleString('id-ID', { maximumFractionDigits: 1 })} Juta`;
+    }
+    return `Rp ${num.toLocaleString('id-ID')}`;
+};
 
 const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -52,7 +61,7 @@ export const ShareCards: React.FC<ShareCardsProps> = ({ affiliateCode, resellerN
     const handleShareWA = (pkg: PackageData) => {
         const refLink = `${frontendUrl}/package/${pkg.id}?ref=${affiliateCode}`;
         const dateStr = pkg.departures?.[0] ? formatDate(pkg.departures[0].departureDate) : 'Segera Hadir';
-        const price = formatCurrency(pkg.basePrice);
+        const price = formatCurrency(pkg.basePrice, pkg.currency);
 
         const text = `Assalamualaikum 🙏\n\nAda kabar gembira! Spesial untuk Anda, *${pkg.name}* bersama Al Madinah.\n\n📅 Keberangkatan: ${dateStr}\n💳 Harga Mulai: ${price}\n\nDaftar sekarang dan amankan seat Anda melalui link berikut:\n🔗 ${refLink}\n\nInfo lebih lanjut, silakan balas pesan ini.`;
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
@@ -148,7 +157,7 @@ export const ShareCards: React.FC<ShareCardsProps> = ({ affiliateCode, resellerN
 
                                 <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
                                     <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>Harga Mulai</p>
-                                    <p style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-primary)' }}>{formatCurrency(pkg.basePrice)}</p>
+                                    <p style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-primary)' }}>{formatCurrency(pkg.basePrice, pkg.currency)}</p>
                                 </div>
                             </div>
 
@@ -243,7 +252,7 @@ export const ShareCards: React.FC<ShareCardsProps> = ({ affiliateCode, resellerN
 
                                 <div style={{ marginTop: 'auto', background: 'rgba(200,168,81,0.1)', border: '2px dashed #c8a851', borderRadius: '32px', padding: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                     <p style={{ fontSize: '2rem', color: '#a1a1aa', marginBottom: '10px' }}>Harga Mulai Dari</p>
-                                    <p style={{ fontSize: '4.5rem', fontWeight: 900, color: '#c8a851' }}>{formatCurrency(pkg.basePrice)}</p>
+                                    <p style={{ fontSize: '4.5rem', fontWeight: 900, color: '#c8a851' }}>{formatCurrency(pkg.basePrice, pkg.currency)}</p>
                                 </div>
                             </div>
 

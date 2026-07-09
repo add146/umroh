@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
 import { useAuthStore } from '../../stores/authStore';
 import { BroadcastModal } from '../../components/BroadcastModal';
+import DocumentChecklist from '../../components/DocumentChecklist';
 
 const thStyle: React.CSSProperties = {
     padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.875rem',
@@ -18,6 +19,13 @@ const BookingList: React.FC = () => {
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [showBroadcastModal, setShowBroadcastModal] = useState(false);
+    const [equipmentSets, setEquipmentSets] = useState<any[]>([]);
+
+    useEffect(() => {
+        apiFetch<any[]>('/api/operations/equipment-sets')
+            .then(data => setEquipmentSets(data))
+            .catch(console.error);
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -129,6 +137,7 @@ const BookingList: React.FC = () => {
                                     </th>
                                     <th style={thStyle}>Kode Booking</th>
                                     <th style={thStyle}>Jamaah</th>
+                                    <th style={thStyle}>Agen</th>
                                     <th style={thStyle}>Paket</th>
                                     <th style={thStyle}>Total Harga</th>
                                     <th style={thStyle}>Status</th>
@@ -155,7 +164,43 @@ const BookingList: React.FC = () => {
                                         </td>
                                         <td style={tdStyle}>
                                             <p style={{ fontWeight: 700, color: 'white', margin: '0 0 0.125rem 0' }}>{booking.pilgrim?.name}</p>
-                                            <p style={{ fontSize: '0.75rem', color: '#888', margin: 0 }}>{booking.pilgrim?.phone}</p>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <span style={{ fontSize: '0.75rem', color: '#888' }}>{booking.pilgrim?.phone}</span>
+                                                {booking.documentCount && (
+                                                    <span style={{
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.25rem',
+                                                        padding: '0.125rem 0.375rem',
+                                                        borderRadius: '4px',
+                                                        fontSize: '0.7rem',
+                                                        fontWeight: 700,
+                                                        background: booking.documentCount.uploaded === booking.documentCount.total 
+                                                            ? 'rgba(34,197,94,0.1)' 
+                                                            : booking.documentCount.uploaded > 0 
+                                                                ? 'rgba(234,179,8,0.1)' 
+                                                                : 'rgba(239,68,68,0.1)',
+                                                        color: booking.documentCount.uploaded === booking.documentCount.total 
+                                                            ? '#22c55e' 
+                                                            : booking.documentCount.uploaded > 0 
+                                                                ? '#eab308' 
+                                                                : '#ef4444',
+                                                    }}>
+                                                        <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>description</span>
+                                                        {booking.documentCount.uploaded}/{booking.documentCount.total}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td style={tdStyle}>
+                                            {booking.affiliator ? (
+                                                <div>
+                                                    <p style={{ fontWeight: 600, color: 'white', margin: 0 }}>{booking.affiliator.name}</p>
+                                                    <span style={{ fontSize: '0.7rem', color: '#888', textTransform: 'uppercase', fontWeight: 700 }}>{booking.affiliator.role}</span>
+                                                </div>
+                                            ) : (
+                                                <span style={{ color: '#555' }}>Pusat</span>
+                                            )}
                                         </td>
                                         <td style={{ ...tdStyle, fontWeight: 600, color: 'white' }}>{booking.departure?.package?.name}</td>
                                         <td style={{ ...tdStyle, fontWeight: 800, color: 'var(--color-primary)' }}>Rp {(booking.totalPrice || 0).toLocaleString('id-ID')}</td>
@@ -287,6 +332,54 @@ const BookingList: React.FC = () => {
                                 </div>
                             </div>
                         )}
+
+                        {/* Equipment Set Override */}
+                        {user?.role === 'pusat' && (
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <h3 style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.75rem 0' }}>Override Perlengkapan</h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    <label style={{ fontSize: '0.75rem', color: '#888' }}>Kategori Perlengkapan</label>
+                                    <select
+                                        value={selectedBooking.equipmentSetId || ''}
+                                        onChange={async (e) => {
+                                            const val = e.target.value || null;
+                                            try {
+                                                await apiFetch(`/api/operations/booking/${selectedBooking.id}/equipment-set`, {
+                                                    method: 'PATCH',
+                                                    body: JSON.stringify({ equipmentSetId: val })
+                                                });
+                                                setSelectedBooking({ ...selectedBooking, equipmentSetId: val });
+                                                setBookings(bookings.map(b => b.id === selectedBooking.id ? { ...b, equipmentSetId: val } : b));
+                                            } catch (err) {
+                                                console.error(err);
+                                                alert('Gagal mengubah set perlengkapan');
+                                            }
+                                        }}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            background: '#0a0907',
+                                            border: '1px solid #333',
+                                            color: 'white',
+                                            borderRadius: '0.5rem',
+                                            fontSize: '0.875rem',
+                                            outline: 'none',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        <option value="">(Default Paket)</option>
+                                        {equipmentSets.map(set => (
+                                            <option key={set.id} value={set.id}>{set.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Document Checklist */}
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <DocumentChecklist documentStatus={selectedBooking.documentStatus} />
+                        </div>
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
                             <button onClick={() => setSelectedBooking(null)} style={{ background: 'var(--color-primary)', color: '#000', border: 'none', padding: '0.625rem 1.5rem', borderRadius: '0.5rem', fontWeight: 700, cursor: 'pointer' }}>Tutup</button>

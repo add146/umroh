@@ -19,6 +19,7 @@ const menuGroups = [
             { name: 'Paket Umroh', path: '/admin/packages', icon: 'package_2', roles: ['pusat'] },
             { name: 'Jadwal Keberangkatan', path: '/admin/departures', icon: 'flight_takeoff', roles: ['pusat'] },
             { name: 'Logistik & Inventory', path: '/admin/logistics', icon: 'inventory_2', roles: ['pusat', 'teknisi'] },
+            { name: 'Kategori Perlengkapan', path: '/admin/equipment-sets', icon: 'auto_awesome_motion', roles: ['pusat'] },
         ]
     },
     {
@@ -43,8 +44,8 @@ const menuGroups = [
         items: [
             { name: 'Prospek', path: '/prospects', icon: 'contact_mail', roles: ['agen', 'reseller'] },
             { name: 'Inbox Lead', path: '/agent/leads', icon: 'call_received', roles: ['agen'] },
-            { name: 'Marketing Kit', path: '/marketing-kit', icon: 'imagesmode', roles: ['mitra', 'agen', 'reseller', 'cabang'] },
-            { name: 'Upload Banner', path: '/cabang/marketing-kit', icon: 'upload', roles: ['cabang'] },
+            { name: 'Marketing Kit', path: '/marketing-kit', icon: 'imagesmode', roles: ['pusat', 'mitra', 'agen', 'reseller', 'cabang'] },
+            { name: 'Kelola Marketing Kit', path: '/cabang/marketing-kit', icon: 'upload', roles: ['pusat', 'cabang'] },
             { name: 'Assign Lead', path: '/cabang/assign-lead', icon: 'assignment_ind', roles: ['cabang', 'mitra'] },
             { name: 'Kelola Testimoni', path: '/admin/testimonials', icon: 'reviews', roles: ['pusat'] },
         ]
@@ -54,6 +55,7 @@ const menuGroups = [
         items: [
             { name: 'Approval Jamaah', path: '/cabang/approval', icon: 'rule', roles: ['cabang'] },
             { name: 'Data Jamaah Cabang', path: '/cabang/jamaah', icon: 'dns', roles: ['cabang'] },
+            { name: 'List Jamaah', path: '/agent/list-jamaah', icon: 'contact_page', roles: ['agen'] },
             { name: 'Data Jamaahku', path: '/agent/jamaah', icon: 'group', roles: ['agen'] },
             { name: 'Daftar Jamaah', path: '/teknisi/jamaah', icon: 'person_search', roles: ['teknisi'] },
             { name: 'Repeat Customers', path: '/admin/reports/repeat-customers', icon: 'group_add', roles: ['pusat'] },
@@ -91,6 +93,31 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     const navigate = useNavigate();
     const location = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [branding, setBranding] = useState({ logoUrl: '/logo.png', brandName: 'AL', brandHighlight: 'MADINAH' });
+
+    // Fetch branding from landing settings
+    useEffect(() => {
+        const apiBase = import.meta.env.VITE_API_URL || '';
+        fetch(`${apiBase}/api/landing-settings`)
+            .then(r => r.json())
+            .then((data: any) => {
+                if (data?.settings) {
+                    const s = data.settings;
+                    const rawLogo = s.logo_url || '/logo.png';
+                    const logoUrl = rawLogo.startsWith('/') && !rawLogo.startsWith('//')
+                        ? `${apiBase}${rawLogo}`
+                        : rawLogo;
+                    const fullBrand = s.brand_name || 'ALMADINAH';
+                    const highlight = s.brand_highlight || '';
+                    setBranding({
+                        logoUrl,
+                        brandName: highlight ? fullBrand.replace(highlight, '') : fullBrand,
+                        brandHighlight: highlight,
+                    });
+                }
+            })
+            .catch(() => {});
+    }, []);
 
     // Close sidebar on route change (mobile navigation)
     useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
@@ -109,11 +136,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             {/* Logo */}
             <div style={{ padding: '1.25rem 1.25rem', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <div style={{ width: '38px', height: '38px', background: 'var(--color-primary)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-                    <img src="/logo.png" alt="Logo" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+                    <img src={branding.logoUrl} alt="Logo" style={{ width: '28px', height: '28px', objectFit: 'contain' }} onError={e => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontWeight: 900, fontSize: '0.875rem', letterSpacing: '-0.02em', textTransform: 'uppercase', lineHeight: 1, margin: 0 }}>
-                        AL<span style={{ color: 'var(--color-primary)' }}>MADINAH</span>
+                        {branding.brandName}<span style={{ color: 'var(--color-primary)' }}>{branding.brandHighlight}</span>
                     </p>
                     <p style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', textTransform: 'capitalize', marginTop: '2px', margin: '2px 0 0 0' }}>
                         {user?.role === 'pusat' ? 'Admin Platform' : `${user?.role} Portal`}

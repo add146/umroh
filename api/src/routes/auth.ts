@@ -64,7 +64,7 @@ auth.post('/login', zValidator('json', loginSchema), async (c) => {
         httpOnly: true,
         secure: c.env.ENVIRONMENT === 'production',
         sameSite: 'Lax',
-        maxAge: 7 * 24 * 60 * 60, // 7 days
+        maxAge: 180 * 24 * 60 * 60, // 6 months
     });
 
     return c.json({

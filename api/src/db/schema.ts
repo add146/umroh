@@ -196,12 +196,23 @@ export const roomTypes = sqliteTable('room_types', {
     priceAdjustment: integer('price_adjustment').notNull().default(0), // added to basePrice
 });
 
+export const departureBoardingPoints = sqliteTable('departure_boarding_points', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    departureId: text('departure_id').notNull().references(() => departures.id, { onDelete: 'cascade' }),
+    airportId: text('airport_id').notNull().references(() => airports.id),
+    isOrigin: integer('is_origin', { mode: 'boolean' }).notNull().default(false),
+    sortOrder: integer('sort_order').notNull().default(0),
+    priceAdjustment: integer('price_adjustment').notNull().default(0),
+    notes: text('notes'),
+    createdAt: text('created_at').default(sql`(datetime('now'))`),
+});
+
 export const pilgrims = sqliteTable('pilgrims', {
     id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
 
     // Section B: Data Pribadi
     name: text('name').notNull(),
-    noKtp: text('no_ktp').notNull().unique(),
+    noKtp: text('no_ktp').notNull(),
     sex: text('sex', { enum: ['L', 'P'] }).notNull(),
     born: text('born').notNull(), // format YYYY-MM-DD
     address: text('address').notNull(),
@@ -239,12 +250,14 @@ export const bookings = sqliteTable('bookings', {
     pilgrimId: text('pilgrim_id').notNull().references(() => pilgrims.id),
     affiliatorId: text('affiliator_id').references(() => users.id),
     roomTypeId: text('room_type_id').notNull().references(() => roomTypes.id),
+    boardingPointId: text('boarding_point_id').references(() => departureBoardingPoints.id),
 
     totalPrice: integer('total_price').notNull(),
     paymentStatus: text('payment_status', { enum: ['unpaid', 'partial', 'paid', 'cancelled'] }).default('unpaid'),
     bookingStatus: text('booking_status', { enum: ['pending', 'ready_review', 'confirmed', 'cancelled'] }).default('pending'),
     paymentMode: text('payment_mode', { enum: ['auto', 'manual'] }).default('manual'),
     equipmentDelivered: integer('equipment_delivered', { mode: 'boolean' }).default(false),
+    equipmentSetId: text('equipment_set_id').references(() => equipmentSets.id),
     bookedAt: text('booked_at').default(sql`(datetime('now'))`),
 });
 
@@ -328,6 +341,26 @@ export const equipmentChecklist = sqliteTable('equipment_checklist', {
     status: text('status', { enum: ['pending', 'received'] }).default('pending'),
     receivedAt: text('received_at'),
     receivedBy: text('received_by').references(() => users.id),
+});
+
+export const equipmentSets = sqliteTable('equipment_sets', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    name: text('name').notNull(),                // "Gold", "Silver", "Bronze"
+    description: text('description'),             // "Koper premium + ihram cotton + ..."
+    equipmentItemIds: text('equipment_item_ids').notNull(), // JSON array of equipment_items IDs
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    createdAt: text('created_at').default(sql`(datetime('now'))`),
+});
+
+export const bookingCustomEquipment = sqliteTable('booking_custom_equipment', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    bookingId: text('booking_id').notNull().references(() => bookings.id),
+    itemName: text('item_name').notNull(),       // "Kursi Roda", "Obat Jantung", dll
+    addedBy: text('added_by').notNull().references(() => users.id),
+    status: text('status', { enum: ['pending', 'received'] }).default('pending'),
+    receivedAt: text('received_at'),
+    notes: text('notes'),                         // catatan opsional
+    createdAt: text('created_at').default(sql`(datetime('now'))`),
 });
 
 export const roomAssignments = sqliteTable('room_assignments', {
@@ -439,6 +472,7 @@ export const departuresRelations = relations(departures, ({ one, many }) => ({
         fields: [departures.arrivalAirportId],
         references: [airports.id],
     }),
+    boardingPoints: many(departureBoardingPoints),
 }));
 
 
@@ -446,6 +480,17 @@ export const roomTypesRelations = relations(roomTypes, ({ one }) => ({
     departure: one(departures, {
         fields: [roomTypes.departureId],
         references: [departures.id],
+    }),
+}));
+
+export const departureBoardingPointsRelations = relations(departureBoardingPoints, ({ one }) => ({
+    departure: one(departures, {
+        fields: [departureBoardingPoints.departureId],
+        references: [departures.id],
+    }),
+    airport: one(airports, {
+        fields: [departureBoardingPoints.airportId],
+        references: [airports.id],
     }),
 }));
 
@@ -467,6 +512,10 @@ export const bookingsRelations = relations(bookings, ({ one, many }) => ({
         fields: [bookings.roomTypeId],
         references: [roomTypes.id],
     }),
+    boardingPoint: one(departureBoardingPoints, {
+        fields: [bookings.boardingPointId],
+        references: [departureBoardingPoints.id],
+    }),
     affiliator: one(users, {
         fields: [bookings.affiliatorId],
         references: [users.id],
@@ -478,6 +527,11 @@ export const bookingsRelations = relations(bookings, ({ one, many }) => ({
         fields: [bookings.id],
         references: [roomAssignments.bookingId],
     }),
+    equipmentSet: one(equipmentSets, {
+        fields: [bookings.equipmentSetId],
+        references: [equipmentSets.id],
+    }),
+    customEquipment: many(bookingCustomEquipment),
 }));
 
 export const hierarchyPathsRelations = relations(hierarchyPaths, ({ one }) => ({
@@ -581,6 +635,21 @@ export const equipmentChecklistRelations = relations(equipmentChecklist, ({ one 
     }),
     receiver: one(users, {
         fields: [equipmentChecklist.receivedBy],
+        references: [users.id],
+    }),
+}));
+
+export const equipmentSetsRelations = relations(equipmentSets, ({ many }) => ({
+    bookings: many(bookings),
+}));
+
+export const bookingCustomEquipmentRelations = relations(bookingCustomEquipment, ({ one }) => ({
+    booking: one(bookings, {
+        fields: [bookingCustomEquipment.bookingId],
+        references: [bookings.id],
+    }),
+    user: one(users, {
+        fields: [bookingCustomEquipment.addedBy],
         references: [users.id],
     }),
 }));

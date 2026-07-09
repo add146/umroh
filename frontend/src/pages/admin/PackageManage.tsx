@@ -10,6 +10,13 @@ const tdStyle: React.CSSProperties = {
     padding: '1rem 1.5rem',
 };
 
+const fmt = (n: any, currency = 'IDR') => {
+    const num = Number(n);
+    if (isNaN(num)) return '';
+    if (currency === 'USD') return `$ ${num.toLocaleString('en-US')}`;
+    return `Rp ${num.toLocaleString('id-ID')}`;
+};
+
 export default function PackageManage() {
     const [packages, setPackages] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -91,7 +98,7 @@ export default function PackageManage() {
                                 </td>
                                 <td style={tdStyle}>
                                     <span style={{ fontWeight: 800, color: 'var(--color-primary)' }}>
-                                        Rp{pkg.basePrice.toLocaleString('id-ID')}
+                                        {fmt(pkg.basePrice, pkg.currency)}
                                     </span>
                                 </td>
                                 <td style={{ ...tdStyle, textAlign: 'right' }}>

@@ -92,9 +92,8 @@ export default function ImageUploader({
             formData.append('image', fileToUpload);
 
             const { accessToken } = useAuthStore.getState();
-            const endpoint = mode === 'imgbb'
-                ? '/api/upload/imgbb'
-                : '/api/upload/package-image';
+            // Bypass imgBB and always use R2 since ImgBB API key is forbidden
+            const endpoint = '/api/upload/package-image';
 
             const response = await fetch(`${API_URL}${endpoint}`, {
                 method: 'POST',
@@ -117,6 +116,11 @@ export default function ImageUploader({
                 imageUrl = result.url; // imgBB display URL
             } else {
                 imageUrl = result.url; // R2 served URL (relative path)
+            }
+            
+            // Guarantee absolute URL for frontend rendering
+            if (imageUrl.startsWith('/')) {
+                imageUrl = `${API_URL}${imageUrl}`;
             }
 
             setPreview(imageUrl);

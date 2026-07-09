@@ -22,3 +22,10 @@ export async function checkDuplicatePilgrim(
 
     return existing || null;
 }
+
+export async function findPilgrimsByNik(db: any, noKtp: string) {
+    const results = await db.query.pilgrims.findMany({
+        where: eq(pilgrims.noKtp, noKtp)
+    });
+    return results;
+}

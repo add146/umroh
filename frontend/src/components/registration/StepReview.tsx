@@ -11,7 +11,15 @@ interface StepReviewProps {
 const StepReview: React.FC<StepReviewProps> = ({ isLoading, getMissingFields, goToStep }) => {
     const { watch } = useFormContext();
     const data = watch();
-    const [priceDetails, setPriceDetails] = useState<{ basePrice: number, roomAdjustment: number, total: number, packageName: string, roomName: string } | null>(null);
+    const [priceDetails, setPriceDetails] = useState<{ 
+        basePrice: number, 
+        roomAdjustment: number, 
+        boardingPointAdjustment: number,
+        total: number, 
+        packageName: string, 
+        roomName: string,
+        boardingPointName: string
+    } | null>(null);
 
     const missingFields = getMissingFields();
     const hasErrors = missingFields.length > 0;
@@ -23,16 +31,29 @@ const StepReview: React.FC<StepReviewProps> = ({ isLoading, getMissingFields, go
                 const response = await apiFetch(`/api/departures/${data.departureId}`);
                 if (response.departure && response.departure.package) {
                     const room = (response.departure.roomTypes || response.roomTypes || []).find((r: any) => r.id === data.roomTypeId);
+                    const bp = (response.departure.boardingPoints || []).find((b: any) => b.id === data.boardingPointId);
+                    
                     if (room) {
                         const basePrice = response.departure.package.basePrice || 0;
-                        const adjustment = room.priceAdjustment || 0;
-                        setPriceDetails({ basePrice, roomAdjustment: adjustment, total: basePrice + adjustment, packageName: response.departure.package.name, roomName: room.name });
+                        const roomAdjustment = room.priceAdjustment || 0;
+                        const bpAdjustment = bp?.priceAdjustment || 0;
+                        const bpName = bp ? `${bp.airport?.city} (${bp.airport?.code})` : '';
+
+                        setPriceDetails({ 
+                            basePrice, 
+                            roomAdjustment, 
+                            boardingPointAdjustment: bpAdjustment,
+                            total: basePrice + roomAdjustment + bpAdjustment, 
+                            packageName: response.departure.package.name, 
+                            roomName: room.name,
+                            boardingPointName: bpName
+                        });
                     }
                 }
             } catch (error) { console.error("Failed to fetch price details:", error); }
         };
         fetchDetails();
-    }, [data.departureId, data.roomTypeId]);
+    }, [data.departureId, data.roomTypeId, data.boardingPointId]);
 
     const SummaryItem = ({ label, value }: { label: string; value: string | boolean | undefined }) => (
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
@@ -112,6 +133,7 @@ const StepReview: React.FC<StepReviewProps> = ({ isLoading, getMissingFields, go
                         <h3 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid #333' }}>Rincian Paket</h3>
                         <SummaryItem label="Paket" value={priceDetails?.packageName || 'Memuat...'} />
                         <SummaryItem label="Pilihan Kamar" value={priceDetails?.roomName || 'Memuat...'} />
+                        {priceDetails?.boardingPointName && <SummaryItem label="Kota Keberangkatan" value={priceDetails.boardingPointName} />}
                         <SummaryItem label="Status Paspor" value={data.pilgrim?.hasPassport ? 'Sudah Ada' : 'Belum Ada'} />
                     </div>
 
@@ -123,11 +145,17 @@ const StepReview: React.FC<StepReviewProps> = ({ isLoading, getMissingFields, go
                                     <span>Harga Dasar</span>
                                     <span>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(priceDetails.basePrice)}</span>
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', opacity: 0.8, marginBottom: '0.75rem', paddingBottom: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', opacity: 0.8, marginBottom: '0.5rem' }}>
                                     <span>Penyesuaian Kamar</span>
                                     <span>{priceDetails.roomAdjustment >= 0 ? '+' : '-'}{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Math.abs(priceDetails.roomAdjustment))}</span>
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontWeight: 700, fontSize: '1.125rem' }}>
+                                {priceDetails.boardingPointAdjustment !== 0 && (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', opacity: 0.8, marginBottom: '0.5rem' }}>
+                                        <span>Penyesuaian Kota</span>
+                                        <span>{priceDetails.boardingPointAdjustment >= 0 ? '+' : '-'}{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Math.abs(priceDetails.boardingPointAdjustment))}</span>
+                                    </div>
+                                )}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontWeight: 700, fontSize: '1.125rem', borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
                                     <span>Total Tagihan</span>
                                     <span style={{ fontSize: '1.5rem', fontWeight: 900 }}>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(priceDetails.total)}</span>
                                 </div>

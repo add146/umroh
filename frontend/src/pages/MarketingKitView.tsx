@@ -3,6 +3,7 @@ import { apiFetch } from '../lib/api';
 import { useAuthStore } from '../stores/authStore';
 
 export const MarketingKitView: React.FC = () => {
+    const { accessToken } = useAuthStore();
     const [materials, setMaterials] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filterCategory, setFilterCategory] = useState<string>('all');
@@ -58,6 +59,19 @@ export const MarketingKitView: React.FC = () => {
         window.open(`https://wa.me/?text=${text}`, '_blank');
     };
 
+    const handleCopy = (description: string) => {
+        if (!description) {
+            alert('Tidak ada teks untuk disalin.');
+            return;
+        }
+        navigator.clipboard.writeText(description).then(() => {
+            alert('Teks berhasil disalin ke clipboard!');
+        }).catch(err => {
+            console.error('Copy failed', err);
+            alert('Gagal menyalin teks.');
+        });
+    };
+
     return (
         <div className="animate-in fade-in duration-700">
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2.5rem' }}>
@@ -111,8 +125,13 @@ export const MarketingKitView: React.FC = () => {
                 ) : filteredMaterials.map(m => (
                     <div key={m.id} style={{ backgroundColor: 'var(--color-bg-card)', borderRadius: '1rem', border: '1px solid var(--color-border)', overflow: 'hidden', transition: 'border-color 0.2s', display: 'flex', flexDirection: 'column' }} className="hover:border-primary/30">
                         {m.category === 'poster' || m.category === 'brosur' ? (
-                            <div style={{ height: 220, backgroundColor: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <span className="material-symbols-outlined" style={{ fontSize: '64px', color: 'var(--color-border)' }}>image</span>
+                            <div style={{ height: 220, backgroundColor: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                <img 
+                                    src={`${import.meta.env.VITE_API_URL || ''}/api/marketing-kit/${m.id}/download?token=${accessToken}`} 
+                                    alt={m.title} 
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                    loading="lazy"
+                                />
                             </div>
                         ) : m.category === 'video' ? (
                             <div style={{ height: 220, backgroundColor: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -131,12 +150,15 @@ export const MarketingKitView: React.FC = () => {
                             <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '1.5rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.6, flex: 1 }}>
                                 {m.description || 'Tidak ada deskripsi tersedia untuk materi ini.'}
                             </p>
-                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
-                                <button className="btn btn-primary" style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem' }} onClick={() => handleDownload(m.id, m.fileName)}>
-                                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>download</span> Unduh
+                            <div style={{ display: 'flex', gap: '0.375rem', marginTop: 'auto', flexWrap: 'wrap' }}>
+                                <button className="btn btn-primary" style={{ flex: '1 1 0%', padding: '0.625rem', borderRadius: '0.5rem', fontSize: '0.8125rem' }} onClick={() => handleDownload(m.id, m.fileName)}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>download</span> Unduh
                                 </button>
-                                <button className="btn btn-secondary" style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', backgroundColor: 'rgba(37, 211, 102, 0.15)', color: '#25D366', border: '1px solid rgba(37, 211, 102, 0.3)' }} onClick={() => handleShareWA(m.title, m.description)}>
-                                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>share</span> Bagikan WA
+                                <button className="btn btn-secondary" style={{ flex: '1 1 0%', padding: '0.625rem', borderRadius: '0.5rem', backgroundColor: 'rgba(255, 255, 255, 0.1)', border: '1px solid var(--color-border)', fontSize: '0.8125rem' }} onClick={() => handleCopy(m.description)}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>content_copy</span> Salin
+                                </button>
+                                <button className="btn btn-secondary" style={{ flex: '1 1 0%', padding: '0.625rem', borderRadius: '0.5rem', backgroundColor: 'rgba(37, 211, 102, 0.15)', color: '#25D366', border: '1px solid rgba(37, 211, 102, 0.3)', fontSize: '0.8125rem' }} onClick={() => handleShareWA(m.title, m.description)}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>share</span> WA
                                 </button>
                             </div>
                         </div>

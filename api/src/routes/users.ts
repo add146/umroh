@@ -29,7 +29,7 @@ const createUserSchema = z.object({
     password: z.string().min(6),
     affiliateCode: z.string().optional(),
     targetRole: z.string().optional(),
-    nik: z.string().optional(),
+    nik: z.string().length(16, 'NIK harus tepat 16 digit'),
 });
 
 // Any role except Reseller can create their direct downline
@@ -74,7 +74,10 @@ userStore.post('/', authMiddleware, zValidator('json', createUserSchema), async 
         }, 201);
     } catch (error: any) {
         if (error.message?.includes('UNIQUE')) {
-            return c.json({ error: 'Email, NIK, or Affiliate Code already exists' }, 400);
+            if (error.message?.includes('nik')) {
+                return c.json({ error: 'NIK sudah terdaftar di sistem' }, 400);
+            }
+            return c.json({ error: 'Email, NIK, atau Kode Afiliasi sudah terdaftar' }, 400);
         }
         return c.json({ error: 'Failed to create user' }, 500);
     }
@@ -94,6 +97,21 @@ userStore.get('/', authMiddleware, async (c) => {
     const { getDirectDownlines } = await import('../services/hierarchy.js');
     const downlines = await getDirectDownlines(c.env.DB, currentUser.id);
     return c.json({ users: downlines });
+});
+
+userStore.get('/check-nik', authMiddleware, async (c) => {
+    const nik = c.req.query('nik');
+    if (!nik || nik.length !== 16) {
+        return c.json({ valid: false, error: 'NIK harus 16 digit' });
+    }
+    const db = getDb(c.env.DB);
+    const { eq } = await import('drizzle-orm');
+    const existing = await db.select({ id: users.id, name: users.name, role: users.role })
+        .from(users).where(eq(users.nik, nik)).limit(1);
+    if (existing.length > 0) {
+        return c.json({ exists: true, user: existing[0] });
+    }
+    return c.json({ exists: false });
 });
 
 export default userStore;
