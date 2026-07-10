@@ -260,13 +260,56 @@ const Registration = () => {
         }
     };
 
+    const getStepForField = (fieldPath: string): number => {
+        for (const [stepStr, fieldDefs] of Object.entries(STEP_FIELDS)) {
+            const stepNum = parseInt(stepStr);
+            if (fieldDefs.some(fd => fd.field === fieldPath || fieldPath.startsWith(fd.field))) {
+                return stepNum;
+            }
+        }
+        if (fieldPath.startsWith('companions')) {
+            return 5;
+        }
+        return 1;
+    };
+
+    const getErrorsInfo = (errors: any) => {
+        const list: { path: string; message: string; step: number; stepLabel: string }[] = [];
+        
+        const recurse = (obj: any, path: string = '') => {
+            if (!obj) return;
+            if (obj.message && typeof obj.message === 'string') {
+                const stepNum = getStepForField(path);
+                list.push({
+                    path,
+                    message: obj.message,
+                    step: stepNum,
+                    stepLabel: STEPS[stepNum - 1]?.label || `Langkah ${stepNum}`
+                });
+                return;
+            }
+            for (const key of Object.keys(obj)) {
+                const currentPath = path ? `${path}.${key}` : key;
+                recurse(obj[key], currentPath);
+            }
+        };
+        
+        recurse(errors);
+        return list;
+    };
+
     const onSubmitError = (errors: any) => {
         console.error('Validation errors:', errors);
-        const missing = getMissingFields();
-        if (missing.length > 0) {
-            const firstMissingStep = missing[0];
-            alert(`Pendaftaran belum bisa disubmit. Mohon lengkapi data wajib di langkah "${firstMissingStep.label}" terlebih dahulu.`);
-            goToStep(firstMissingStep.step);
+        const errorInfoList = getErrorsInfo(errors);
+        
+        if (errorInfoList.length > 0) {
+            errorInfoList.sort((a, b) => a.step - b.step);
+            
+            const messages = errorInfoList.map(err => `- [Langkah ${err.step} - ${err.stepLabel}]: ${err.message}`);
+            const alertMsg = `Pendaftaran belum lengkap:\n\n${messages.join('\n')}\n\nSistem akan mengarahkan Anda ke langkah yang perlu diperbaiki.`;
+            
+            alert(alertMsg);
+            goToStep(errorInfoList[0].step);
         } else {
             alert('Mohon lengkapi seluruh formulir yang wajib diisi sebelum mendaftar.');
         }
