@@ -38,7 +38,14 @@ const registrationSchema = z.object({
         famContactName: z.string().min(3),
         famContact: z.string().min(10),
         sourceFrom: z.string().min(1),
-    })
+    }),
+    companions: z.array(z.object({
+        name: z.string().min(3, "Nama minimal 3 karakter"),
+        noKtp: z.string().length(16, "KTP harus 16 digit"),
+        sex: z.enum(['L', 'P']),
+        born: z.string().min(1, "Tanggal lahir wajib diisi"),
+        noPassport: z.string().optional(),
+    })).optional(),
 });
 
 type RegistrationData = z.infer<typeof registrationSchema>;
@@ -143,9 +150,29 @@ const Registration = () => {
         setCurrentStep(step);
     };
 
-    const nextStep = () => {
-        const next = Math.min(currentStep + 1, 6);
-        goToStep(next);
+    const nextStep = async () => {
+        const fieldsToValidate = STEP_FIELDS[currentStep] || [];
+        const fieldNames = fieldsToValidate.map(fd => fd.field as any);
+
+        if (currentStep === 5) {
+            const values = methods.getValues();
+            if (values.companions && values.companions.length > 0) {
+                values.companions.forEach((_, idx) => {
+                    fieldNames.push(`companions.${idx}.name` as any);
+                    fieldNames.push(`companions.${idx}.noKtp` as any);
+                    fieldNames.push(`companions.${idx}.sex` as any);
+                    fieldNames.push(`companions.${idx}.born` as any);
+                });
+            }
+        }
+
+        const isValid = fieldNames.length > 0 ? await methods.trigger(fieldNames) : true;
+        if (isValid) {
+            const next = Math.min(currentStep + 1, 6);
+            goToStep(next);
+        } else {
+            alert('Mohon lengkapi seluruh field wajib di langkah ini sebelum melanjutkan.');
+        }
     };
 
     const prevStep = () => {
@@ -172,6 +199,20 @@ const Registration = () => {
                 }
             }
 
+            if (stepNum === 5 && values.companions && values.companions.length > 0) {
+                values.companions.forEach((comp: any, idx: number) => {
+                    if (!comp.name || comp.name.trim().length < 3) {
+                        missingInStep.push({ field: `companions.${idx}.name`, label: `Nama Anggota Keluarga #${idx + 1}` });
+                    }
+                    if (!comp.noKtp || comp.noKtp.trim().length !== 16) {
+                        missingInStep.push({ field: `companions.${idx}.noKtp`, label: `NIK Anggota Keluarga #${idx + 1}` });
+                    }
+                    if (!comp.born || comp.born.trim() === '') {
+                        missingInStep.push({ field: `companions.${idx}.born`, label: `Tanggal Lahir Anggota Keluarga #${idx + 1}` });
+                    }
+                });
+            }
+
             if (missingInStep.length > 0) {
                 missing.push({ step: stepNum, label: STEPS[stepNum - 1].label, fields: missingInStep });
             }
@@ -184,6 +225,15 @@ const Registration = () => {
         try {
             const payload: any = { ...data, lockKey };
             if (referrer?.id) payload.affiliatorId = referrer.id;
+
+            if (data.companions && data.companions.length > 0) {
+                payload.pilgrim = {
+                    ...data.pilgrim,
+                    famMember: JSON.stringify(data.companions)
+                };
+            }
+            delete payload.companions;
+
             const response = await apiFetch<{ bookingId: string }>('/api/bookings', {
                 method: 'POST',
                 body: JSON.stringify(payload),

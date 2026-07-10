@@ -294,6 +294,33 @@ const BookingList: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* Companions Info */}
+                        {(() => {
+                            let comps: any[] = [];
+                            if (selectedBooking.pilgrim?.famMember) {
+                                try { comps = JSON.parse(selectedBooking.pilgrim.famMember); } catch (e) {}
+                            }
+                            if (comps.length === 0) return null;
+                            return (
+                                <div style={{ marginBottom: '1.5rem' }}>
+                                    <h3 style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.75rem 0' }}>Anggota Keluarga / Pendamping</h3>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                        {comps.map((c: any, i: number) => (
+                                            <div key={i} style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.02)', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                                <p style={{ margin: 0, fontWeight: 600, fontSize: '0.875rem', color: 'white' }}>{c.name || '-'}</p>
+                                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem', fontSize: '0.75rem', color: '#888', flexWrap: 'wrap' }}>
+                                                    <span>NIK: {c.noKtp || '-'}</span>
+                                                    <span>Kelamin: {c.sex === 'L' ? 'Laki-laki' : 'Perempuan'}</span>
+                                                    <span>Lahir: {c.born || '-'}</span>
+                                                    {c.noPassport && <span>Paspor: {c.noPassport}</span>}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
                         {/* Package Info */}
                         <div style={{ marginBottom: '1.5rem' }}>
                             <h3 style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.75rem 0' }}>Paket & Keberangkatan</h3>

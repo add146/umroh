@@ -126,6 +126,24 @@ const StepReview: React.FC<StepReviewProps> = ({ isLoading, getMissingFields, go
                         <SummaryItem label="Darurat" value={data.pilgrim?.famContactName} />
                         <SummaryItem label="HP Darurat" value={data.pilgrim?.famContact} />
                     </div>
+
+                    {data.companions && data.companions.length > 0 && (
+                        <div style={{ background: '#0a0907', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #333' }}>
+                            <h3 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid #333' }}>Anggota Keluarga / Pendamping</h3>
+                            {data.companions.map((comp: any, idx: number) => (
+                                <div key={idx} style={{ marginBottom: idx < data.companions.length - 1 ? '1rem' : 0, paddingBottom: idx < data.companions.length - 1 ? '0.75rem' : 0, borderBottom: idx < data.companions.length - 1 ? '1px dashed rgba(255,255,255,0.05)' : 'none' }}>
+                                    <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'white', marginBottom: '0.25rem' }}>{idx + 1}. {comp.name || '-'}</div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#888' }}>
+                                        <span>NIK: {comp.noKtp || '-'}</span>
+                                        <span>Lahir: {comp.born || '-'} ({comp.sex === 'L' ? 'L' : 'P'})</span>
+                                    </div>
+                                    {comp.noPassport && (
+                                        <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '0.125rem' }}>Paspor: {comp.noPassport}</div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
