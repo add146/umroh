@@ -9,6 +9,8 @@ declare global {
     }
 }
 
+let isPixelInitialized = false;
+
 export default function MetaPixel() {
     const location = useLocation();
 
@@ -19,36 +21,40 @@ export default function MetaPixel() {
                 if (!pixelId) return;
 
                 if (!window.fbq) {
-                    (function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
-                        if (f.fbq) return;
-                        n = f.fbq = function () {
-                            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-                        };
-                        if (!f._fbq) f._fbq = n;
-                        n.push = n;
-                        n.loaded = true;
-                        n.version = '2.0';
-                        n.queue = [];
-                        t = b.createElement(e);
-                        t.async = true;
-                        t.src = v;
-                        s = b.getElementsByTagName(e)[0];
-                        s.parentNode.insertBefore(t, s);
-                    })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+                    const fbq = function (...args: any[]) {
+                        (fbq as any).callMethod ? (fbq as any).callMethod.apply(fbq, args) : (fbq as any).queue.push(args);
+                    };
+                    (fbq as any).push = fbq;
+                    (fbq as any).loaded = true;
+                    (fbq as any).version = '2.0';
+                    (fbq as any).queue = [];
+                    window.fbq = fbq;
+                    window._fbq = fbq;
 
-                    window.fbq!('init', pixelId);
+                    const script = document.createElement('script');
+                    script.async = true;
+                    script.src = 'https://connect.facebook.net/en_US/fbevents.js';
+                    document.head.appendChild(script);
                 }
 
-                // Initial page view
-                window.fbq!('track', 'PageView');
+                if (!isPixelInitialized) {
+                    window.fbq!('init', pixelId);
+                    isPixelInitialized = true;
+                    // Initial page view
+                    window.fbq!('track', 'PageView');
+                }
             })
             .catch(console.error);
     }, []);
 
     // Track PageView on every route change
     useEffect(() => {
-        if (window.fbq) {
-            window.fbq('track', 'PageView');
+        if (isPixelInitialized && window.fbq) {
+            try {
+                window.fbq('track', 'PageView');
+            } catch (e) {
+                console.error('Meta Pixel PageView tracking failed:', e);
+            }
         }
     }, [location]);
 
