@@ -65,6 +65,7 @@ const LandingPageEditor = () => {
     const [brandName, setBrandName] = useState('AL');
     const [brandHighlight, setBrandHighlight] = useState('MADINAH');
     const [primaryColor, setPrimaryColor] = useState('#C8A951');
+    const [facebookPixelId, setFacebookPixelId] = useState('');
 
     const [heroBadge, setHeroBadge] = useState('');
     const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([
@@ -134,6 +135,7 @@ const LandingPageEditor = () => {
                 if (s.instagram_url !== undefined) setInstagramUrl(s.instagram_url);
                 if (s.social_media) setSocialMedia(Array.isArray(s.social_media) ? s.social_media : []);
                 if (s.promo_banner) setPromoBanner(typeof s.promo_banner === 'object' ? s.promo_banner : { enabled: false, text: '', bgColor: '#C8A951' });
+                if (s.facebook_pixel_id) setFacebookPixelId(s.facebook_pixel_id);
             })
             .catch(console.error)
             .finally(() => setLoading(false));
@@ -170,6 +172,7 @@ const LandingPageEditor = () => {
                 { key: 'instagram_url', value: instagramUrl },
                 { key: 'social_media', value: socialMedia },
                 { key: 'promo_banner', value: promoBanner },
+                { key: 'facebook_pixel_id', value: facebookPixelId },
             ];
             await apiFetch('/api/landing-settings', {
                 method: 'PUT',
@@ -352,6 +355,22 @@ const LandingPageEditor = () => {
                             <span style={{ fontSize: '1.25rem', fontWeight: 900, letterSpacing: '-0.03em', textTransform: 'uppercase' as const }}>
                                 {brandName}<span style={{ color: primaryColor }}>{brandHighlight}</span>
                             </span>
+                        </div>
+                    </div>
+
+                    <div style={cardStyle}>
+                        <h3 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>Integrasi Facebook Meta Pixel</h3>
+                        <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
+                            Masukkan ID Meta Pixel Anda untuk melacak kunjungan halaman dan konversi pendaftaran jamaah.
+                        </p>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                            <div>
+                                <label style={labelStyle}>Meta Pixel ID</label>
+                                <input type="text" value={facebookPixelId} onChange={e => setFacebookPixelId(e.target.value)} style={inputStyle} placeholder="e.g. 123456789012345" />
+                                <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem', lineHeight: 1.4 }}>
+                                    * Hubungkan website Anda dengan Facebook Events Manager. Kode pelacakan standar PageView dan Lead Event akan dipasang secara otomatis di halaman publik untuk optimasi iklan Anda.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>

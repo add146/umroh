@@ -52,6 +52,7 @@ import { Leaderboard } from './pages/Leaderboard';
 import DisbursementRequest from './pages/DisbursementRequest';
 import TestimonialManage from './pages/admin/TestimonialManage';
 import LandingPageEditor from './pages/admin/LandingPageEditor';
+import MetaPixel from './components/MetaPixel';
 
 const DashboardRouter = () => {
   const { user } = useAuthStore();
@@ -65,6 +66,7 @@ function App() {
   return (
     <ErrorBoundary>
       <Router>
+        <MetaPixel />
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<LoginPage />} />

@@ -251,6 +251,17 @@ const Registration = () => {
                     console.error('Failed to convert prospect:', e);
                 }
             }
+            
+            if (window.fbq) {
+                try {
+                    window.fbq('track', 'Lead', {
+                        content_name: data.departureId,
+                        currency: 'IDR'
+                    });
+                } catch (e) {
+                    console.error('FB Pixel tracking error:', e);
+                }
+            }
 
             navigate(`/payment/${response.bookingId}`);
         } catch (error: any) {
