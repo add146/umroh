@@ -241,19 +241,23 @@ export default function PublicPackageDetail() {
                                 <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>checklist</span>
                                 Fasilitas Paket
                             </h2>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.75rem' }}>
-                                {facilities.map((f, i) => (
-                                    <div key={i} style={{
-                                        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '0.75rem', padding: '1rem', textAlign: 'center',
-                                    }}>
-                                        <span className="material-symbols-outlined" style={{ fontSize: '28px', color: 'var(--color-primary)', marginBottom: '0.5rem', display: 'block' }}>
-                                            {getFacilityIcon(f)}
-                                        </span>
-                                        <div style={{ fontSize: '0.8125rem', fontWeight: 500, lineHeight: '1.3' }}>{f}</div>
-                                    </div>
-                                ))}
-                            </div>
+                            {pkg.facilities && (pkg.facilities.startsWith('<') || pkg.facilities.includes('</')) ? (
+                                <div dangerouslySetInnerHTML={{ __html: pkg.facilities }} className="rich-text-content" style={{ lineHeight: '1.8', fontSize: '0.9375rem', padding: '1.25rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '0.75rem' }} />
+                            ) : (
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.75rem' }}>
+                                    {facilities.map((f, i) => (
+                                        <div key={i} style={{
+                                            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                                            borderRadius: '0.75rem', padding: '1rem', textAlign: 'center',
+                                        }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '28px', color: 'var(--color-primary)', marginBottom: '0.5rem', display: 'block' }}>
+                                                {getFacilityIcon(f)}
+                                            </span>
+                                            <div style={{ fontSize: '0.8125rem', fontWeight: 500, lineHeight: '1.3' }}>{f}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                             {pkg.description && (
                                 <div style={{ marginTop: '1.5rem', padding: '1.25rem', background: 'rgba(255,255,255,0.04)', borderRadius: '0.75rem', lineHeight: '1.7', fontSize: '0.9375rem', color: 'var(--color-text-muted)' }}>
                                     {pkg.description}
