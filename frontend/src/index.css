@@ -468,3 +468,29 @@ button {
     max-width: 120px;
   }
 }
+
+/* ============ INSTAGRAM EMBEDS RESPONSIVE ============ */
+.ig-embed-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.instagram-media,
+.instagram-media iframe,
+iframe[src*="instagram.com"] {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 900px) {
+  .ig-embed-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+}

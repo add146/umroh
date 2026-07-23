@@ -655,6 +655,9 @@ const Landing = () => {
                         gridTemplateColumns: 'repeat(3, 1fr)',
                         gap: '1.5rem',
                         alignItems: 'start',
+                        width: '100%',
+                        maxWidth: '100%',
+                        overflow: 'hidden'
                     }} className="ig-embed-grid">
                         {[
                             'https://www.instagram.com/almadinahms/p/DZr8rUWIATp/',
@@ -666,6 +669,10 @@ const Landing = () => {
                                 overflow: 'hidden',
                                 border: '1px solid var(--color-border)',
                                 background: '#fff',
+                                width: '100%',
+                                maxWidth: '100%',
+                                display: 'flex',
+                                justifyContent: 'center'
                             }}>
                                 <blockquote
                                     className="instagram-media"
@@ -677,8 +684,8 @@ const Landing = () => {
                                         borderRadius: '3px',
                                         boxShadow: '0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15)',
                                         margin: '1px',
-                                        maxWidth: '540px',
-                                        minWidth: '326px',
+                                        maxWidth: '100%',
+                                        minWidth: '0',
                                         padding: '0',
                                         width: 'calc(100% - 2px)',
                                     }}
@@ -860,8 +867,8 @@ const Landing = () => {
 
             {/* ===== INSTAGRAM EMBED ===== */}
             {instagramUrl && (
-                <section style={{ padding: '4rem 0', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid var(--color-border)' }}>
-                    <div className="container">
+                <section style={{ padding: '4rem 0', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid var(--color-border)', overflow: 'hidden' }}>
+                    <div className="container" style={{ maxWidth: '100%', overflow: 'hidden' }}>
                         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                             <h2 style={{ fontSize: '1.75rem', fontWeight: 900, marginBottom: '0.5rem' }}>
                                 <span className="material-symbols-outlined" style={{ fontSize: '1.75rem', verticalAlign: 'middle', marginRight: '0.5rem', color: 'var(--color-primary)' }}>photo_camera</span>
@@ -869,13 +876,13 @@ const Landing = () => {
                             </h2>
                             <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Lihat kegiatan dan pengalaman jamaah kami</p>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
                             <iframe
                                 src={`${instagramUrl.replace(/\/$/, '')}/embed`}
                                 width="100%"
                                 height="480"
                                 frameBorder="0"
-                                style={{ borderRadius: '1rem', border: '1px solid var(--color-border)', maxWidth: '540px', background: '#fff' }}
+                                style={{ borderRadius: '1rem', border: '1px solid var(--color-border)', maxWidth: '540px', width: '100%', background: '#fff' }}
                                 title="Instagram Feed"
                             />
                         </div>
