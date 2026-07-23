@@ -36,6 +36,25 @@ export default function PublicPackageDetail() {
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxIdx, setLightboxIdx] = useState(0);
 
+    // Dynamic branding state
+    const [logoUrl, setLogoUrl] = useState('/logo.png');
+    const [brandName, setBrandName] = useState('AL');
+    const [brandHighlight, setBrandHighlight] = useState('MADINAH');
+
+    useEffect(() => {
+        apiFetch<{ settings: Record<string, any> }>('/api/landing-settings')
+            .then(data => {
+                const s = data.settings || {};
+                const API_URL = import.meta.env.VITE_API_URL || 'https://umroh-api.khibroh.workers.dev';
+                const enforceAbsolute = (url?: string) => (url && url.startsWith('/') ? `${API_URL}${url}` : url);
+
+                if (s.logo_url) setLogoUrl(enforceAbsolute(s.logo_url) || '');
+                if (s.brand_name) setBrandName(s.brand_name);
+                if (s.brand_highlight) setBrandHighlight(s.brand_highlight);
+            })
+            .catch(console.error);
+    }, []);
+
     useEffect(() => {
         if (!slug) return;
         setLoading(true);
@@ -107,8 +126,12 @@ export default function PublicPackageDetail() {
                 padding: '0.75rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
             }}>
                 <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', color: 'var(--color-text)' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)', fontSize: '28px' }}>kaaba</span>
-                    <span style={{ fontWeight: 800, fontSize: '1.125rem' }}><span style={{ color: 'var(--color-primary)' }}>AL</span>MADINAH</span>
+                    <div style={{ width: '36px', height: '36px', background: 'var(--color-primary)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                        <img src={logoUrl} alt="Logo" style={{ width: '26px', height: '26px', objectFit: 'contain' }} />
+                    </div>
+                    <span style={{ fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.02em', fontSize: '1.125rem' }}>
+                        {brandName}<span style={{ color: 'var(--color-primary)' }}>{brandHighlight}</span>
+                    </span>
                 </Link>
                 <div className="landing-nav-links" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                     <Link to="/" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', fontSize: '0.875rem' }}>Beranda</Link>
@@ -579,8 +602,12 @@ export default function PublicPackageDetail() {
             {/* ===== FOOTER ===== */}
             <footer style={{ marginTop: '4rem', padding: '2rem 1.5rem', borderTop: '1px solid rgba(255,255,255,0.06)', textAlign: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>kaaba</span>
-                    <span style={{ fontWeight: 800 }}><span style={{ color: 'var(--color-primary)' }}>AL</span>MADINAH</span>
+                    <div style={{ width: '28px', height: '28px', background: 'var(--color-primary)', borderRadius: '0.375rem', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                        <img src={logoUrl} alt="Logo" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                    </div>
+                    <span style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.02em' }}>
+                        {brandName}<span style={{ color: 'var(--color-primary)' }}>{brandHighlight}</span>
+                    </span>
                 </div>
                 <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', maxWidth: '500px', margin: '0 auto 1rem' }}>
                     Penyelenggara Ibadah Umroh Resmi (PPIU) · Izin Kemenag RI
