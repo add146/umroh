@@ -125,11 +125,11 @@ export default function PublicPackageDetail() {
                 borderBottom: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)',
                 padding: '0.75rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
             }}>
-                <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', color: 'var(--color-text)' }}>
-                    <div style={{ width: '36px', height: '36px', background: 'var(--color-primary)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', color: 'var(--color-text)', minWidth: 0, flexShrink: 1 }}>
+                    <div style={{ width: '36px', height: '36px', background: 'var(--color-primary)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
                         <img src={logoUrl} alt="Logo" style={{ width: '26px', height: '26px', objectFit: 'contain' }} />
                     </div>
-                    <span style={{ fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.02em', fontSize: '1.125rem' }}>
+                    <span className="brand-logo-text" style={{ fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.02em', fontSize: '1.125rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {brandName}<span style={{ color: 'var(--color-primary)' }}>{brandHighlight}</span>
                     </span>
                 </Link>

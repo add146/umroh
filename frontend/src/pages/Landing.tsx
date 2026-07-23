@@ -334,18 +334,18 @@ const Landing = () => {
                 borderBottom: '1px solid var(--color-border)',
                 top: promoBanner.enabled && promoBanner.text ? '32px' : 0,
             }}>
-                <div className="container" style={{ height: '72px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div className="container" style={{ height: '72px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
                     {/* Logo */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0, flexShrink: 1 }}>
                         <div style={{
                             width: '40px', height: '40px',
                             background: 'var(--color-primary)', borderRadius: '0.5rem',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            overflow: 'hidden'
+                            overflow: 'hidden', flexShrink: 0
                         }}>
                             <img src={logoUrl} alt="Logo" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
                         </div>
-                        <span style={{ fontSize: '1.125rem', fontWeight: 900, letterSpacing: '-0.03em', textTransform: 'uppercase' }}>
+                        <span className="brand-logo-text" style={{ fontSize: '1.125rem', fontWeight: 900, letterSpacing: '-0.03em', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {brandName}<span style={{ color: 'var(--color-primary)' }}>{brandHighlight}</span>
                         </span>
                     </div>
@@ -946,13 +946,13 @@ const Landing = () => {
 
             {/* WhatsApp Floating */}
             {whatsappNumber && (
-                <a href={`https://wa.me/${whatsappNumber}`} style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 100 }}>
+                <a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer" className="wa-float-btn" style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 100 }}>
                     <div style={{ position: 'relative' }}>
                         <div style={{
                             position: 'absolute', inset: 0, borderRadius: '9999px',
                             background: '#25D366', animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite', opacity: 0.3
                         }} />
-                        <div style={{
+                        <div className="wa-float-inner" style={{
                             position: 'relative', width: '60px', height: '60px', borderRadius: '9999px',
                             background: '#25D366', display: 'flex', alignItems: 'center', justifyContent: 'center',
                             boxShadow: '0 8px 32px rgba(37,211,102,0.4)', transition: 'transform 0.2s'
