@@ -145,9 +145,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     const handleLogout = () => { logout(); navigate('/login'); };
 
     const SidebarContent = () => (
-        <>
-            {/* Logo */}
-            <div style={{ padding: '1.25rem 1.25rem', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, overflow: 'hidden' }}>
+            {/* Logo Header (Fixed/Still) */}
+            <div style={{ padding: '1.25rem 1.25rem', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0, background: '#131210' }}>
                 <div style={{ width: '38px', height: '38px', background: 'var(--color-primary)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
                     <img src={branding.logoUrl} alt="Logo" style={{ width: '28px', height: '28px', objectFit: 'contain' }} onError={e => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
                 </div>
@@ -165,8 +165,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                 </button>
             </div>
 
-            {/* Nav */}
-            <nav style={{ flex: 1, padding: '1rem 0.75rem', overflowY: 'auto' }}>
+            {/* Nav Menu (Scrollable with dedicated scrollbar) */}
+            <nav className="sidebar-nav-scroll" style={{ flex: 1, padding: '1rem 0.75rem', overflowY: 'auto', minHeight: 0 }}>
                 {menuGroups.map(group => {
                     const visible = group.items.filter(item => user && item.roles.includes(user.role));
                     if (visible.length === 0) return null;
@@ -196,8 +196,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                 })}
             </nav>
 
-            {/* User */}
-            <div style={{ padding: '1rem 0.75rem', borderTop: '1px solid var(--color-border)' }}>
+            {/* User & Exit Logout (Fixed/Still at bottom) */}
+            <div style={{ padding: '0.875rem 0.75rem', borderTop: '1px solid var(--color-border)', flexShrink: 0, background: '#131210', marginTop: 'auto' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', borderRadius: '0.75rem', background: 'rgba(255,255,255,0.04)' }}>
                     <div style={{ width: '36px', height: '36px', borderRadius: '9999px', background: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.875rem', color: 'var(--color-bg)', flexShrink: 0 }}>
                         {user?.name?.charAt(0)?.toUpperCase()}
@@ -213,7 +213,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                     </button>
                 </div>
             </div>
-        </>
+        </div>
     );
 
     return (
@@ -229,21 +229,21 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
 
             {/* ===== SIDEBAR DESKTOP ===== */}
             <aside className="sidebar-desktop" style={{
-                width: '256px', minHeight: '100vh', background: '#131210',
+                width: '256px', height: '100vh', maxHeight: '100vh', background: '#131210',
                 borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column',
-                position: 'sticky', top: 0, flexShrink: 0,
+                position: 'sticky', top: 0, flexShrink: 0, overflow: 'hidden'
             }}>
                 <SidebarContent />
             </aside>
 
             {/* ===== SIDEBAR MOBILE (slide-in) ===== */}
             <aside className="sidebar-mobile" style={{
-                position: 'fixed', top: 0, left: 0, bottom: 0, width: '280px',
+                position: 'fixed', top: 0, left: 0, bottom: 0, width: '280px', height: '100vh', maxHeight: '100vh',
                 background: '#131210', borderRight: '1px solid var(--color-border)',
                 display: 'flex', flexDirection: 'column', zIndex: 50,
                 transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
                 transition: 'transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
-                overflowY: 'auto',
+                overflow: 'hidden'
             }}>
                 <SidebarContent />
             </aside>
@@ -292,8 +292,28 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                 <BottomNav />
             </main>
 
-            {/* Responsive CSS */}
+            {/* Responsive & Sidebar Scrollbar CSS */}
             <style>{`
+                .sidebar-nav-scroll {
+                    overflow-y: auto !important;
+                    scrollbar-width: thin;
+                    scrollbar-color: rgba(200, 168, 81, 0.4) rgba(255, 255, 255, 0.02);
+                }
+                .sidebar-nav-scroll::-webkit-scrollbar {
+                    width: 5px;
+                }
+                .sidebar-nav-scroll::-webkit-scrollbar-track {
+                    background: rgba(255, 255, 255, 0.02);
+                    border-radius: 4px;
+                }
+                .sidebar-nav-scroll::-webkit-scrollbar-thumb {
+                    background: rgba(200, 168, 81, 0.35);
+                    border-radius: 999px;
+                }
+                .sidebar-nav-scroll::-webkit-scrollbar-thumb:hover {
+                    background: rgba(200, 168, 81, 0.7);
+                }
+
                 @media (max-width: 768px) {
                     .sidebar-desktop { display: none !important; }
                     .hamburger-btn { display: flex !important; }
