@@ -224,7 +224,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     const handleLogout = () => { logout(); navigate('/login'); };
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg)' }}>
+        <div className="dashboard-layout-root" style={{ display: 'flex', height: '100vh', maxHeight: '100vh', background: 'var(--color-bg)', overflow: 'hidden' }}>
 
             {/* Mobile overlay backdrop */}
             {sidebarOpen && (
@@ -238,7 +238,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             <aside className="sidebar-desktop" style={{
                 width: '256px', height: '100vh', maxHeight: '100vh', background: '#131210',
                 borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column',
-                position: 'sticky', top: 0, flexShrink: 0, overflow: 'hidden'
+                flexShrink: 0, overflow: 'hidden', zIndex: 20
             }}>
                 <SidebarContent
                     user={user}
@@ -266,14 +266,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                 />
             </aside>
 
-            {/* ===== MAIN CONTENT ===== */}
-            <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            {/* ===== MAIN CONTENT (Independent Scroll Area) ===== */}
+            <main style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', maxHeight: '100vh', minWidth: 0, overflow: 'hidden' }}>
                 {/* Top Header */}
                 <header style={{
                     height: '56px', background: '#131210',
                     borderBottom: '1px solid var(--color-border)',
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '0 1rem 0 1.25rem', gap: '0.75rem', position: 'sticky', top: 0, zIndex: 30
+                    padding: '0 1rem 0 1.25rem', gap: '0.75rem', flexShrink: 0, zIndex: 30
                 }}>
                     {/* Hamburger button — only visible on mobile */}
                     <button className="hamburger-btn" onClick={() => setSidebarOpen(true)} style={{
@@ -301,8 +301,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                     </div>
                 </header>
 
-                {/* Page content */}
-                <div className="dashboard-content-area" style={{ flex: 1, padding: 'clamp(1.25rem, 4vw, 3rem)', background: 'var(--color-bg)', overflowX: 'hidden' }}>
+                {/* Page content with dedicated independent scroll */}
+                <div className="dashboard-content-area dashboard-content-scroll" style={{ flex: 1, padding: 'clamp(1.25rem, 4vw, 3rem)', background: 'var(--color-bg)', overflowY: 'auto', overflowX: 'hidden', minHeight: 0 }}>
                     {children}
                 </div>
 
@@ -330,6 +330,25 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                 }
                 .sidebar-nav-scroll::-webkit-scrollbar-thumb:hover {
                     background: rgba(200, 168, 81, 0.7);
+                }
+
+                .dashboard-content-scroll {
+                    overflow-y: auto !important;
+                    scrollbar-width: thin;
+                    scrollbar-color: rgba(200, 168, 81, 0.3) rgba(255, 255, 255, 0.02);
+                }
+                .dashboard-content-scroll::-webkit-scrollbar {
+                    width: 8px;
+                }
+                .dashboard-content-scroll::-webkit-scrollbar-track {
+                    background: rgba(255, 255, 255, 0.02);
+                }
+                .dashboard-content-scroll::-webkit-scrollbar-thumb {
+                    background: rgba(200, 168, 81, 0.3);
+                    border-radius: 999px;
+                }
+                .dashboard-content-scroll::-webkit-scrollbar-thumb:hover {
+                    background: rgba(200, 168, 81, 0.6);
                 }
 
                 @media (max-width: 768px) {
