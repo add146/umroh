@@ -94,6 +94,90 @@ const menuGroups = [
     }
 ];
 
+interface SidebarContentProps {
+    user: any;
+    branding: { logoUrl: string; brandName: string; brandHighlight: string };
+    currentPath: string;
+    onCloseMobile?: () => void;
+    onLogout: () => void;
+}
+
+const SidebarContent: React.FC<SidebarContentProps> = React.memo(({ user, branding, currentPath, onCloseMobile, onLogout }) => {
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, overflow: 'hidden' }}>
+            {/* Logo Header (Fixed/Still) */}
+            <div style={{ padding: '1.25rem 1.25rem', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0, background: '#131210' }}>
+                <div style={{ width: '38px', height: '38px', background: 'var(--color-primary)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                    <img src={branding.logoUrl} alt="Logo" style={{ width: '28px', height: '28px', objectFit: 'contain' }} onError={e => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontWeight: 900, fontSize: '0.875rem', letterSpacing: '-0.02em', textTransform: 'uppercase', lineHeight: 1, margin: 0 }}>
+                        {branding.brandName}<span style={{ color: 'var(--color-primary)' }}>{branding.brandHighlight}</span>
+                    </p>
+                    <p style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', textTransform: 'capitalize', marginTop: '2px', margin: '2px 0 0 0' }}>
+                        {user?.role === 'pusat' ? 'Admin Platform' : `${user?.role} Portal`}
+                    </p>
+                </div>
+                {/* Close button on mobile only */}
+                {onCloseMobile && (
+                    <button onClick={onCloseMobile} className="mobile-close-btn" style={{ color: 'var(--color-text-muted)', display: 'none' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>close</span>
+                    </button>
+                )}
+            </div>
+
+            {/* Nav Menu (Scrollable with dedicated scrollbar) */}
+            <nav className="sidebar-nav-scroll" style={{ flex: 1, padding: '1rem 0.75rem', overflowY: 'auto', minHeight: 0 }}>
+                {menuGroups.map(group => {
+                    const visible = group.items.filter(item => user && item.roles.includes(user.role));
+                    if (visible.length === 0) return null;
+                    return (
+                        <div key={group.label} style={{ marginBottom: '1.25rem' }}>
+                            <p style={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--color-text-light)', padding: '0 0.5rem', marginBottom: '0.375rem', margin: '0 0 0.375rem 0' }}>
+                                {group.label}
+                            </p>
+                            {visible.map(item => {
+                                const isActive = currentPath === item.path;
+                                return (
+                                    <NavLink key={item.path} to={item.path} style={{
+                                        display: 'flex', alignItems: 'center', gap: '0.75rem',
+                                        padding: '0.625rem 0.75rem', borderRadius: '0.5rem',
+                                        marginBottom: '0.125rem', textDecoration: 'none',
+                                        fontWeight: 600, fontSize: '0.875rem', transition: 'all 0.2s',
+                                        background: isActive ? 'rgba(200, 168, 81, 0.15)' : 'transparent',
+                                        color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                    }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0", color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)' }}>{item.icon}</span>
+                                        {item.name}
+                                    </NavLink>
+                                );
+                            })}
+                        </div>
+                    );
+                })}
+            </nav>
+
+            {/* User & Exit Logout (Fixed/Still at bottom) */}
+            <div style={{ padding: '0.875rem 0.75rem', borderTop: '1px solid var(--color-border)', flexShrink: 0, background: '#131210', marginTop: 'auto' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', borderRadius: '0.75rem', background: 'rgba(255,255,255,0.04)' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '9999px', background: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.875rem', color: 'var(--color-bg)', flexShrink: 0 }}>
+                        {user?.name?.charAt(0)?.toUpperCase()}
+                    </div>
+                    <div style={{ flex: 1, overflow: 'hidden' }}>
+                        <p style={{ fontWeight: 700, fontSize: '0.8125rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>{user?.name}</p>
+                        <p style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', textTransform: 'capitalize', margin: '2px 0 0 0' }}>{user?.role}</p>
+                    </div>
+                    <button onClick={onLogout} title="Logout" style={{ color: 'var(--color-text-muted)', transition: 'color 0.2s', flexShrink: 0 }}
+                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-error)')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>logout</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+});
+
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const { user, logout } = useAuthStore();
     const navigate = useNavigate();
@@ -125,14 +209,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             .catch(() => {});
     }, []);
 
-    // Close sidebar and reset scroll on route change
+    // Close mobile drawer on route change
     useEffect(() => {
         setSidebarOpen(false);
-        window.scrollTo(0, 0);
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-        const contentArea = document.querySelector('.dashboard-content-area');
-        if (contentArea) contentArea.scrollTop = 0;
     }, [location.pathname]);
 
     // Close sidebar on ESC key
@@ -143,78 +222,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     }, []);
 
     const handleLogout = () => { logout(); navigate('/login'); };
-
-    const SidebarContent = () => (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, overflow: 'hidden' }}>
-            {/* Logo Header (Fixed/Still) */}
-            <div style={{ padding: '1.25rem 1.25rem', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0, background: '#131210' }}>
-                <div style={{ width: '38px', height: '38px', background: 'var(--color-primary)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-                    <img src={branding.logoUrl} alt="Logo" style={{ width: '28px', height: '28px', objectFit: 'contain' }} onError={e => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontWeight: 900, fontSize: '0.875rem', letterSpacing: '-0.02em', textTransform: 'uppercase', lineHeight: 1, margin: 0 }}>
-                        {branding.brandName}<span style={{ color: 'var(--color-primary)' }}>{branding.brandHighlight}</span>
-                    </p>
-                    <p style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', textTransform: 'capitalize', marginTop: '2px', margin: '2px 0 0 0' }}>
-                        {user?.role === 'pusat' ? 'Admin Platform' : `${user?.role} Portal`}
-                    </p>
-                </div>
-                {/* Close button on mobile only */}
-                <button onClick={() => setSidebarOpen(false)} className="mobile-close-btn" style={{ color: 'var(--color-text-muted)', display: 'none' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>close</span>
-                </button>
-            </div>
-
-            {/* Nav Menu (Scrollable with dedicated scrollbar) */}
-            <nav className="sidebar-nav-scroll" style={{ flex: 1, padding: '1rem 0.75rem', overflowY: 'auto', minHeight: 0 }}>
-                {menuGroups.map(group => {
-                    const visible = group.items.filter(item => user && item.roles.includes(user.role));
-                    if (visible.length === 0) return null;
-                    return (
-                        <div key={group.label} style={{ marginBottom: '1.25rem' }}>
-                            <p style={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--color-text-light)', padding: '0 0.5rem', marginBottom: '0.375rem', margin: '0 0 0.375rem 0' }}>
-                                {group.label}
-                            </p>
-                            {visible.map(item => {
-                                const isActive = location.pathname === item.path;
-                                return (
-                                    <NavLink key={item.path} to={item.path} style={{
-                                        display: 'flex', alignItems: 'center', gap: '0.75rem',
-                                        padding: '0.625rem 0.75rem', borderRadius: '0.5rem',
-                                        marginBottom: '0.125rem', textDecoration: 'none',
-                                        fontWeight: 600, fontSize: '0.875rem', transition: 'all 0.2s',
-                                        background: isActive ? 'rgba(200, 168, 81, 0.15)' : 'transparent',
-                                        color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                    }}>
-                                        <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0", color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)' }}>{item.icon}</span>
-                                        {item.name}
-                                    </NavLink>
-                                );
-                            })}
-                        </div>
-                    );
-                })}
-            </nav>
-
-            {/* User & Exit Logout (Fixed/Still at bottom) */}
-            <div style={{ padding: '0.875rem 0.75rem', borderTop: '1px solid var(--color-border)', flexShrink: 0, background: '#131210', marginTop: 'auto' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', borderRadius: '0.75rem', background: 'rgba(255,255,255,0.04)' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '9999px', background: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.875rem', color: 'var(--color-bg)', flexShrink: 0 }}>
-                        {user?.name?.charAt(0)?.toUpperCase()}
-                    </div>
-                    <div style={{ flex: 1, overflow: 'hidden' }}>
-                        <p style={{ fontWeight: 700, fontSize: '0.8125rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>{user?.name}</p>
-                        <p style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', textTransform: 'capitalize', margin: '2px 0 0 0' }}>{user?.role}</p>
-                    </div>
-                    <button onClick={handleLogout} title="Logout" style={{ color: 'var(--color-text-muted)', transition: 'color 0.2s', flexShrink: 0 }}
-                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-error)')}
-                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>logout</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg)' }}>
@@ -233,7 +240,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                 borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column',
                 position: 'sticky', top: 0, flexShrink: 0, overflow: 'hidden'
             }}>
-                <SidebarContent />
+                <SidebarContent
+                    user={user}
+                    branding={branding}
+                    currentPath={location.pathname}
+                    onLogout={handleLogout}
+                />
             </aside>
 
             {/* ===== SIDEBAR MOBILE (slide-in) ===== */}
@@ -245,7 +257,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                 transition: 'transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
                 overflow: 'hidden'
             }}>
-                <SidebarContent />
+                <SidebarContent
+                    user={user}
+                    branding={branding}
+                    currentPath={location.pathname}
+                    onCloseMobile={() => setSidebarOpen(false)}
+                    onLogout={handleLogout}
+                />
             </aside>
 
             {/* ===== MAIN CONTENT ===== */}
