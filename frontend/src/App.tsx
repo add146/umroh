@@ -30,6 +30,7 @@ import EquipmentMaster from './pages/admin/EquipmentMaster';
 import DocumentScanner from './pages/admin/DocumentScanner';
 import AttendancePage from './pages/AttendancePage';
 import AttendanceRecap from './pages/admin/AttendanceRecap';
+import UserManage from './pages/admin/UserManage';
 import { MasterDataPage } from './pages/admin/masters/MasterDataPage';
 import { MasterDataPackageTypes } from './pages/admin/MasterDataPackageTypes';
 import EquipmentSetManage from './pages/admin/EquipmentSetManage';
@@ -291,6 +292,14 @@ function App() {
             <ProtectedRoute allowedRoles={['pusat', 'cabang']}>
               <DashboardLayout>
                 <AttendanceRecap />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/users" element={
+            <ProtectedRoute allowedRoles={['pusat']}>
+              <DashboardLayout>
+                <UserManage />
               </DashboardLayout>
             </ProtectedRoute>
           } />

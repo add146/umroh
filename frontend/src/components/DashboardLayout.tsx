@@ -85,6 +85,7 @@ const menuGroups = [
     {
         label: 'Sistem & Akun',
         items: [
+            { name: 'Kelola Akun & PIC', path: '/admin/users', icon: 'people', roles: ['pusat'] },
             { name: 'Edit Landing Page', path: '/admin/landing-editor', icon: 'web', roles: ['pusat', 'cabang'] },
             { name: 'Pengaturan Akun', path: '/profile', icon: 'manage_accounts', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'teknisi'] },
             { name: 'Audit Log System', path: '/admin/audit', icon: 'security', roles: ['pusat'] },

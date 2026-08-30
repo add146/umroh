@@ -1,13 +1,14 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
+import { eq, and, ne, or, desc } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
-import { users } from '../db/schema.js';
+import { users, hierarchyPaths } from '../db/schema.js';
 import { hashPassword } from '../lib/password.js';
 import { authMiddleware } from '../middleware/auth.js';
-import { requireRole } from '../middleware/rbac.js';
-import { canCreateRole, getAllowedDownlineRoles, getDefaultDownlineRole, UserRole } from '../lib/roleHierarchy.js';
-import { insertUserWithHierarchy, getDownlineTree } from '../services/hierarchy.js';
+import { getAllowedDownlineRoles } from '../lib/roleHierarchy.js';
+import { insertUserWithHierarchy, getDirectDownlines } from '../services/hierarchy.js';
+import { normalizePhone } from '../lib/phone.js';
 import { Env } from '../index.js';
 
 type Variables = {
@@ -20,7 +21,164 @@ type Variables = {
 
 const userStore = new Hono<{ Bindings: Env, Variables: Variables }>();
 
-import { normalizePhone } from '../lib/phone.js';
+// ========================================================
+// ADMIN USER MANAGEMENT (Role: pusat)
+// ========================================================
+
+// GET /api/users/all - Get all users for admin pusat
+userStore.get('/all', authMiddleware, async (c) => {
+    const currentUser = c.get('user');
+    if (currentUser.role !== 'pusat') {
+        return c.json({ error: 'Akses khusus Admin Pusat' }, 403);
+    }
+
+    const db = getDb(c.env.DB);
+    const allUsers = await db.query.users.findMany({
+        orderBy: [desc(users.createdAt)],
+    });
+
+    const safeUsers = allUsers.map(u => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        phone: u.phone,
+        nik: u.nik,
+        role: u.role,
+        affiliateCode: u.affiliateCode,
+        isActive: u.isActive,
+        parentId: u.parentId,
+        createdAt: u.createdAt,
+    }));
+
+    return c.json({ users: safeUsers });
+});
+
+// POST /api/users/admin-create - Admin pusat creates any user role
+const adminCreateUserSchema = z.object({
+    name: z.string().min(2, 'Nama minimal 2 karakter'),
+    email: z.string().email('Format email tidak valid').optional().nullable(),
+    phone: z.string().min(8, 'Nomor HP/WA minimal 8 digit'),
+    password: z.string().min(6, 'Password minimal 6 karakter'),
+    role: z.enum(['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'teknisi']),
+    nik: z.string().optional().nullable(),
+    affiliateCode: z.string().optional().nullable(),
+});
+
+userStore.post('/admin-create', authMiddleware, zValidator('json', adminCreateUserSchema), async (c) => {
+    const currentUser = c.get('user');
+    if (currentUser.role !== 'pusat') {
+        return c.json({ error: 'Akses khusus Admin Pusat' }, 403);
+    }
+
+    const body = c.req.valid('json');
+    const db = getDb(c.env.DB);
+    const hashedPassword = await hashPassword(body.password);
+    const normalizedPhone = normalizePhone(body.phone);
+
+    try {
+        const newUserId = crypto.randomUUID();
+        const autoAffCode = body.affiliateCode || `USR-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+        await db.insert(users).values({
+            id: newUserId,
+            email: body.email || null,
+            password: hashedPassword,
+            name: body.name.trim(),
+            phone: normalizedPhone,
+            nik: body.nik || null,
+            role: body.role,
+            parentId: currentUser.id,
+            affiliateCode: autoAffCode,
+            isActive: true,
+        });
+
+        // Maintain closure hierarchy
+        await insertUserWithHierarchy(c.env.DB, newUserId, currentUser.id);
+
+        return c.json({
+            success: true,
+            message: `User ${body.name} (${body.role}) berhasil dibuat`,
+            user: { id: newUserId, name: body.name, role: body.role, phone: normalizedPhone, email: body.email }
+        }, 201);
+    } catch (error: any) {
+        console.error('Admin create user error:', error);
+        if (error.message?.includes('UNIQUE')) {
+            if (error.message?.includes('phone')) return c.json({ error: 'Nomor telepon/WA sudah terdaftar' }, 400);
+            if (error.message?.includes('email')) return c.json({ error: 'Email sudah terdaftar' }, 400);
+            if (error.message?.includes('nik')) return c.json({ error: 'NIK sudah terdaftar di sistem' }, 400);
+            return c.json({ error: 'Email, Telepon, NIK, atau Kode Afiliasi sudah digunakan akun lain' }, 400);
+        }
+        return c.json({ error: 'Gagal membuat user' }, 500);
+    }
+});
+
+// PUT /api/users/admin-update/:id - Update user details by admin pusat
+const adminUpdateUserSchema = z.object({
+    name: z.string().min(2).optional(),
+    email: z.string().email().optional().nullable(),
+    phone: z.string().min(8).optional(),
+    role: z.enum(['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'teknisi']).optional(),
+    nik: z.string().optional().nullable(),
+    affiliateCode: z.string().optional().nullable(),
+    isActive: z.boolean().optional(),
+    password: z.string().min(6).optional().nullable(),
+});
+
+userStore.put('/admin-update/:id', authMiddleware, zValidator('json', adminUpdateUserSchema), async (c) => {
+    const currentUser = c.get('user');
+    if (currentUser.role !== 'pusat') {
+        return c.json({ error: 'Akses khusus Admin Pusat' }, 403);
+    }
+
+    const targetId = c.req.param('id');
+    const body = c.req.valid('json');
+    const db = getDb(c.env.DB);
+
+    const updateData: any = {};
+    if (body.name) updateData.name = body.name.trim();
+    if (body.email !== undefined) updateData.email = body.email || null;
+    if (body.phone) updateData.phone = normalizePhone(body.phone);
+    if (body.role) updateData.role = body.role;
+    if (body.nik !== undefined) updateData.nik = body.nik || null;
+    if (body.affiliateCode !== undefined) updateData.affiliateCode = body.affiliateCode || null;
+    if (body.isActive !== undefined) updateData.isActive = body.isActive;
+    if (body.password) updateData.password = await hashPassword(body.password);
+
+    try {
+        await db.update(users).set(updateData).where(eq(users.id, targetId));
+        return c.json({ success: true, message: 'Data user berhasil diperbarui' });
+    } catch (error: any) {
+        console.error('Admin update user error:', error);
+        return c.json({ error: 'Gagal memperbarui data user' }, 500);
+    }
+});
+
+// DELETE /api/users/admin-delete/:id - Delete user
+userStore.delete('/admin-delete/:id', authMiddleware, async (c) => {
+    const currentUser = c.get('user');
+    if (currentUser.role !== 'pusat') {
+        return c.json({ error: 'Akses khusus Admin Pusat' }, 403);
+    }
+
+    const targetId = c.req.param('id');
+    if (targetId === currentUser.id) {
+        return c.json({ error: 'Tidak dapat menghapus akun Anda sendiri' }, 400);
+    }
+
+    const db = getDb(c.env.DB);
+    try {
+        await db.delete(hierarchyPaths).where(or(eq(hierarchyPaths.ancestorId, targetId), eq(hierarchyPaths.descendantId, targetId)));
+        await db.delete(users).where(eq(users.id, targetId));
+        return c.json({ success: true, message: 'User berhasil dihapus' });
+    } catch (error: any) {
+        console.error('Admin delete user error:', error);
+        return c.json({ error: 'Gagal menghapus user' }, 500);
+    }
+});
+
+// ========================================================
+// DOWNLINE & GENERAL USER ENDPOINTS
+// ========================================================
 
 const createUserSchema = z.object({
     name: z.string().min(2),
@@ -85,16 +243,12 @@ userStore.post('/', authMiddleware, zValidator('json', createUserSchema), async 
 
 userStore.get('/downline', authMiddleware, async (c) => {
     const currentUser = c.get('user');
-    const { getDirectDownlines } = await import('../services/hierarchy.js');
     const downlines = await getDirectDownlines(c.env.DB, currentUser.id);
     return c.json({ downlines });
 });
 
-// GET /api/users — returns all users visible to current user (direct downlines only now)
-// Used by AssignLead dropdown and other pages that need user lists
 userStore.get('/', authMiddleware, async (c) => {
     const currentUser = c.get('user');
-    const { getDirectDownlines } = await import('../services/hierarchy.js');
     const downlines = await getDirectDownlines(c.env.DB, currentUser.id);
     return c.json({ users: downlines });
 });
@@ -105,7 +259,6 @@ userStore.get('/check-nik', authMiddleware, async (c) => {
         return c.json({ valid: false, error: 'NIK harus 16 digit' });
     }
     const db = getDb(c.env.DB);
-    const { eq } = await import('drizzle-orm');
     const existing = await db.select({ id: users.id, name: users.name, role: users.role })
         .from(users).where(eq(users.nik, nik)).limit(1);
     if (existing.length > 0) {
@@ -113,8 +266,6 @@ userStore.get('/check-nik', authMiddleware, async (c) => {
     }
     return c.json({ exists: false });
 });
-
-export default userStore;
 
 const updateUserSchema = z.object({
     email: z.string().email().optional().nullable(),
@@ -128,7 +279,6 @@ const updateUserSchema = z.object({
 userStore.get('/profile', authMiddleware, async (c) => {
     const currentUser = c.get('user');
     const db = getDb(c.env.DB);
-    const { eq } = await import('drizzle-orm');
     const user = await db.query.users.findFirst({
         where: eq(users.id, currentUser.id),
     });
@@ -146,10 +296,8 @@ userStore.put('/me', authMiddleware, zValidator('json', updateUserSchema), async
     const currentUser = c.get('user');
     const body = c.req.valid('json');
     const db = getDb(c.env.DB);
-    const { eq, and, ne, or } = await import('drizzle-orm');
 
     try {
-        // 1. Check uniqueness if email or phone is changing
         const conditions = [];
         if (body.email) conditions.push(eq(users.email, body.email));
         if (body.phone) conditions.push(eq(users.phone, normalizePhone(body.phone)));
@@ -169,7 +317,6 @@ userStore.put('/me', authMiddleware, zValidator('json', updateUserSchema), async
             }
         }
 
-        // 2. Prepare update payload
         const updateData: any = {};
         if (body.email !== undefined) updateData.email = body.email || null;
         if (body.phone) updateData.phone = normalizePhone(body.phone);
@@ -187,7 +334,6 @@ userStore.put('/me', authMiddleware, zValidator('json', updateUserSchema), async
             return c.json({ message: 'Tidak ada perubahan data' });
         }
 
-        // 3. Update DB
         await db.update(users)
             .set(updateData)
             .where(eq(users.id, currentUser.id));
@@ -198,3 +344,5 @@ userStore.put('/me', authMiddleware, zValidator('json', updateUserSchema), async
         return c.json({ error: 'Gagal memperbarui profil' }, 500);
     }
 });
+
+export default userStore;
