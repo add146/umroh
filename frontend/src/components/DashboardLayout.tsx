@@ -125,8 +125,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             .catch(() => {});
     }, []);
 
-    // Close sidebar on route change (mobile navigation)
-    useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
+    // Close sidebar and reset scroll on route change
+    useEffect(() => {
+        setSidebarOpen(false);
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        const contentArea = document.querySelector('.dashboard-content-area');
+        if (contentArea) contentArea.scrollTop = 0;
+    }, [location.pathname]);
 
     // Close sidebar on ESC key
     useEffect(() => {

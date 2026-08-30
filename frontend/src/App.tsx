@@ -57,6 +57,7 @@ import DisbursementRequest from './pages/DisbursementRequest';
 import TestimonialManage from './pages/admin/TestimonialManage';
 import LandingPageEditor from './pages/admin/LandingPageEditor';
 import MetaPixel from './components/MetaPixel';
+import { ScrollToTop } from './components/ScrollToTop';
 
 const DashboardRouter = () => {
   const { user } = useAuthStore();
@@ -70,6 +71,7 @@ function App() {
   return (
     <ErrorBoundary>
       <Router>
+        <ScrollToTop />
         <MetaPixel />
         <Routes>
           <Route path="/" element={<Landing />} />
