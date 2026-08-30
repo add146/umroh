@@ -269,9 +269,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                         <button style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.05)', color: 'var(--color-text-muted)' }}>
                             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>notifications</span>
                         </button>
-                        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', padding: '0.375rem 0.625rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                        <a href="/" className="btn-view-website" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', padding: '0.375rem 0.625rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', textDecoration: 'none', whiteSpace: 'nowrap' }}>
                             <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>open_in_new</span>
-                            <span className="hide-xs">Lihat Website</span>
+                            <span>Lihat Website</span>
                         </a>
                     </div>
                 </header>
@@ -294,6 +294,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                     .mobile-close-btn { display: flex !important; }
                     .bottom-nav-mobile { display: flex !important; }
                     .dashboard-content-area { padding-bottom: 5.5rem !important; }
+                    .btn-view-website { display: none !important; }
                 }
                 @media (min-width: 769px) {
                     .sidebar-mobile { display: none !important; }
