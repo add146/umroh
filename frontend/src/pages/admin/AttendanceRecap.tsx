@@ -72,6 +72,32 @@ export const AttendanceRecap: React.FC = () => {
         address: ''
     });
 
+    const [fetchingGps, setFetchingGps] = useState<boolean>(false);
+
+    const handleGetCurrentLocationForForm = () => {
+        if (!navigator.geolocation) {
+            alert('Geolocation tidak didukung oleh browser Anda');
+            return;
+        }
+        setFetchingGps(true);
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                setLocForm(prev => ({
+                    ...prev,
+                    latitude: Number(pos.coords.latitude.toFixed(6)),
+                    longitude: Number(pos.coords.longitude.toFixed(6))
+                }));
+                setFetchingGps(false);
+                alert(`Titik GPS berhasil terdeteksi!\nLatitude: ${pos.coords.latitude.toFixed(6)}\nLongitude: ${pos.coords.longitude.toFixed(6)}`);
+            },
+            (err) => {
+                setFetchingGps(false);
+                alert('Gagal mendeteksi lokasi GPS: ' + err.message);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    };
+
     // Modal Photo Preview
     const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
 
@@ -797,32 +823,61 @@ export const AttendanceRecap: React.FC = () => {
                                 />
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#ccc', marginBottom: '0.375rem' }}>
-                                        Latitude *:
+                            <div style={{ marginBottom: '1rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.375rem' }}>
+                                    <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#ccc' }}>
+                                        Koordinat GPS *:
                                     </label>
-                                    <input
-                                        type="number"
-                                        step="any"
-                                        required
-                                        value={locForm.latitude}
-                                        onChange={(e) => setLocForm({ ...locForm, latitude: parseFloat(e.target.value) || 0 })}
-                                        style={{ width: '100%', padding: '0.5rem 0.75rem', background: '#0a0907', border: '1px solid #333', borderRadius: '0.5rem', color: 'white', boxSizing: 'border-box' }}
-                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleGetCurrentLocationForForm}
+                                        disabled={fetchingGps}
+                                        style={{
+                                            background: 'rgba(59,130,246,0.15)',
+                                            border: '1px solid #3b82f6',
+                                            color: '#60a5fa',
+                                            borderRadius: '0.375rem',
+                                            padding: '0.2rem 0.5rem',
+                                            fontSize: '0.6875rem',
+                                            fontWeight: 700,
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.25rem'
+                                        }}
+                                    >
+                                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>my_location</span>
+                                        {fetchingGps ? 'Mendeteksi...' : '📍 Ambil Titik GPS Saya Saat Ini'}
+                                    </button>
                                 </div>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#ccc', marginBottom: '0.375rem' }}>
-                                        Longitude *:
-                                    </label>
-                                    <input
-                                        type="number"
-                                        step="any"
-                                        required
-                                        value={locForm.longitude}
-                                        onChange={(e) => setLocForm({ ...locForm, longitude: parseFloat(e.target.value) || 0 })}
-                                        style={{ width: '100%', padding: '0.5rem 0.75rem', background: '#0a0907', border: '1px solid #333', borderRadius: '0.5rem', color: 'white', boxSizing: 'border-box' }}
-                                    />
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.6875rem', color: '#888', marginBottom: '0.25rem' }}>
+                                            Latitude (Garis Lintang):
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="any"
+                                            required
+                                            value={locForm.latitude}
+                                            onChange={(e) => setLocForm({ ...locForm, latitude: parseFloat(e.target.value) || 0 })}
+                                            style={{ width: '100%', padding: '0.5rem 0.75rem', background: '#0a0907', border: '1px solid #333', borderRadius: '0.5rem', color: 'white', boxSizing: 'border-box' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.6875rem', color: '#888', marginBottom: '0.25rem' }}>
+                                            Longitude (Garis Bujur):
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="any"
+                                            required
+                                            value={locForm.longitude}
+                                            onChange={(e) => setLocForm({ ...locForm, longitude: parseFloat(e.target.value) || 0 })}
+                                            style={{ width: '100%', padding: '0.5rem 0.75rem', background: '#0a0907', border: '1px solid #333', borderRadius: '0.5rem', color: 'white', boxSizing: 'border-box' }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
