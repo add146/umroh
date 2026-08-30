@@ -11,7 +11,7 @@ import { Env } from '../index.js';
 const api = new Hono<{ Bindings: Env }>();
 
 // 1. Export Siskopatuh (CSV)
-api.get('/siskopatuh/:departureId', authMiddleware, requireRole('pusat'), async (c) => {
+api.get('/siskopatuh/:departureId', authMiddleware, requireRole('pusat', 'pic_jamaah', 'pic_produk'), async (c) => {
     const departureId = c.req.param('departureId');
     const db = getDb(c.env.DB);
 
@@ -31,7 +31,7 @@ api.get('/siskopatuh/:departureId', authMiddleware, requireRole('pusat'), async 
 });
 
 // 2. Export Manifest (CSV - Simple)
-api.get('/manifest/:departureId', authMiddleware, requireRole('pusat'), async (c) => {
+api.get('/manifest/:departureId', authMiddleware, requireRole('pusat', 'pic_jamaah', 'pic_produk'), async (c) => {
     const departureId = c.req.param('departureId');
     const db = getDb(c.env.DB);
 
@@ -52,7 +52,7 @@ api.get('/manifest/:departureId', authMiddleware, requireRole('pusat'), async (c
 });
 
 // 3. Export Manifest Excel (4 Sheets: Manifest, Roomlist L, Roomlist P, Ringkasan)
-api.get('/manifest-excel/:departureId', authMiddleware, requireRole('pusat'), async (c) => {
+api.get('/manifest-excel/:departureId', authMiddleware, requireRole('pusat', 'pic_jamaah', 'pic_produk'), async (c) => {
     const departureId = c.req.param('departureId');
     const db = getDb(c.env.DB);
 
@@ -83,7 +83,7 @@ api.get('/manifest-excel/:departureId', authMiddleware, requireRole('pusat'), as
 });
 
 // 4. Export Roomlist Excel Only (2 Sheets: Laki-laki, Perempuan)
-api.get('/roomlist-excel/:departureId', authMiddleware, requireRole('pusat'), async (c) => {
+api.get('/roomlist-excel/:departureId', authMiddleware, requireRole('pusat', 'pic_jamaah', 'pic_produk'), async (c) => {
     const departureId = c.req.param('departureId');
     const db = getDb(c.env.DB);
 
@@ -114,7 +114,7 @@ api.get('/roomlist-excel/:departureId', authMiddleware, requireRole('pusat'), as
 });
 
 // 5. Download Template Excel for Manifest Import
-api.get('/manifest-template', authMiddleware, requireRole('pusat'), async (c) => {
+api.get('/manifest-template', authMiddleware, requireRole('pusat', 'pic_jamaah', 'pic_produk'), async (c) => {
     const excelBuffer = ExportService.generateTemplateExcel();
     return c.body(excelBuffer as any, 200, {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -123,7 +123,7 @@ api.get('/manifest-template', authMiddleware, requireRole('pusat'), async (c) =>
 });
 
 // 6. Import Manifest Excel for a Departure
-api.post('/import-manifest/:departureId', authMiddleware, requireRole('pusat'), async (c) => {
+api.post('/import-manifest/:departureId', authMiddleware, requireRole('pusat', 'pic_jamaah', 'pic_produk'), async (c) => {
     const departureId = c.req.param('departureId');
     const db = getDb(c.env.DB);
     const user = c.get('user');

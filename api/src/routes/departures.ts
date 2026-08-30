@@ -135,7 +135,7 @@ const departureCreateSchema = departureSchema.extend({
     boardingPoints: z.array(boardingPointSchema).optional()
 });
 
-api.post('/', authMiddleware, requireRole('pusat'), zValidator('json', departureCreateSchema), async (c) => {
+api.post('/', authMiddleware, requireRole('pusat', 'pic_produk'), zValidator('json', departureCreateSchema), async (c) => {
     const { roomTypes: roomTypesData, boardingPoints: boardingPointsData, ...depData } = c.req.valid('json');
     const db = getDb(c.env.DB);
 
@@ -159,7 +159,7 @@ api.post('/', authMiddleware, requireRole('pusat'), zValidator('json', departure
     }
 });
 
-api.post('/:id/rooms', authMiddleware, requireRole('pusat'), zValidator('json', z.array(roomTypeSchema)), async (c) => {
+api.post('/:id/rooms', authMiddleware, requireRole('pusat', 'pic_produk'), zValidator('json', z.array(roomTypeSchema)), async (c) => {
     const id = c.req.param('id');
     const body = c.req.valid('json');
     const db = getDb(c.env.DB);
@@ -169,7 +169,7 @@ api.post('/:id/rooms', authMiddleware, requireRole('pusat'), zValidator('json', 
     return c.json({ roomTypes: result });
 });
 
-api.delete('/:id', authMiddleware, requireRole('pusat'), async (c) => {
+api.delete('/:id', authMiddleware, requireRole('pusat', 'pic_produk'), async (c) => {
     const id = c.req.param('id');
     const db = getDb(c.env.DB);
 
@@ -185,7 +185,7 @@ api.delete('/:id', authMiddleware, requireRole('pusat'), async (c) => {
     }
 });
 
-api.delete('/rooms/:roomId', authMiddleware, requireRole('pusat'), async (c) => {
+api.delete('/rooms/:roomId', authMiddleware, requireRole('pusat', 'pic_produk'), async (c) => {
     const roomId = c.req.param('roomId');
     const db = getDb(c.env.DB);
 

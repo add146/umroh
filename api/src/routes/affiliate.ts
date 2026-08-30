@@ -138,9 +138,9 @@ api.get('/commission-history', authMiddleware, async (c) => {
 });
 
 // ─────────────────────────────────────────
-// 5. COMMISSION RULES — CRUD (pusat only)
+// 5. COMMISSION RULES — CRUD (pusat & finance)
 // ─────────────────────────────────────────
-api.get('/commission-rules', authMiddleware, requireRole('pusat'), async (c) => {
+api.get('/commission-rules', authMiddleware, requireRole('pusat', 'finance'), async (c) => {
     const db = getDb(c.env.DB);
     const rules = await db.query.commissionRules.findMany({
         with: { user: true },
@@ -149,7 +149,7 @@ api.get('/commission-rules', authMiddleware, requireRole('pusat'), async (c) => 
     return c.json(rules);
 });
 
-api.post('/commission-rules', authMiddleware, requireRole('pusat'),
+api.post('/commission-rules', authMiddleware, requireRole('pusat', 'finance'),
     zValidator('json', z.object({
         userId: z.string(),
         targetRole: z.enum(['cabang', 'mitra', 'agen', 'reseller']),
@@ -165,7 +165,7 @@ api.post('/commission-rules', authMiddleware, requireRole('pusat'),
     }
 );
 
-api.patch('/commission-rules/:id', authMiddleware, requireRole('pusat'),
+api.patch('/commission-rules/:id', authMiddleware, requireRole('pusat', 'finance'),
     zValidator('json', z.object({
         commissionType: z.enum(['flat', 'percentage']).optional(),
         commissionValue: z.number().min(0).optional(),
@@ -179,7 +179,7 @@ api.patch('/commission-rules/:id', authMiddleware, requireRole('pusat'),
     }
 );
 
-api.delete('/commission-rules/:id', authMiddleware, requireRole('pusat'), async (c) => {
+api.delete('/commission-rules/:id', authMiddleware, requireRole('pusat', 'finance'), async (c) => {
     const id = c.req.param('id');
     const db = getDb(c.env.DB);
     await db.delete(commissionRules).where(eq(commissionRules.id, id));
@@ -187,9 +187,9 @@ api.delete('/commission-rules/:id', authMiddleware, requireRole('pusat'), async 
 });
 
 // ─────────────────────────────────────────
-// 6. ALL LEDGER ENTRIES (pusat only)
+// 6. ALL LEDGER ENTRIES (pusat & finance)
 // ─────────────────────────────────────────
-api.get('/ledger', authMiddleware, requireRole('pusat'), async (c) => {
+api.get('/ledger', authMiddleware, requireRole('pusat', 'finance'), async (c) => {
     const db = getDb(c.env.DB);
 
     const ledger = await db.query.commissionLedger.findMany({
@@ -206,9 +206,9 @@ api.get('/ledger', authMiddleware, requireRole('pusat'), async (c) => {
 });
 
 // ─────────────────────────────────────────
-// 7. DISBURSE COMMISSION (pusat only)
+// 7. DISBURSE COMMISSION (pusat & finance)
 // ─────────────────────────────────────────
-api.post('/ledger/:id/disburse', authMiddleware, requireRole('pusat'), async (c) => {
+api.post('/ledger/:id/disburse', authMiddleware, requireRole('pusat', 'finance'), async (c) => {
     const ledgerId = c.req.param('id');
     const adminUser = c.get('user');
     const db = getDb(c.env.DB);
@@ -435,8 +435,8 @@ api.post('/request-disbursement', authMiddleware, zValidator('json', z.object({
     return c.json(req, 201);
 });
 
-// C. Approve/Reject/Pay a request (Admin)
-api.patch('/disbursement-requests/:id', authMiddleware, requireRole('pusat'), zValidator('json', z.object({
+// C. Approve/Reject/Pay a request (Admin & Finance)
+api.patch('/disbursement-requests/:id', authMiddleware, requireRole('pusat', 'finance'), zValidator('json', z.object({
     status: z.enum(['approved', 'paid', 'rejected']),
     adminNotes: z.string().optional(),
 })), async (c) => {

@@ -7,7 +7,7 @@ interface UserItem {
     email?: string | null;
     phone?: string | null;
     nik?: string | null;
-    role: 'pusat' | 'cabang' | 'mitra' | 'agen' | 'reseller' | 'teknisi';
+    role: 'pusat' | 'cabang' | 'mitra' | 'agen' | 'reseller' | 'teknisi' | 'pic_produk' | 'pic_logistik' | 'pic_jamaah' | 'finance';
     affiliateCode?: string | null;
     isActive: boolean;
     canFieldAttendance?: boolean;
@@ -189,15 +189,45 @@ export const UserManage: React.FC = () => {
 
     // Statistics
     const totalUsers = usersList.length;
-    const totalPusat = usersList.filter(u => u.role === 'pusat').length;
+    const totalPic = usersList.filter(u => ['pusat', 'pic_produk', 'pic_logistik', 'pic_jamaah'].includes(u.role)).length;
+    const totalFinance = usersList.filter(u => u.role === 'finance').length;
     const totalCabang = usersList.filter(u => u.role === 'cabang').length;
     const totalSales = usersList.filter(u => ['agen', 'reseller', 'mitra'].includes(u.role)).length;
     const totalTeknisi = usersList.filter(u => u.role === 'teknisi').length;
 
     // Helper for PIC Badge
-    const isPicUser = (name: string, id: string) => {
+    const isPicUser = (role: string, name: string, id: string) => {
+        if (['pic_produk', 'pic_logistik', 'pic_jamaah'].includes(role)) return true;
         const lower = name.toLowerCase();
         return id.includes('pic') || lower.includes('laras') || lower.includes('ega') || lower.includes('adin') || lower.includes('edrea');
+    };
+
+    // Helper for Role Badges
+    const getRoleBadgeStyle = (role: string) => {
+        switch (role) {
+            case 'pusat':
+                return { bg: 'rgba(200,168,81,0.18)', border: 'rgba(200,168,81,0.4)', text: 'var(--color-primary)', label: 'Admin Pusat' };
+            case 'pic_produk':
+                return { bg: 'rgba(245,158,11,0.18)', border: 'rgba(245,158,11,0.4)', text: '#fbbf24', label: 'PIC Paket & Jadwal' };
+            case 'pic_logistik':
+                return { bg: 'rgba(16,185,129,0.18)', border: 'rgba(16,185,129,0.4)', text: '#34d399', label: 'PIC Logistik' };
+            case 'pic_jamaah':
+                return { bg: 'rgba(99,102,241,0.18)', border: 'rgba(99,102,241,0.4)', text: '#818cf8', label: 'PIC Data Jamaah' };
+            case 'finance':
+                return { bg: 'rgba(6,182,212,0.18)', border: 'rgba(6,182,212,0.4)', text: '#22d3ee', label: 'Finance' };
+            case 'cabang':
+                return { bg: 'rgba(139,92,246,0.18)', border: 'rgba(139,92,246,0.4)', text: '#c4b5fd', label: 'Cabang' };
+            case 'teknisi':
+                return { bg: 'rgba(34,197,94,0.18)', border: 'rgba(34,197,94,0.4)', text: '#86efac', label: 'Teknisi' };
+            case 'mitra':
+                return { bg: 'rgba(59,130,246,0.18)', border: 'rgba(59,130,246,0.4)', text: '#93c5fd', label: 'Mitra' };
+            case 'agen':
+                return { bg: 'rgba(59,130,246,0.18)', border: 'rgba(59,130,246,0.4)', text: '#93c5fd', label: 'Agen' };
+            case 'reseller':
+                return { bg: 'rgba(14,165,233,0.18)', border: 'rgba(14,165,233,0.4)', text: '#7dd3fc', label: 'Reseller' };
+            default:
+                return { bg: 'rgba(255,255,255,0.08)', border: 'rgba(255,255,255,0.2)', text: '#ccc', label: role };
+        }
     };
 
     return (
@@ -221,7 +251,7 @@ export const UserManage: React.FC = () => {
                         Kelola Akun & Staff PIC
                     </h1>
                     <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>
-                        Manajemen pengguna sistem, role akses, dan izin absensi bebas lapangan
+                        Manajemen pengguna sistem, role akses spesifik PIC & Finance, serta izin absensi lapangan
                     </p>
                 </div>
 
@@ -250,7 +280,7 @@ export const UserManage: React.FC = () => {
             {/* Quick Stats */}
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
                 gap: '1rem',
                 marginBottom: '1.5rem'
             }}>
@@ -260,7 +290,11 @@ export const UserManage: React.FC = () => {
                 </div>
                 <div style={{ background: '#1a1917', border: '1px solid rgba(200,168,81,0.3)', borderRadius: '0.75rem', padding: '1rem' }}>
                     <p style={{ fontSize: '0.6875rem', color: 'var(--color-primary)', margin: '0 0 0.25rem 0', fontWeight: 700 }}>STAFF PUSAT & PIC</p>
-                    <p style={{ fontSize: '1.5rem', fontWeight: 900, color: '#facc15', margin: 0 }}>{totalPusat} <span style={{ fontSize: '0.8125rem', color: '#888', fontWeight: 500 }}>Akun</span></p>
+                    <p style={{ fontSize: '1.5rem', fontWeight: 900, color: '#facc15', margin: 0 }}>{totalPic} <span style={{ fontSize: '0.8125rem', color: '#888', fontWeight: 500 }}>Akun</span></p>
+                </div>
+                <div style={{ background: '#1a1917', border: '1px solid rgba(6,182,212,0.3)', borderRadius: '0.75rem', padding: '1rem' }}>
+                    <p style={{ fontSize: '0.6875rem', color: '#22d3ee', margin: '0 0 0.25rem 0', fontWeight: 700 }}>FINANCE</p>
+                    <p style={{ fontSize: '1.5rem', fontWeight: 900, color: '#67e8f9', margin: 0 }}>{totalFinance} <span style={{ fontSize: '0.8125rem', color: '#888', fontWeight: 500 }}>Akun</span></p>
                 </div>
                 <div style={{ background: '#1a1917', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '0.75rem', padding: '1rem' }}>
                     <p style={{ fontSize: '0.6875rem', color: '#c4b5fd', margin: '0 0 0.25rem 0', fontWeight: 700 }}>CABANG</p>
@@ -325,7 +359,11 @@ export const UserManage: React.FC = () => {
                         }}
                     >
                         <option value="all">Semua Role</option>
-                        <option value="pusat">Pusat / PIC</option>
+                        <option value="pusat">Admin Pusat (Owner)</option>
+                        <option value="pic_produk">PIC Paket & Jadwal (Mbak Laras)</option>
+                        <option value="pic_logistik">PIC Logistik (Mas Ega)</option>
+                        <option value="pic_jamaah">PIC Data Jamaah (Mbak Adin & Mas Edrea)</option>
+                        <option value="finance">Finance & Keuangan</option>
                         <option value="cabang">Cabang</option>
                         <option value="teknisi">Teknisi</option>
                         <option value="mitra">Mitra</option>
@@ -364,9 +402,10 @@ export const UserManage: React.FC = () => {
                         </thead>
                         <tbody>
                             {filteredUsers.map((item, idx) => {
-                                const isPic = isPicUser(item.name, item.id);
+                                const isPic = isPicUser(item.role, item.name, item.id);
                                 const isSales = ['agen', 'reseller', 'mitra'].includes(item.role);
                                 const hasFieldAccess = isSales || !!item.canFieldAttendance;
+                                const badge = getRoleBadgeStyle(item.role);
 
                                 return (
                                     <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
@@ -394,27 +433,17 @@ export const UserManage: React.FC = () => {
                                         </td>
                                         <td style={{ padding: '0.75rem 1rem' }}>
                                             <span style={{
-                                                padding: '0.2rem 0.5rem',
+                                                padding: '0.25rem 0.6rem',
                                                 borderRadius: '0.375rem',
                                                 fontSize: '0.6875rem',
                                                 fontWeight: 800,
-                                                textTransform: 'uppercase',
-                                                background: item.role === 'pusat'
-                                                    ? 'rgba(200,168,81,0.15)'
-                                                    : item.role === 'cabang'
-                                                        ? 'rgba(139,92,246,0.15)'
-                                                        : item.role === 'teknisi'
-                                                            ? 'rgba(34,197,94,0.15)'
-                                                            : 'rgba(59,130,246,0.15)',
-                                                color: item.role === 'pusat'
-                                                    ? 'var(--color-primary)'
-                                                    : item.role === 'cabang'
-                                                        ? '#c4b5fd'
-                                                        : item.role === 'teknisi'
-                                                            ? '#86efac'
-                                                            : '#93c5fd'
+                                                background: badge.bg,
+                                                color: badge.text,
+                                                border: `1px solid ${badge.border}`,
+                                                display: 'inline-block',
+                                                whiteSpace: 'nowrap'
                                             }}>
-                                                {item.role}
+                                                {badge.label}
                                             </span>
                                         </td>
                                         <td style={{ padding: '0.75rem 1rem', fontFamily: 'monospace', color: '#ccc' }}>
@@ -579,9 +608,13 @@ export const UserManage: React.FC = () => {
                                         onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
                                         style={{ width: '100%', padding: '0.5rem 0.75rem', background: '#0a0907', border: '1px solid #333', borderRadius: '0.5rem', color: 'white', boxSizing: 'border-box' }}
                                     >
-                                        <option value="pusat">Pusat / PIC</option>
-                                        <option value="cabang">Cabang</option>
-                                        <option value="teknisi">Teknisi</option>
+                                        <option value="pusat">Admin Pusat (Owner / Superadmin)</option>
+                                        <option value="pic_produk">PIC Paket & Jadwal (Mbak Laras)</option>
+                                        <option value="pic_logistik">PIC Logistik & Inventory (Mas Ega)</option>
+                                        <option value="pic_jamaah">PIC Data Jamaah & Manifest (Mbak Adin & Mas Edrea)</option>
+                                        <option value="finance">Finance & Keuangan</option>
+                                        <option value="cabang">Kantor Cabang</option>
+                                        <option value="teknisi">Teknisi Lapangan</option>
                                         <option value="mitra">Mitra</option>
                                         <option value="agen">Agen</option>
                                         <option value="reseller">Reseller</option>

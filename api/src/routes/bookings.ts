@@ -189,8 +189,8 @@ api.get('/', authMiddleware, async (c) => {
     const cabangId = c.req.query('cabang_id');
 
     let data: any[] = [];
-    if (user.role === 'pusat') {
-        // Pusat sees all bookings with pilgrim data
+    if (user.role === 'pusat' || user.role === 'pic_jamaah' || user.role === 'finance') {
+        // Pusat, PIC Jamaah, and Finance see all bookings with pilgrim data
         let targetUserId = user.id;
         let targetRole = user.role;
         if (cabangId) { targetUserId = cabangId; targetRole = 'cabang'; }
@@ -392,11 +392,11 @@ api.post('/:id/ready-for-review', authMiddleware, async (c) => {
     return c.json({ message: 'Marked ready for review' });
 });
 
-// Cabang rejecting booking
+// Cabang & PIC Jamaah rejecting booking
 api.post('/:id/reject', authMiddleware, async (c) => {
     const id = c.req.param('id');
     const user = c.get('user');
-    if (user.role !== 'cabang' && user.role !== 'pusat') {
+    if (user.role !== 'cabang' && user.role !== 'pusat' && user.role !== 'pic_jamaah') {
         return c.json({ error: 'Unauthorized' }, 403);
     }
 
@@ -410,11 +410,11 @@ api.post('/:id/reject', authMiddleware, async (c) => {
     return c.json({ message: 'Booking rejected' });
 });
 
-// Cabang approving booking
+// Cabang & PIC Jamaah approving booking
 api.post('/:id/approve', authMiddleware, async (c) => {
     const id = c.req.param('id');
     const user = c.get('user');
-    if (user.role !== 'cabang' && user.role !== 'pusat') {
+    if (user.role !== 'cabang' && user.role !== 'pusat' && user.role !== 'pic_jamaah') {
         return c.json({ error: 'Unauthorized' }, 403);
     }
 
@@ -479,7 +479,7 @@ api.patch('/:id/pipeline-stage', authMiddleware, zValidator('json', z.object({
 
     // Quick verify user owns this booking
     const ownIds = await getOwnBookingIds(c.env.DB, user.id);
-    if (!ownIds.includes(id) && user.role !== 'pusat' && user.role !== 'cabang') {
+    if (!ownIds.includes(id) && user.role !== 'pusat' && user.role !== 'cabang' && user.role !== 'pic_jamaah') {
         return c.json({ error: 'Unauthorized to change stage' }, 403);
     }
 

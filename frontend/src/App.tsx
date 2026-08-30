@@ -96,7 +96,7 @@ function App() {
           <Route path="/agent/jamaah" element={<ProtectedRoute allowedRoles={['agen']}><DashboardLayout><AgentJamaahView /></DashboardLayout></ProtectedRoute>} />
           <Route path="/marketing-kit" element={<ProtectedRoute allowedRoles={['pusat', 'cabang', 'mitra', 'agen', 'reseller']}><DashboardLayout><MarketingKitView /></DashboardLayout></ProtectedRoute>} />
           <Route path="/leaderboard" element={<ProtectedRoute allowedRoles={['pusat', 'cabang', 'mitra', 'agen', 'reseller']}><DashboardLayout><Leaderboard /></DashboardLayout></ProtectedRoute>} />
-          <Route path="/affiliate/disbursement" element={<ProtectedRoute allowedRoles={['pusat', 'cabang', 'mitra', 'agen', 'reseller']}><DashboardLayout><DisbursementRequest /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/affiliate/disbursement" element={<ProtectedRoute allowedRoles={['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'finance']}><DashboardLayout><DisbursementRequest /></DashboardLayout></ProtectedRoute>} />
 
           <Route path="/cabang/approval" element={<ProtectedRoute allowedRoles={['cabang']}><DashboardLayout><CabangApproval /></DashboardLayout></ProtectedRoute>} />
           <Route path="/cabang/jamaah" element={<ProtectedRoute allowedRoles={['cabang']}><DashboardLayout><CabangJamaahView /></DashboardLayout></ProtectedRoute>} />
@@ -108,7 +108,7 @@ function App() {
           <Route path="/admin/reports/repeat-customers" element={<ProtectedRoute allowedRoles={['pusat']}><DashboardLayout><RepeatCustomerReport /></DashboardLayout></ProtectedRoute>} />
           <Route path="/admin/testimonials" element={<ProtectedRoute allowedRoles={['pusat']}><DashboardLayout><TestimonialManage /></DashboardLayout></ProtectedRoute>} />
           <Route path="/admin/landing-editor" element={<ProtectedRoute allowedRoles={['pusat', 'cabang']}><DashboardLayout><LandingPageEditor /></DashboardLayout></ProtectedRoute>} />
-          <Route path="/teknisi/jamaah" element={<ProtectedRoute allowedRoles={['teknisi', 'pusat']}><DashboardLayout><TeknikJamaahList /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/teknisi/jamaah" element={<ProtectedRoute allowedRoles={['teknisi', 'pic_logistik', 'pusat']}><DashboardLayout><TeknikJamaahList /></DashboardLayout></ProtectedRoute>} />
 
           <Route path="/downline" element={
             <ProtectedRoute allowedRoles={['pusat', 'cabang', 'mitra', 'agen']}>
@@ -119,7 +119,7 @@ function App() {
           } />
 
           <Route path="/admin/packages" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'pic_produk']}>
               <DashboardLayout>
                 <PackageManage />
               </DashboardLayout>
@@ -127,7 +127,7 @@ function App() {
           } />
 
           <Route path="/admin/packages/create" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'pic_produk']}>
               <DashboardLayout>
                 <PackageForm />
               </DashboardLayout>
@@ -135,7 +135,7 @@ function App() {
           } />
 
           <Route path="/admin/packages/:id/edit" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'pic_produk']}>
               <DashboardLayout>
                 <PackageForm />
               </DashboardLayout>
@@ -143,7 +143,7 @@ function App() {
           } />
 
           <Route path="/admin/packages/:id" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'pic_produk']}>
               <DashboardLayout>
                 <PackageDetail />
               </DashboardLayout>
@@ -151,7 +151,7 @@ function App() {
           } />
 
           <Route path="/admin/departures" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'pic_produk']}>
               <DashboardLayout>
                 <DepartureManage />
               </DashboardLayout>
@@ -159,7 +159,7 @@ function App() {
           } />
 
           <Route path="/admin/bookings" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'pic_jamaah', 'finance']}>
               <DashboardLayout>
                 <BookingList />
               </DashboardLayout>
@@ -167,7 +167,7 @@ function App() {
           } />
 
           <Route path="/admin/invoices" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'pic_jamaah', 'finance']}>
               <DashboardLayout>
                 <Invoices />
               </DashboardLayout>
@@ -175,7 +175,7 @@ function App() {
           } />
 
           <Route path="/admin/bank-accounts" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'finance']}>
               <DashboardLayout>
                 <BankAccounts />
               </DashboardLayout>
@@ -193,7 +193,7 @@ function App() {
           } />
 
           <Route path="/admin/commissions" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'finance']}>
               <DashboardLayout>
                 <CommissionManage />
               </DashboardLayout>
@@ -201,7 +201,7 @@ function App() {
           } />
 
           <Route path="/admin/logistics" element={
-            <ProtectedRoute allowedRoles={['pusat', 'teknisi']}>
+            <ProtectedRoute allowedRoles={['pusat', 'pic_logistik', 'teknisi']}>
               <DashboardLayout>
                 <LogisticsChecklist />
               </DashboardLayout>
@@ -209,7 +209,7 @@ function App() {
           } />
 
           <Route path="/admin/rooming" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'pic_jamaah']}>
               <DashboardLayout>
                 <RoomingBoard />
               </DashboardLayout>
@@ -217,7 +217,7 @@ function App() {
           } />
 
           <Route path="/admin/manifest" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'pic_jamaah']}>
               <DashboardLayout>
                 <ManifestRoomlist />
               </DashboardLayout>
@@ -225,7 +225,7 @@ function App() {
           } />
 
           <Route path="/admin/documents" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'pic_jamaah']}>
               <DashboardLayout>
                 <DocumentScanner />
               </DashboardLayout>
@@ -234,7 +234,7 @@ function App() {
 
           {/* Master Data Routes */}
           <Route path="/admin/masters/hotels" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'pic_produk']}>
               <DashboardLayout>
                 <MasterDataPage type="hotels" />
               </DashboardLayout>
@@ -242,7 +242,7 @@ function App() {
           } />
 
           <Route path="/admin/masters/package-types" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'pic_produk']}>
               <DashboardLayout>
                 <MasterDataPackageTypes />
               </DashboardLayout>
@@ -250,7 +250,7 @@ function App() {
           } />
 
           <Route path="/admin/masters/airlines" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'pic_produk']}>
               <DashboardLayout>
                 <MasterDataPage type="airlines" />
               </DashboardLayout>
@@ -258,7 +258,7 @@ function App() {
           } />
 
           <Route path="/admin/masters/airports" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'pic_produk']}>
               <DashboardLayout>
                 <MasterDataPage type="airports" />
               </DashboardLayout>
@@ -266,7 +266,7 @@ function App() {
           } />
 
           <Route path="/admin/masters/equipment" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'pic_logistik', 'teknisi']}>
               <DashboardLayout>
                 <EquipmentMaster />
               </DashboardLayout>
@@ -274,7 +274,7 @@ function App() {
           } />
 
           <Route path="/admin/equipment-sets" element={
-            <ProtectedRoute allowedRoles={['pusat']}>
+            <ProtectedRoute allowedRoles={['pusat', 'pic_logistik']}>
               <DashboardLayout>
                 <EquipmentSetManage />
               </DashboardLayout>
@@ -291,7 +291,7 @@ function App() {
           } />
 
           <Route path="/admin/attendance" element={
-            <ProtectedRoute allowedRoles={['pusat', 'cabang']}>
+            <ProtectedRoute allowedRoles={['pusat', 'cabang', 'finance']}>
               <DashboardLayout>
                 <AttendanceRecap />
               </DashboardLayout>

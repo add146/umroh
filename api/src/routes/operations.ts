@@ -21,8 +21,8 @@ api.get('/equipment', authMiddleware, async (c) => {
     return c.json(data);
 });
 
-// 2. CREATE Master Equipment (Admin Pusat)
-api.post('/equipment', authMiddleware, requireRole('pusat'), zValidator('json', z.object({
+// 2. CREATE Master Equipment (Admin Pusat & PIC Logistik)
+api.post('/equipment', authMiddleware, requireRole('pusat', 'pic_logistik'), zValidator('json', z.object({
     name: z.string(),
     description: z.string().optional()
 })), async (c) => {
@@ -32,8 +32,8 @@ api.post('/equipment', authMiddleware, requireRole('pusat'), zValidator('json', 
     return c.json(item);
 });
 
-// 2b. DELETE Master Equipment (Admin Pusat)
-api.delete('/equipment/:id', authMiddleware, requireRole('pusat'), async (c) => {
+// 2b. DELETE Master Equipment (Admin Pusat & PIC Logistik)
+api.delete('/equipment/:id', authMiddleware, requireRole('pusat', 'pic_logistik'), async (c) => {
     const id = c.req.param('id');
     const db = getDb(c.env.DB);
     await db.delete(equipmentItems).where(eq(equipmentItems.id, id));
@@ -187,8 +187,8 @@ api.post('/rooming/assign', authMiddleware, zValidator('json', z.object({
     }
 });
 
-// 7. GET Jamaah Overview with Equipment Status Summary (Teknisi)
-api.get('/jamaah-overview/:departureId', authMiddleware, requireRole('teknisi', 'pusat'), async (c) => {
+// 7. GET Jamaah Overview with Equipment Status Summary (Teknisi & PIC Logistik)
+api.get('/jamaah-overview/:departureId', authMiddleware, requireRole('teknisi', 'pic_logistik', 'pusat'), async (c) => {
     const departureId = c.req.param('departureId');
     const db = getDb(c.env.DB);
 
@@ -249,7 +249,7 @@ api.get('/jamaah-overview/:departureId', authMiddleware, requireRole('teknisi', 
 });
 
 // 8. TOGGLE equipment_delivered on a booking (manual "Diserahkan" action)
-api.post('/deliver-equipment/:bookingId', authMiddleware, requireRole('teknisi', 'pusat'), async (c) => {
+api.post('/deliver-equipment/:bookingId', authMiddleware, requireRole('teknisi', 'pic_logistik', 'pusat'), async (c) => {
     const bookingId = c.req.param('bookingId');
     const user = c.get('user');
     const db = getDb(c.env.DB);
@@ -286,7 +286,7 @@ api.get('/equipment-sets', authMiddleware, async (c) => {
     return c.json(data);
 });
 
-api.post('/equipment-sets', authMiddleware, requireRole('pusat'), zValidator('json', z.object({
+api.post('/equipment-sets', authMiddleware, requireRole('pusat', 'pic_logistik'), zValidator('json', z.object({
     name: z.string(),
     description: z.string().optional(),
     equipmentItemIds: z.string() // JSON string array
@@ -297,7 +297,7 @@ api.post('/equipment-sets', authMiddleware, requireRole('pusat'), zValidator('js
     return c.json(set);
 });
 
-api.put('/equipment-sets/:id', authMiddleware, requireRole('pusat'), zValidator('json', z.object({
+api.put('/equipment-sets/:id', authMiddleware, requireRole('pusat', 'pic_logistik'), zValidator('json', z.object({
     name: z.string().optional(),
     description: z.string().optional(),
     equipmentItemIds: z.string().optional(),
@@ -310,7 +310,7 @@ api.put('/equipment-sets/:id', authMiddleware, requireRole('pusat'), zValidator(
     return c.json(updated);
 });
 
-api.delete('/equipment-sets/:id', authMiddleware, requireRole('pusat'), async (c) => {
+api.delete('/equipment-sets/:id', authMiddleware, requireRole('pusat', 'pic_logistik'), async (c) => {
     const id = c.req.param('id');
     const db = getDb(c.env.DB);
     await db.delete(equipmentSets).where(eq(equipmentSets.id, id));
@@ -370,7 +370,7 @@ api.delete('/equipment/custom/:id', authMiddleware, async (c) => {
 
 // --- LOGISTICS / RECIPIENT FOOTER NOTES ---
 
-api.patch('/logistics-notes/:bookingId', authMiddleware, requireRole('teknisi', 'pusat'), zValidator('json', z.object({
+api.patch('/logistics-notes/:bookingId', authMiddleware, requireRole('teknisi', 'pic_logistik', 'pusat'), zValidator('json', z.object({
     notes: z.string().nullable().optional()
 })), async (c) => {
     const bookingId = c.req.param('bookingId');

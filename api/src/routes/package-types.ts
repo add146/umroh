@@ -27,7 +27,7 @@ api.get('/', async (c) => {
 });
 
 // POST new type
-api.post('/', authMiddleware, requireRole('pusat'), zValidator('json', typeSchema), async (c) => {
+api.post('/', authMiddleware, requireRole('pusat', 'pic_produk'), zValidator('json', typeSchema), async (c) => {
     const body = c.req.valid('json');
     const db = getDb(c.env.DB);
 
@@ -36,7 +36,7 @@ api.post('/', authMiddleware, requireRole('pusat'), zValidator('json', typeSchem
 });
 
 // PUT update type
-api.put('/:id', authMiddleware, requireRole('pusat'), zValidator('json', typeSchema.partial()), async (c) => {
+api.put('/:id', authMiddleware, requireRole('pusat', 'pic_produk'), zValidator('json', typeSchema.partial()), async (c) => {
     const id = c.req.param('id');
     const body = c.req.valid('json');
     const db = getDb(c.env.DB);
@@ -47,7 +47,7 @@ api.put('/:id', authMiddleware, requireRole('pusat'), zValidator('json', typeSch
 });
 
 // DELETE type (soft delete)
-api.delete('/:id', authMiddleware, requireRole('pusat'), async (c) => {
+api.delete('/:id', authMiddleware, requireRole('pusat', 'pic_produk'), async (c) => {
     const id = c.req.param('id');
     const db = getDb(c.env.DB);
 

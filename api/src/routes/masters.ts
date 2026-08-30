@@ -31,7 +31,7 @@ api.get('/hotels', async (c) => {
     return c.json({ hotels: data });
 });
 
-api.post('/hotels', requireRole('pusat'), zValidator('json', hotelSchema), async (c) => {
+api.post('/hotels', requireRole('pusat', 'pic_produk'), zValidator('json', hotelSchema), async (c) => {
     const body = c.req.valid('json');
     const db = getDb(c.env.DB);
 
@@ -39,7 +39,7 @@ api.post('/hotels', requireRole('pusat'), zValidator('json', hotelSchema), async
     return c.json({ hotel: result[0] }, 201);
 });
 
-api.delete('/hotels/:id', requireRole('pusat'), async (c) => {
+api.delete('/hotels/:id', requireRole('pusat', 'pic_produk'), async (c) => {
     const id = c.req.param('id');
     const db = getDb(c.env.DB);
 
@@ -65,7 +65,7 @@ api.get('/airlines', async (c) => {
     return c.json({ airlines: data });
 });
 
-api.post('/airlines', requireRole('pusat'), zValidator('json', airlineSchema), async (c) => {
+api.post('/airlines', requireRole('pusat', 'pic_produk'), zValidator('json', airlineSchema), async (c) => {
     const body = c.req.valid('json');
     const db = getDb(c.env.DB);
 
@@ -73,7 +73,7 @@ api.post('/airlines', requireRole('pusat'), zValidator('json', airlineSchema), a
     return c.json({ airline: result[0] }, 201);
 });
 
-api.delete('/airlines/:id', requireRole('pusat'), async (c) => {
+api.delete('/airlines/:id', requireRole('pusat', 'pic_produk'), async (c) => {
     const id = c.req.param('id');
     const db = getDb(c.env.DB);
 
@@ -99,7 +99,7 @@ api.get('/airports', async (c) => {
     return c.json({ airports: data });
 });
 
-api.post('/airports', requireRole('pusat'), zValidator('json', airportSchema), async (c) => {
+api.post('/airports', requireRole('pusat', 'pic_produk'), zValidator('json', airportSchema), async (c) => {
     const body = c.req.valid('json');
     const db = getDb(c.env.DB);
 
@@ -107,7 +107,7 @@ api.post('/airports', requireRole('pusat'), zValidator('json', airportSchema), a
     return c.json({ airport: result[0] }, 201);
 });
 
-api.delete('/airports/:id', requireRole('pusat'), async (c) => {
+api.delete('/airports/:id', requireRole('pusat', 'pic_produk'), async (c) => {
     const id = c.req.param('id');
     const db = getDb(c.env.DB);
 

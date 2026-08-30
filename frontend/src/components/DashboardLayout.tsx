@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { BottomNav } from './BottomNav';
 
@@ -7,40 +7,71 @@ interface DashboardLayoutProps {
     children: React.ReactNode;
 }
 
-const menuGroups = [
+interface MenuItem {
+    name: string;
+    path: string;
+    icon: string;
+    roles: string[];
+    badge?: boolean;
+}
+
+interface MenuGroup {
+    label: string;
+    items: MenuItem[];
+}
+
+const ALL_ROLES = ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'teknisi', 'pic_produk', 'pic_logistik', 'pic_jamaah', 'finance'];
+
+const formatRoleLabel = (role?: string) => {
+    switch (role) {
+        case 'pusat': return 'Admin Pusat';
+        case 'pic_produk': return 'PIC Paket & Jadwal';
+        case 'pic_logistik': return 'PIC Logistik';
+        case 'pic_jamaah': return 'PIC Data Jamaah';
+        case 'finance': return 'Finance';
+        case 'cabang': return 'Cabang';
+        case 'mitra': return 'Mitra';
+        case 'agen': return 'Agen';
+        case 'reseller': return 'Reseller';
+        case 'teknisi': return 'Teknisi';
+        default: return role || '';
+    }
+};
+
+const menuGroups: MenuGroup[] = [
     {
         label: 'Main',
         items: [
-            { name: 'Dashboard', path: '/dashboard', icon: 'dashboard', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'teknisi'] },
-            { name: 'Absensi Saya', path: '/attendance', icon: 'how_to_reg', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'teknisi'] },
+            { name: 'Dashboard', path: '/dashboard', icon: 'dashboard', roles: ALL_ROLES },
+            { name: 'Absensi Saya', path: '/attendance', icon: 'how_to_reg', roles: ALL_ROLES },
         ]
     },
     {
         label: 'Manajemen Produk',
         items: [
-            { name: 'Paket Umroh', path: '/admin/packages', icon: 'package_2', roles: ['pusat'] },
-            { name: 'Jadwal Keberangkatan', path: '/admin/departures', icon: 'flight_takeoff', roles: ['pusat'] },
-            { name: 'Logistik & Inventory', path: '/admin/logistics', icon: 'inventory_2', roles: ['pusat', 'teknisi'] },
-            { name: 'Kategori Perlengkapan', path: '/admin/equipment-sets', icon: 'auto_awesome_motion', roles: ['pusat'] },
+            { name: 'Paket Umroh', path: '/admin/packages', icon: 'package_2', roles: ['pusat', 'pic_produk'] },
+            { name: 'Jadwal Keberangkatan', path: '/admin/departures', icon: 'flight_takeoff', roles: ['pusat', 'pic_produk'] },
+            { name: 'Logistik & Inventory', path: '/admin/logistics', icon: 'inventory_2', roles: ['pusat', 'pic_logistik', 'teknisi'] },
+            { name: 'Kategori Perlengkapan', path: '/admin/equipment-sets', icon: 'auto_awesome_motion', roles: ['pusat', 'pic_logistik'] },
         ]
     },
     {
         label: 'Operasional Jamaah',
         items: [
-            { name: 'Data Jamaah', path: '/admin/bookings', icon: 'group', roles: ['pusat'] },
-            { name: 'Manifest & Roomlist', path: '/admin/manifest', icon: 'assignment', roles: ['pusat'] },
-            { name: 'Rooming Board', path: '/admin/rooming', icon: 'hotel', roles: ['pusat'] },
-            { name: 'Pembayaran', path: '/admin/invoices', icon: 'payments', badge: true, roles: ['pusat'] },
+            { name: 'Data Jamaah', path: '/admin/bookings', icon: 'group', roles: ['pusat', 'pic_jamaah', 'finance'] },
+            { name: 'Manifest & Roomlist', path: '/admin/manifest', icon: 'assignment', roles: ['pusat', 'pic_jamaah'] },
+            { name: 'Rooming Board', path: '/admin/rooming', icon: 'hotel', roles: ['pusat', 'pic_jamaah'] },
+            { name: 'Pembayaran', path: '/admin/invoices', icon: 'payments', badge: true, roles: ['pusat', 'pic_jamaah', 'finance'] },
         ]
     },
     {
         label: 'Master Data',
         items: [
-            { name: 'Data Hotel', path: '/admin/masters/hotels', icon: 'apartment', roles: ['pusat'] },
-            { name: 'Data Pesawat', path: '/admin/masters/airlines', icon: 'airlines', roles: ['pusat'] },
-            { name: 'Data Bandara', path: '/admin/masters/airports', icon: 'connecting_airports', roles: ['pusat'] },
-            { name: 'Item Perlengkapan', path: '/admin/masters/equipment', icon: 'backpack', roles: ['pusat'] },
-            { name: 'Jenis Paket', path: '/admin/masters/package-types', icon: 'category', roles: ['pusat'] },
+            { name: 'Data Hotel', path: '/admin/masters/hotels', icon: 'apartment', roles: ['pusat', 'pic_produk'] },
+            { name: 'Data Pesawat', path: '/admin/masters/airlines', icon: 'airlines', roles: ['pusat', 'pic_produk'] },
+            { name: 'Data Bandara', path: '/admin/masters/airports', icon: 'connecting_airports', roles: ['pusat', 'pic_produk'] },
+            { name: 'Item Perlengkapan', path: '/admin/masters/equipment', icon: 'backpack', roles: ['pusat', 'pic_logistik', 'teknisi'] },
+            { name: 'Jenis Paket', path: '/admin/masters/package-types', icon: 'category', roles: ['pusat', 'pic_produk'] },
         ]
     },
     {
@@ -57,12 +88,12 @@ const menuGroups = [
     {
         label: 'Monitoring Jaringan',
         items: [
-            { name: 'Monitoring Absensi', path: '/admin/attendance', icon: 'badge', roles: ['pusat', 'cabang'] },
+            { name: 'Monitoring Absensi', path: '/admin/attendance', icon: 'badge', roles: ['pusat', 'cabang', 'finance'] },
             { name: 'Approval Jamaah', path: '/cabang/approval', icon: 'rule', roles: ['cabang'] },
             { name: 'Data Jamaah Cabang', path: '/cabang/jamaah', icon: 'dns', roles: ['cabang'] },
             { name: 'List Jamaah', path: '/agent/list-jamaah', icon: 'contact_page', roles: ['agen'] },
             { name: 'Data Jamaahku', path: '/agent/jamaah', icon: 'group', roles: ['agen'] },
-            { name: 'Daftar Jamaah', path: '/teknisi/jamaah', icon: 'person_search', roles: ['teknisi'] },
+            { name: 'Daftar Jamaah', path: '/teknisi/jamaah', icon: 'person_search', roles: ['teknisi', 'pic_logistik'] },
             { name: 'Repeat Customers', path: '/admin/reports/repeat-customers', icon: 'group_add', roles: ['pusat'] },
             { name: 'Performa Cabang', path: '/admin/performance', icon: 'leaderboard', roles: ['pusat'] },
         ]
@@ -70,15 +101,15 @@ const menuGroups = [
     {
         label: 'Keuangan',
         items: [
-            { name: 'Rekening Bank', path: '/admin/bank-accounts', icon: 'account_balance', roles: ['pusat'] },
-            { name: 'Komisi Jaringan', path: '/admin/commissions', icon: 'payments', roles: ['pusat'] },
+            { name: 'Rekening Bank', path: '/admin/bank-accounts', icon: 'account_balance', roles: ['pusat', 'finance'] },
+            { name: 'Komisi Jaringan', path: '/admin/commissions', icon: 'payments', roles: ['pusat', 'finance'] },
         ]
     },
     {
         label: 'Afiliasi',
         items: [
             { name: 'Dashboard Affiliasi', path: '/affiliate', icon: 'trending_up', roles: ['cabang', 'mitra', 'agen', 'reseller'] },
-            { name: 'Pencairan Komisi', path: '/affiliate/disbursement', icon: 'account_balance_wallet', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller'] },
+            { name: 'Pencairan Komisi', path: '/affiliate/disbursement', icon: 'account_balance_wallet', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'finance'] },
             { name: 'Leaderboard', path: '/leaderboard', icon: 'trophy', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller'] },
             { name: 'Data Downline', path: '/downline', icon: 'account_tree', roles: ['pusat', 'cabang', 'mitra', 'agen'] },
         ]
@@ -88,7 +119,7 @@ const menuGroups = [
         items: [
             { name: 'Kelola Akun & PIC', path: '/admin/users', icon: 'people', roles: ['pusat'] },
             { name: 'Edit Landing Page', path: '/admin/landing-editor', icon: 'web', roles: ['pusat', 'cabang'] },
-            { name: 'Pengaturan Akun', path: '/profile', icon: 'manage_accounts', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'teknisi'] },
+            { name: 'Pengaturan Akun', path: '/profile', icon: 'manage_accounts', roles: ALL_ROLES },
             { name: 'Audit Log System', path: '/admin/audit', icon: 'security', roles: ['pusat'] },
         ]
     }
@@ -108,50 +139,69 @@ const SidebarContent: React.FC<SidebarContentProps> = React.memo(({ user, brandi
             {/* Logo Header (Fixed/Still) */}
             <div style={{ padding: '1.25rem 1.25rem', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0, background: '#131210' }}>
                 <div style={{ width: '38px', height: '38px', background: 'var(--color-primary)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-                    <img src={branding.logoUrl} alt="Logo" style={{ width: '28px', height: '28px', objectFit: 'contain' }} onError={e => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
+                    <img src={branding.logoUrl} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={(e) => { (e.target as any).style.display = 'none'; }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontWeight: 900, fontSize: '0.875rem', letterSpacing: '-0.02em', textTransform: 'uppercase', lineHeight: 1, margin: 0 }}>
-                        {branding.brandName}<span style={{ color: 'var(--color-primary)' }}>{branding.brandHighlight}</span>
-                    </p>
-                    <p style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', textTransform: 'capitalize', marginTop: '2px', margin: '2px 0 0 0' }}>
-                        {user?.role === 'pusat' ? 'Admin Platform' : `${user?.role} Portal`}
-                    </p>
+                    <span style={{ fontWeight: 900, fontSize: '0.9375rem', letterSpacing: '-0.02em', textTransform: 'uppercase', color: 'var(--color-text-main)' }}>
+                        {branding.brandName}
+                        <span style={{ color: 'var(--color-primary)' }}>{branding.brandHighlight}</span>
+                    </span>
+                    <p style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', margin: 0, letterSpacing: '0.05em' }}>MANAGEMENT</p>
                 </div>
-                {/* Close button on mobile only */}
+                {/* Mobile close button */}
                 {onCloseMobile && (
-                    <button onClick={onCloseMobile} className="mobile-close-btn" style={{ color: 'var(--color-text-muted)', display: 'none' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>close</span>
+                    <button onClick={onCloseMobile} className="mobile-close-btn" style={{ display: 'none', color: 'var(--color-text-muted)' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
                     </button>
                 )}
             </div>
 
-            {/* Nav Menu (Scrollable with dedicated scrollbar) */}
-            <nav className="sidebar-nav-scroll" style={{ flex: 1, padding: '1rem 0.75rem', overflowY: 'auto', minHeight: 0 }}>
-                {menuGroups.map(group => {
-                    const visible = group.items.filter(item => user && item.roles.includes(user.role));
-                    if (visible.length === 0) return null;
+            {/* Scrollable Navigation Area */}
+            <nav className="sidebar-nav-scroll" style={{ flex: 1, padding: '1rem 0.75rem', minHeight: 0 }}>
+                {menuGroups.map((group, gIdx) => {
+                    const visibleItems = group.items.filter(item => item.roles.includes(user?.role || ''));
+                    if (visibleItems.length === 0) return null;
+
                     return (
-                        <div key={group.label} style={{ marginBottom: '1.25rem' }}>
-                            <p style={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--color-text-light)', padding: '0 0.5rem', marginBottom: '0.375rem', margin: '0 0 0.375rem 0' }}>
+                        <div key={gIdx} style={{ marginBottom: '1.25rem' }}>
+                            <div style={{ padding: '0 0.5rem', fontSize: '0.6875rem', fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.375rem' }}>
                                 {group.label}
-                            </p>
-                            {visible.map(item => {
-                                const isActive = currentPath === item.path;
-                                return (
-                                    <NavLink key={item.path} to={item.path} style={{
-                                        display: 'flex', alignItems: 'center', gap: '0.75rem',
-                                        padding: '0.625rem 0.75rem', borderRadius: '0.5rem',
-                                        marginBottom: '0.125rem', textDecoration: 'none',
-                                        fontWeight: 600, fontSize: '0.875rem', transition: 'all 0.2s',
-                                        background: isActive ? 'rgba(200, 168, 81, 0.15)' : 'transparent',
-                                        color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                    }}>
-                                        <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0", color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)' }}>{item.icon}</span>
-                                        {item.name}
-                                    </NavLink>
-                                );
-                            })}
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                {visibleItems.map((item) => {
+                                    const isActive = currentPath === item.path;
+                                    return (
+                                        <Link
+                                            key={item.path}
+                                            to={item.path}
+                                            onClick={onCloseMobile}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.75rem',
+                                                padding: '0.5625rem 0.75rem',
+                                                borderRadius: '0.625rem',
+                                                textDecoration: 'none',
+                                                fontSize: '0.8125rem',
+                                                fontWeight: isActive ? 600 : 500,
+                                                background: isActive ? 'linear-gradient(135deg, rgba(200,168,81,0.18), rgba(200,168,81,0.06))' : 'transparent',
+                                                color: isActive ? 'var(--color-primary)' : 'rgba(255,255,255,0.65)',
+                                                border: isActive ? '1px solid rgba(200,168,81,0.3)' : '1px solid transparent',
+                                                transition: 'all 0.15s ease',
+                                                position: 'relative'
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '19px', opacity: isActive ? 1 : 0.7, color: isActive ? 'var(--color-primary)' : 'inherit' }}>
+                                                {item.icon}
+                                            </span>
+                                            <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</span>
+                                            {item.badge && (
+                                                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-primary)', flexShrink: 0 }} />
+                                            )}
+                                        </Link>
+                                    );
+                                })}
+                            </div>
                         </div>
                     );
                 })}
@@ -165,7 +215,7 @@ const SidebarContent: React.FC<SidebarContentProps> = React.memo(({ user, brandi
                     </div>
                     <div style={{ flex: 1, overflow: 'hidden' }}>
                         <p style={{ fontWeight: 700, fontSize: '0.8125rem', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>{user?.name}</p>
-                        <p style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', textTransform: 'capitalize', margin: '2px 0 0 0' }}>{user?.role}</p>
+                        <p style={{ fontSize: '0.6875rem', color: 'var(--color-primary)', fontWeight: 600, margin: '2px 0 0 0' }}>{formatRoleLabel(user?.role)}</p>
                     </div>
                     <button onClick={onLogout} title="Logout" style={{ color: 'var(--color-text-muted)', transition: 'color 0.2s', flexShrink: 0 }}
                         onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-error)')}

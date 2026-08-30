@@ -368,7 +368,7 @@ attendanceRouter.post('/field-visit', async (c) => {
 // GET /api/attendance/admin/today-recap - Today recap of all staff
 attendanceRouter.get('/admin/today-recap', async (c) => {
     const authUser = c.get('user');
-    if (!['pusat', 'cabang'].includes(authUser.role)) {
+    if (!['pusat', 'cabang', 'finance'].includes(authUser.role)) {
         return c.json({ error: 'Akses ditolak' }, 403);
     }
 
@@ -412,7 +412,7 @@ attendanceRouter.get('/admin/today-recap', async (c) => {
 // GET /api/attendance/admin/monthly-recap - Monthly recap with filters
 attendanceRouter.get('/admin/monthly-recap', async (c) => {
     const authUser = c.get('user');
-    if (!['pusat', 'cabang'].includes(authUser.role)) {
+    if (!['pusat', 'cabang', 'finance'].includes(authUser.role)) {
         return c.json({ error: 'Akses ditolak' }, 403);
     }
 
@@ -446,7 +446,7 @@ attendanceRouter.get('/admin/monthly-recap', async (c) => {
 // GET /api/attendance/admin/export-excel - Download Excel recap
 attendanceRouter.get('/admin/export-excel', async (c) => {
     const authUser = c.get('user');
-    if (!['pusat', 'cabang'].includes(authUser.role)) {
+    if (!['pusat', 'cabang', 'finance'].includes(authUser.role)) {
         return c.json({ error: 'Akses ditolak' }, 403);
     }
 

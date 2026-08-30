@@ -106,7 +106,7 @@ api.get('/:id', async (c) => {
 });
 
 // Admin: Create package
-api.post('/', authMiddleware, requireRole('pusat'), zValidator('json', packageSchema), async (c) => {
+api.post('/', authMiddleware, requireRole('pusat', 'pic_produk'), zValidator('json', packageSchema), async (c) => {
     const body = c.req.valid('json');
     const db = getDb(c.env.DB);
 
@@ -126,7 +126,7 @@ api.post('/', authMiddleware, requireRole('pusat'), zValidator('json', packageSc
 });
 
 // Admin: Update package
-api.put('/:id', authMiddleware, requireRole('pusat'), zValidator('json', packageSchema.partial()), async (c) => {
+api.put('/:id', authMiddleware, requireRole('pusat', 'pic_produk'), zValidator('json', packageSchema.partial()), async (c) => {
     const id = c.req.param('id');
     const body = c.req.valid('json');
     const db = getDb(c.env.DB);
@@ -142,7 +142,7 @@ api.put('/:id', authMiddleware, requireRole('pusat'), zValidator('json', package
 });
 
 // Admin: Soft-delete package
-api.delete('/:id', authMiddleware, requireRole('pusat'), async (c) => {
+api.delete('/:id', authMiddleware, requireRole('pusat', 'pic_produk'), async (c) => {
     const id = c.req.param('id');
     const db = getDb(c.env.DB);
 

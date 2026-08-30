@@ -25,8 +25,8 @@ api.get('/mode', async (c) => {
     });
 });
 
-// 1.0 GET ALL INVOICES (Admin)
-api.get('/invoices', authMiddleware, requireRole('pusat'), async (c) => {
+// 1.0 GET ALL INVOICES (Admin, Finance & PIC Jamaah)
+api.get('/invoices', authMiddleware, requireRole('pusat', 'finance', 'pic_jamaah'), async (c) => {
     const db = getDb(c.env.DB);
     const data = await db.query.paymentInvoices.findMany({
         with: {
@@ -238,8 +238,8 @@ api.post('/:invoiceId/upload-proof', authMiddleware, async (c) => {
     return c.json({ message: 'Proof uploaded', key });
 });
 
-// 4. ADMIN: VERIFY PAYMENT
-api.patch('/:invoiceId/verify', authMiddleware, requireRole('pusat'), zValidator('json', z.object({
+// 4. ADMIN & FINANCE: VERIFY PAYMENT
+api.patch('/:invoiceId/verify', authMiddleware, requireRole('pusat', 'finance'), zValidator('json', z.object({
     status: z.enum(['paid', 'cancelled']),
     notes: z.string().optional()
 })), async (c) => {
@@ -287,14 +287,14 @@ api.patch('/:invoiceId/verify', authMiddleware, requireRole('pusat'), zValidator
     return c.json({ message: 'Verification updated' });
 });
 
-// 5. ADMIN: BANK ACCOUNTS CRUD
-api.get('/banks', authMiddleware, requireRole('pusat'), async (c) => {
+// 5. ADMIN & FINANCE: BANK ACCOUNTS CRUD
+api.get('/banks', authMiddleware, requireRole('pusat', 'finance'), async (c) => {
     const db = getDb(c.env.DB);
     const banks = await db.select().from(bankAccounts);
     return c.json(banks);
 });
 
-api.post('/banks', authMiddleware, requireRole('pusat'), zValidator('json', z.object({
+api.post('/banks', authMiddleware, requireRole('pusat', 'finance'), zValidator('json', z.object({
     bankName: z.string(),
     accountNumber: z.string(),
     accountHolder: z.string()
@@ -305,7 +305,7 @@ api.post('/banks', authMiddleware, requireRole('pusat'), zValidator('json', z.ob
     return c.json(bank);
 });
 
-api.patch('/banks/:id', authMiddleware, requireRole('pusat'), zValidator('json', z.object({
+api.patch('/banks/:id', authMiddleware, requireRole('pusat', 'finance'), zValidator('json', z.object({
     isActive: z.boolean().optional(),
     bankName: z.string().optional(),
     accountNumber: z.string().optional(),
