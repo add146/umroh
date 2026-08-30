@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
+import { BottomNav } from './BottomNav';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -276,9 +277,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                 </header>
 
                 {/* Page content */}
-                <div style={{ flex: 1, padding: 'clamp(1.25rem, 4vw, 3rem)', background: 'var(--color-bg)', overflowX: 'hidden' }}>
+                <div className="dashboard-content-area" style={{ flex: 1, padding: 'clamp(1.25rem, 4vw, 3rem)', background: 'var(--color-bg)', overflowX: 'hidden' }}>
                     {children}
                 </div>
+
+                {/* Mobile Bottom Navigation (Ref: rusamas-erp) */}
+                <BottomNav />
             </main>
 
             {/* Responsive CSS */}
@@ -288,9 +292,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                     .hamburger-btn { display: flex !important; }
                     .mobile-brand { display: block !important; }
                     .mobile-close-btn { display: flex !important; }
+                    .bottom-nav-mobile { display: flex !important; }
+                    .dashboard-content-area { padding-bottom: 5.5rem !important; }
                 }
                 @media (min-width: 769px) {
                     .sidebar-mobile { display: none !important; }
+                    .bottom-nav-mobile { display: none !important; }
                 }
                 @media (max-width: 400px) {
                     .hide-xs { display: none; }
