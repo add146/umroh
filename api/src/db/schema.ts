@@ -12,6 +12,7 @@ export const users = sqliteTable('users', {
     affiliateCode: text('affiliate_code').unique(),
     parentId: text('parent_id').references((): any => users.id),
     isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    canFieldAttendance: integer('can_field_attendance', { mode: 'boolean' }).default(false),
 
     wahaApiUrl: text('waha_api_url'),
     wahaApiKey: text('waha_api_key'),

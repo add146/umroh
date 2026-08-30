@@ -142,7 +142,12 @@ attendanceRouter.get('/today', async (c) => {
     return c.json({
         today,
         attendance: todayRecord || null,
-        user: userProfile ? { id: userProfile.id, name: userProfile.name, role: userProfile.role } : null,
+        user: userProfile ? {
+            id: userProfile.id,
+            name: userProfile.name,
+            role: userProfile.role,
+            canFieldAttendance: !!userProfile.canFieldAttendance || ['agen', 'reseller', 'mitra'].includes(userProfile.role)
+        } : null,
         locations: locationsList
     });
 });
@@ -176,7 +181,7 @@ attendanceRouter.get('/my-history', async (c) => {
 // POST /api/attendance/check-in - Clock In
 attendanceRouter.post('/check-in', async (c) => {
     const authUser = c.get('user');
-    const { latitude, longitude, photo_url, notes, type = 'office', address } = await c.req.json();
+    const { latitude, longitude, photo_url, notes, address } = await c.req.json();
     await autoCreateAttendanceTables(c.env.DB);
     const db = getDb(c.env.DB);
     const today = getWibDate();
@@ -191,19 +196,23 @@ attendanceRouter.post('/check-in', async (c) => {
         return c.json({ error: 'Anda sudah melakukan absensi masuk hari ini!' }, 400);
     }
 
-    // Geofencing verification
-    const isSalesRole = ['agen', 'reseller', 'mitra'].includes(authUser.role);
-    const isFieldType = type === 'field' || type === 'remote';
+    // Geofencing verification based on user's canFieldAttendance permission
+    const userProfile = await db.query.users.findFirst({
+        where: eq(s.users.id, authUser.id)
+    });
+    const canField = !!userProfile?.canFieldAttendance || ['agen', 'reseller', 'mitra'].includes(authUser.role);
 
     let isWithinRange = false;
     let assignedLocationId: string | null = null;
     let closestDistance: number | null = null;
+    let closestRadius = 150;
+    const finalType = canField ? 'field' : 'office';
 
-    if (isSalesRole || isFieldType) {
-        // Sales & field reps can check-in anywhere
+    if (canField) {
+        // Sales & authorized field staff can check-in anywhere
         isWithinRange = true;
     } else {
-        // Office staff verification
+        // Office staff verification against active office geofences
         const activeLocations = await db.query.attendanceLocations.findMany({
             where: eq(s.attendanceLocations.isActive, true)
         });
@@ -215,6 +224,7 @@ attendanceRouter.post('/check-in', async (c) => {
                 const dist = getHaversineDistance(latitude, longitude, loc.latitude, loc.longitude);
                 if (closestDistance === null || dist < closestDistance) {
                     closestDistance = dist;
+                    closestRadius = loc.radiusMeters || 150;
                 }
                 if (dist <= (loc.radiusMeters || 150)) {
                     isWithinRange = true;
@@ -227,7 +237,7 @@ attendanceRouter.post('/check-in', async (c) => {
 
     if (!isWithinRange) {
         return c.json({
-            error: `Anda berada di luar jangkauan kantor! Jarak terdekat: ${closestDistance !== null ? closestDistance + ' meter' : 'Lokasi GPS tidak valid'}. Jika bertugas di luar kantor, silakan pilih mode 'Absen Lapangan / Sales'.`
+            error: `Anda berada di luar area kantor! Jarak terdekat: ${closestDistance !== null ? closestDistance + ' meter (Maksimum ' + closestRadius + ' meter)' : 'Lokasi GPS tidak valid'}. Silakan mendekat ke area kantor atau hubungi Admin jika Anda bertugas di lapangan.`
         }, 400);
     }
 
@@ -243,12 +253,12 @@ attendanceRouter.post('/check-in', async (c) => {
         id: recordId,
         userId: authUser.id,
         locationId: assignedLocationId,
-        type: (isSalesRole || isFieldType) ? 'field' : 'office',
+        type: finalType,
         date: today,
         checkInAt: now.toISOString(),
         checkInLat: typeof latitude === 'number' ? latitude : null,
         checkInLng: typeof longitude === 'number' ? longitude : null,
-        checkInAddress: address || (isFieldType ? 'Tugas Lapangan' : 'Kantor'),
+        checkInAddress: address || (canField ? 'Tugas Lapangan / Sales' : 'Kantor'),
         checkInPhotoUrl: photo_url || null,
         checkInNotes: notes || null,
         isOnTime: isOnTime,

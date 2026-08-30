@@ -46,6 +46,7 @@ userStore.get('/all', authMiddleware, async (c) => {
         role: u.role,
         affiliateCode: u.affiliateCode,
         isActive: u.isActive,
+        canFieldAttendance: !!u.canFieldAttendance || ['agen', 'reseller', 'mitra'].includes(u.role),
         parentId: u.parentId,
         createdAt: u.createdAt,
     }));
@@ -62,6 +63,7 @@ const adminCreateUserSchema = z.object({
     role: z.enum(['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'teknisi']),
     nik: z.string().optional().nullable(),
     affiliateCode: z.string().optional().nullable(),
+    canFieldAttendance: z.boolean().optional(),
 });
 
 userStore.post('/admin-create', authMiddleware, zValidator('json', adminCreateUserSchema), async (c) => {
@@ -90,6 +92,7 @@ userStore.post('/admin-create', authMiddleware, zValidator('json', adminCreateUs
             parentId: currentUser.id,
             affiliateCode: autoAffCode,
             isActive: true,
+            canFieldAttendance: body.canFieldAttendance ?? false,
         });
 
         // Maintain closure hierarchy
@@ -121,6 +124,7 @@ const adminUpdateUserSchema = z.object({
     nik: z.string().optional().nullable(),
     affiliateCode: z.string().optional().nullable(),
     isActive: z.boolean().optional(),
+    canFieldAttendance: z.boolean().optional(),
     password: z.string().min(6).optional().nullable(),
 });
 
@@ -142,6 +146,7 @@ userStore.put('/admin-update/:id', authMiddleware, zValidator('json', adminUpdat
     if (body.nik !== undefined) updateData.nik = body.nik || null;
     if (body.affiliateCode !== undefined) updateData.affiliateCode = body.affiliateCode || null;
     if (body.isActive !== undefined) updateData.isActive = body.isActive;
+    if (body.canFieldAttendance !== undefined) updateData.canFieldAttendance = body.canFieldAttendance;
     if (body.password) updateData.password = await hashPassword(body.password);
 
     try {

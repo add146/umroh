@@ -43,17 +43,20 @@ interface OfficeLocation {
     name: string;
     latitude: number;
     longitude: number;
-    radiusMeters: number;
+    radiusMeters?: number;
+    radius_meters?: number;
     address?: string | null;
 }
 
 export const AttendancePage: React.FC = () => {
     const { user } = useAuthStore();
-    const isSalesRole = ['agen', 'reseller', 'mitra'].includes(user?.role || '');
+    const isSalesRoleDefault = ['agen', 'reseller', 'mitra'].includes(user?.role || '');
 
     const [activeTab, setActiveTab] = useState<'today' | 'history'>('today');
     const [now, setNow] = useState<Date>(new Date());
-    const [attendanceType, setAttendanceType] = useState<'office' | 'field'>(isSalesRole ? 'field' : 'office');
+
+    // Permission from backend
+    const [canFieldAttendance, setCanFieldAttendance] = useState<boolean>(isSalesRoleDefault);
 
     // GPS State
     const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -64,7 +67,7 @@ export const AttendancePage: React.FC = () => {
     // Attendance Data
     const [todayAttendance, setTodayAttendance] = useState<AttendanceRecord | null>(null);
     const [officeLocations, setOfficeLocations] = useState<OfficeLocation[]>([]);
-    const [nearestOffice, setNearestOffice] = useState<{ loc: OfficeLocation; dist: number } | null>(null);
+    const [nearestOffice, setNearestOffice] = useState<{ loc: OfficeLocation; dist: number; radius: number } | null>(null);
     const [submitting, setSubmitting] = useState<boolean>(false);
 
     // Form inputs
@@ -72,7 +75,7 @@ export const AttendancePage: React.FC = () => {
     const [photoBase64, setPhotoBase64] = useState<string | null>(null);
     const [cameraActive, setCameraActive] = useState<boolean>(false);
 
-    // Field Visit Form (Sales)
+    // Field Visit Form (Sales / Field)
     const [showVisitForm, setShowVisitForm] = useState<boolean>(false);
     const [visitClientName, setVisitClientName] = useState<string>('');
     const [visitPurpose, setVisitPurpose] = useState<string>('Presentasi Paket Umroh');
@@ -96,12 +99,6 @@ export const AttendancePage: React.FC = () => {
         return () => clearInterval(timer);
     }, []);
 
-    // Get live GPS on mount
-    useEffect(() => {
-        fetchLocation();
-        loadTodayStatus();
-    }, []);
-
     // Haversine formula
     const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
         const R = 6371e3;
@@ -113,7 +110,23 @@ export const AttendancePage: React.FC = () => {
         return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
     };
 
-    const fetchLocation = () => {
+    const calculateNearest = (userLat: number, userLng: number, locs: OfficeLocation[]) => {
+        if (!locs || locs.length === 0) {
+            setNearestOffice(null);
+            return;
+        }
+        let nearest: { loc: OfficeLocation; dist: number; radius: number } | null = null;
+        locs.forEach(loc => {
+            const d = getDistance(userLat, userLng, loc.latitude, loc.longitude);
+            const r = loc.radiusMeters || loc.radius_meters || 150;
+            if (!nearest || d < nearest.dist) {
+                nearest = { loc, dist: d, radius: r };
+            }
+        });
+        setNearestOffice(nearest);
+    };
+
+    const fetchLocation = (locs = officeLocations) => {
         setGpsLoading(true);
         setGpsError(null);
         if (!navigator.geolocation) {
@@ -130,20 +143,10 @@ export const AttendancePage: React.FC = () => {
                 setGpsAccuracy(Math.round(pos.coords.accuracy));
                 setGpsLoading(false);
 
-                // Find nearest office
-                if (officeLocations.length > 0) {
-                    let nearest: { loc: OfficeLocation; dist: number } | null = null;
-                    officeLocations.forEach(loc => {
-                        const d = getDistance(lat, lng, loc.latitude, loc.longitude);
-                        if (!nearest || d < nearest.dist) {
-                            nearest = { loc, dist: d };
-                        }
-                    });
-                    setNearestOffice(nearest);
-                }
+                calculateNearest(lat, lng, locs);
             },
             (err) => {
-                setGpsError(`Gagal mendapatkan lokasi (${err.message}). Pastikan izin GPS diaktifkan.`);
+                setGpsError(`Gagal mendeteksi lokasi (${err.message}). Pastikan izin lokasi/GPS aktif.`);
                 setGpsLoading(false);
             },
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
@@ -154,20 +157,22 @@ export const AttendancePage: React.FC = () => {
         try {
             const data = await apiFetch<any>('/api/attendance/today');
             setTodayAttendance(data.attendance || null);
-            setOfficeLocations(data.locations || []);
+            const locs: OfficeLocation[] = data.locations || [];
+            setOfficeLocations(locs);
 
-            if (coords && data.locations?.length > 0) {
-                let nearest: { loc: OfficeLocation; dist: number } | null = null;
-                data.locations.forEach((loc: OfficeLocation) => {
-                    const d = getDistance(coords.lat, coords.lng, loc.latitude, loc.longitude);
-                    if (!nearest || d < nearest.dist) nearest = { loc, dist: d };
-                });
-                setNearestOffice(nearest);
+            if (data.user?.canFieldAttendance !== undefined) {
+                setCanFieldAttendance(data.user.canFieldAttendance);
             }
+
+            fetchLocation(locs);
         } catch (err: any) {
             console.error('Failed to load today attendance', err);
         }
     };
+
+    useEffect(() => {
+        loadTodayStatus();
+    }, []);
 
     // Load monthly history
     useEffect(() => {
@@ -234,7 +239,7 @@ export const AttendancePage: React.FC = () => {
     // Actions
     const handleCheckIn = async () => {
         if (!coords) {
-            alert('Lokasi GPS belum terdeteksi. Silakan segarkan GPS.');
+            alert('Lokasi GPS belum terdeteksi. Silakan segarkan GPS terlebih dahulu.');
             return;
         }
 
@@ -245,8 +250,7 @@ export const AttendancePage: React.FC = () => {
                 longitude: coords.lng,
                 photo_url: photoBase64,
                 notes: notes.trim(),
-                type: attendanceType,
-                address: attendanceType === 'field' ? 'Kunjungan Lapangan / Sales' : nearestOffice?.loc.name || 'Kantor'
+                address: canFieldAttendance ? 'Tugas Lapangan / Sales' : nearestOffice?.loc.name || 'Kantor'
             };
 
             const res = await apiFetch<any>('/api/attendance/check-in', {
@@ -254,12 +258,12 @@ export const AttendancePage: React.FC = () => {
                 body: JSON.stringify(payload)
             });
 
-            alert(res.message || 'Absen masuk berhasil!');
+            alert(res.message || 'Presensi masuk berhasil dicatat!');
             setPhotoBase64(null);
             setNotes('');
             loadTodayStatus();
         } catch (err: any) {
-            alert(err.message || 'Gagal melakukan absen masuk');
+            alert(err.message || 'Gagal melakukan presensi masuk');
         } finally {
             setSubmitting(false);
         }
@@ -281,7 +285,7 @@ export const AttendancePage: React.FC = () => {
                 body: JSON.stringify(payload)
             });
 
-            alert(res.message || 'Absen pulang berhasil dicatat!');
+            alert(res.message || 'Presensi pulang berhasil dicatat!');
             loadTodayStatus();
         } catch (err: any) {
             alert(err.message || 'Gagal melakukan check-out');
@@ -293,7 +297,7 @@ export const AttendancePage: React.FC = () => {
     const handleSaveFieldVisit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!visitClientName.trim()) {
-            alert('Nama Klien / Prospek wajib diisi');
+            alert('Nama Klien / Calon Jamaah wajib diisi');
             return;
         }
 
@@ -313,7 +317,7 @@ export const AttendancePage: React.FC = () => {
                 body: JSON.stringify(payload)
             });
 
-            alert('Log kunjungan sales berhasil dicatat!');
+            alert('Log kunjungan lapangan berhasil dicatat!');
             setShowVisitForm(false);
             setVisitClientName('');
             setVisitNotes('');
@@ -325,8 +329,8 @@ export const AttendancePage: React.FC = () => {
         }
     };
 
-    const isInsideOfficeRadius = nearestOffice && nearestOffice.dist <= (nearestOffice.loc.radiusMeters || 150);
-    const isWithinGeofence = isSalesRole || attendanceType === 'field' || isInsideOfficeRadius;
+    const isInsideOfficeRadius = nearestOffice ? nearestOffice.dist <= nearestOffice.radius : false;
+    const isWithinGeofence = canFieldAttendance || isInsideOfficeRadius;
 
     // Live Timer Calculation
     const getFormattedWorkingTimer = () => {
@@ -352,7 +356,7 @@ export const AttendancePage: React.FC = () => {
     const liveWork = getFormattedWorkingTimer();
 
     return (
-        <div style={{ maxWidth: '460px', margin: '0 auto', paddingBottom: '5rem' }}>
+        <div style={{ maxWidth: '460px', margin: '0 auto', paddingBottom: '5.5rem' }}>
             {/* Header: Clock & Indonesian Date */}
             <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
                 <h1 style={{
@@ -371,8 +375,8 @@ export const AttendancePage: React.FC = () => {
                 </p>
             </div>
 
-            {/* Mode Banner */}
-            {isSalesRole ? (
+            {/* Mode Banner: Otomatis berdasarkan izin user */}
+            {canFieldAttendance ? (
                 <div style={{
                     background: 'rgba(59,130,246,0.1)',
                     border: '1px solid rgba(59,130,246,0.3)',
@@ -385,10 +389,26 @@ export const AttendancePage: React.FC = () => {
                 }}>
                     <span className="material-symbols-outlined" style={{ color: '#60a5fa', fontSize: '24px' }}>travel_explore</span>
                     <div style={{ fontSize: '0.75rem', color: '#93c5fd' }}>
-                        <strong>Mode Sales & Lapangan Aktif:</strong> Anda dapat melakukan absensi & update log kunjungan di mana saja.
+                        <strong>Mode Absen Bebas / Lapangan Aktif:</strong> Akun Anda diizinkan absen di mana saja tanpa batas radius kantor.
                     </div>
                 </div>
-            ) : null}
+            ) : (
+                <div style={{
+                    background: 'rgba(200,168,81,0.08)',
+                    border: '1px solid rgba(200,168,81,0.25)',
+                    borderRadius: '0.75rem',
+                    padding: '0.625rem 0.875rem',
+                    marginBottom: '1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.625rem'
+                }}>
+                    <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)', fontSize: '20px' }}>business</span>
+                    <div style={{ fontSize: '0.75rem', color: '#e5e7eb' }}>
+                        <strong>Presensi Kantor:</strong> Pastikan Anda berada di dalam radius area kantor.
+                    </div>
+                </div>
+            )}
 
             {/* Main Tabs (Hari Ini / Riwayat) */}
             <div style={{
@@ -453,7 +473,7 @@ export const AttendancePage: React.FC = () => {
             {/* ======================================================== */}
             {activeTab === 'today' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {/* Main Check-In Card (Referencing rusamas-erp) */}
+                    {/* Main Check-In Card */}
                     <div style={{
                         background: '#1a1917',
                         border: '1px solid var(--color-border)',
@@ -498,9 +518,11 @@ export const AttendancePage: React.FC = () => {
                                 : 'Siap Bekerja Hari Ini?'}
                         </h2>
                         <p style={{ fontSize: '0.8125rem', color: '#888', margin: '0 0 1rem 0' }}>
-                            {isSalesRole
-                                ? 'Kunjungan sales & lapangan aktif di mana saja.'
-                                : (isInsideOfficeRadius ? `Terdeteksi di ${nearestOffice?.loc.name}` : 'Pastikan Anda berada di area kantor.')}
+                            {canFieldAttendance
+                                ? 'Absen bebas di mana saja aktif.'
+                                : (nearestOffice
+                                    ? (isInsideOfficeRadius ? `Terdeteksi di ${nearestOffice.loc.name}` : `Lokasi: ${nearestOffice.loc.name}`)
+                                    : 'Menghubungkan ke lokasi kantor...')}
                         </p>
 
                         {/* Check-In vs Check-Out Two-Column Times */}
@@ -531,7 +553,7 @@ export const AttendancePage: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Live Working Hours Counter (from rusamas-erp) */}
+                        {/* Live Working Hours Counter */}
                         {todayAttendance?.checkInAt && (
                             <div style={{
                                 padding: '1rem',
@@ -568,22 +590,25 @@ export const AttendancePage: React.FC = () => {
                                     <span className="material-symbols-outlined" style={{ fontSize: '16px', color: coords ? '#4ade80' : '#facc15' }}>
                                         {coords ? 'location_on' : 'location_searching'}
                                     </span>
-                                    {coords ? `GPS: ±${gpsAccuracy}m` : 'Mendeteksi GPS...'}
+                                    {coords ? `GPS: ±${gpsAccuracy}m` : (gpsLoading ? 'Mendeteksi GPS...' : 'GPS Belum Aktif')}
                                 </span>
                                 <button
-                                    onClick={fetchLocation}
+                                    onClick={() => fetchLocation()}
                                     style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontSize: '0.6875rem', cursor: 'pointer', fontWeight: 700 }}
                                 >
                                     🔄 Refresh GPS
                                 </button>
                             </div>
+
                             {coords ? (
                                 <p style={{ margin: 0, fontSize: '0.6875rem', color: isWithinGeofence ? '#4ade80' : '#f87171', fontWeight: 600 }}>
-                                    {isSalesRole
-                                        ? '🌐 Mode Sales / Lapangan: Bebas lokasi'
-                                        : (isInsideOfficeRadius
-                                            ? `✅ Dalam radius ${nearestOffice?.loc.name} (${nearestOffice?.dist}m)`
-                                            : `❌ Di luar radius ${nearestOffice?.loc.name} (${nearestOffice?.dist}m / Max ${nearestOffice?.loc.radiusMeters}m)`)}
+                                    {canFieldAttendance
+                                        ? '🌐 Mode Absen Bebas: Koordinat GPS aktif tercatat'
+                                        : (nearestOffice
+                                            ? (isInsideOfficeRadius
+                                                ? `✅ Dalam radius ${nearestOffice.loc.name} (${nearestOffice.dist}m / Max ${nearestOffice.radius}m)`
+                                                : `❌ Di luar radius ${nearestOffice.loc.name} (${nearestOffice.dist}m / Max ${nearestOffice.radius}m)`)
+                                            : 'ℹ️ Belum ada master lokasi kantor yang terdaftar')}
                                 </p>
                             ) : gpsError ? (
                                 <p style={{ margin: 0, fontSize: '0.6875rem', color: '#f87171', fontWeight: 600 }}>
@@ -591,53 +616,6 @@ export const AttendancePage: React.FC = () => {
                                 </p>
                             ) : null}
                         </div>
-
-                        {/* MODE SELECTOR (Only before check-in if not forced sales) */}
-                        {!todayAttendance && !isSalesRole && (
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: '1fr 1fr',
-                                gap: '0.375rem',
-                                background: '#0a0907',
-                                padding: '0.25rem',
-                                borderRadius: '0.5rem',
-                                marginBottom: '1rem',
-                                border: '1px solid #333'
-                            }}>
-                                <button
-                                    type="button"
-                                    onClick={() => setAttendanceType('office')}
-                                    style={{
-                                        padding: '0.4rem',
-                                        borderRadius: '0.375rem',
-                                        border: 'none',
-                                        fontSize: '0.75rem',
-                                        fontWeight: 700,
-                                        background: attendanceType === 'office' ? 'var(--color-primary)' : 'transparent',
-                                        color: attendanceType === 'office' ? '#000' : '#888',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    🏢 Kantor
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setAttendanceType('field')}
-                                    style={{
-                                        padding: '0.4rem',
-                                        borderRadius: '0.375rem',
-                                        border: 'none',
-                                        fontSize: '0.75rem',
-                                        fontWeight: 700,
-                                        background: attendanceType === 'field' ? '#3b82f6' : 'transparent',
-                                        color: attendanceType === 'field' ? 'white' : '#888',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    📍 Lapangan / Dinas
-                                </button>
-                            </div>
-                        )}
 
                         {/* Selfie Camera Capture Area */}
                         {!todayAttendance && (
@@ -707,7 +685,7 @@ export const AttendancePage: React.FC = () => {
                             <div style={{ marginBottom: '1rem', textAlign: 'left' }}>
                                 <input
                                     type="text"
-                                    placeholder={attendanceType === 'field' ? 'Catatan lokasi / rencana kunjungan...' : 'Catatan harian (opsional)...'}
+                                    placeholder={canFieldAttendance ? 'Catatan lokasi / rencana kunjungan lapangan...' : 'Catatan harian (opsional)...'}
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
                                     style={{
@@ -789,8 +767,8 @@ export const AttendancePage: React.FC = () => {
                         )}
                     </div>
 
-                    {/* Field Visit Module for Sales / Field Worker */}
-                    {todayAttendance && (
+                    {/* Field Visit Module for Authorized Field Staff */}
+                    {todayAttendance && canFieldAttendance && (
                         <div style={{
                             background: '#1a1917',
                             border: '1px solid var(--color-border)',

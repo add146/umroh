@@ -10,6 +10,7 @@ interface UserItem {
     role: 'pusat' | 'cabang' | 'mitra' | 'agen' | 'reseller' | 'teknisi';
     affiliateCode?: string | null;
     isActive: boolean;
+    canFieldAttendance?: boolean;
     createdAt?: string | null;
 }
 
@@ -31,7 +32,8 @@ export const UserManage: React.FC = () => {
         role: 'pusat' as UserItem['role'],
         nik: '',
         affiliateCode: '',
-        isActive: true
+        isActive: true,
+        canFieldAttendance: false
     });
 
     // Password Reset Modal State
@@ -66,7 +68,8 @@ export const UserManage: React.FC = () => {
             role: 'pusat',
             nik: '',
             affiliateCode: '',
-            isActive: true
+            isActive: true,
+            canFieldAttendance: false
         });
         setShowModal(true);
     };
@@ -81,9 +84,23 @@ export const UserManage: React.FC = () => {
             role: user.role,
             nik: user.nik || '',
             affiliateCode: user.affiliateCode || '',
-            isActive: user.isActive
+            isActive: user.isActive,
+            canFieldAttendance: user.canFieldAttendance || ['agen', 'reseller', 'mitra'].includes(user.role)
         });
         setShowModal(true);
+    };
+
+    const handleToggleFieldAttendance = async (user: UserItem) => {
+        const nextValue = !user.canFieldAttendance;
+        try {
+            await apiFetch(`/api/users/admin-update/${user.id}`, {
+                method: 'PUT',
+                body: JSON.stringify({ canFieldAttendance: nextValue })
+            });
+            setUsersList(prev => prev.map(u => u.id === user.id ? { ...u, canFieldAttendance: nextValue } : u));
+        } catch (err: any) {
+            alert(err.message || 'Gagal mengubah izin absen lapangan');
+        }
     };
 
     const handleSaveUser = async (e: React.FormEvent) => {
@@ -99,7 +116,8 @@ export const UserManage: React.FC = () => {
                     role: formData.role,
                     nik: formData.nik || null,
                     affiliateCode: formData.affiliateCode || null,
-                    isActive: formData.isActive
+                    isActive: formData.isActive,
+                    canFieldAttendance: formData.canFieldAttendance
                 };
                 if (formData.password) payload.password = formData.password;
 
@@ -203,7 +221,7 @@ export const UserManage: React.FC = () => {
                         Kelola Akun & Staff PIC
                     </h1>
                     <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>
-                        Manajemen semua akun pengguna sistem (Pusat, PIC 2026, Cabang, Teknisi, dan Jaringan Sales)
+                        Manajemen pengguna sistem, role akses, dan izin absensi bebas lapangan
                     </p>
                 </div>
 
@@ -339,8 +357,7 @@ export const UserManage: React.FC = () => {
                                 <th style={{ padding: '0.75rem 1rem' }}>Nama & Akun</th>
                                 <th style={{ padding: '0.75rem 1rem' }}>Role Sistem</th>
                                 <th style={{ padding: '0.75rem 1rem' }}>WhatsApp / HP</th>
-                                <th style={{ padding: '0.75rem 1rem' }}>NIK</th>
-                                <th style={{ padding: '0.75rem 1rem' }}>Kode Afiliasi</th>
+                                <th style={{ padding: '0.75rem 1rem' }}>Absen Bebas (Lapangan)</th>
                                 <th style={{ padding: '0.75rem 1rem' }}>Status</th>
                                 <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Aksi</th>
                             </tr>
@@ -348,6 +365,9 @@ export const UserManage: React.FC = () => {
                         <tbody>
                             {filteredUsers.map((item, idx) => {
                                 const isPic = isPicUser(item.name, item.id);
+                                const isSales = ['agen', 'reseller', 'mitra'].includes(item.role);
+                                const hasFieldAccess = isSales || !!item.canFieldAttendance;
+
                                 return (
                                     <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                                         <td style={{ padding: '0.75rem 1rem', color: '#666' }}>{idx + 1}</td>
@@ -400,13 +420,30 @@ export const UserManage: React.FC = () => {
                                         <td style={{ padding: '0.75rem 1rem', fontFamily: 'monospace', color: '#ccc' }}>
                                             {item.phone || '-'}
                                         </td>
-                                        <td style={{ padding: '0.75rem 1rem', fontFamily: 'monospace', color: '#aaa', fontSize: '0.75rem' }}>
-                                            {item.nik || '-'}
-                                        </td>
                                         <td style={{ padding: '0.75rem 1rem' }}>
-                                            <span style={{ fontFamily: 'monospace', color: '#facc15', fontSize: '0.75rem', fontWeight: 700 }}>
-                                                {item.affiliateCode || '-'}
-                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleToggleFieldAttendance(item)}
+                                                style={{
+                                                    background: hasFieldAccess ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.05)',
+                                                    border: `1px solid ${hasFieldAccess ? '#3b82f6' : '#444'}`,
+                                                    color: hasFieldAccess ? '#60a5fa' : '#888',
+                                                    padding: '0.25rem 0.6rem',
+                                                    borderRadius: '0.375rem',
+                                                    fontSize: '0.6875rem',
+                                                    fontWeight: 700,
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.3rem'
+                                                }}
+                                                title="Klik untuk mengubah izin absen lapangan"
+                                            >
+                                                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+                                                    {hasFieldAccess ? 'check_circle' : 'cancel'}
+                                                </span>
+                                                {hasFieldAccess ? 'Bisa Di Mana Saja' : 'Wajib Kantor'}
+                                            </button>
                                         </td>
                                         <td style={{ padding: '0.75rem 1rem' }}>
                                             <span style={{
@@ -595,32 +632,26 @@ export const UserManage: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#ccc', marginBottom: '0.375rem' }}>
-                                        NIK KTP (Opsional):
-                                    </label>
+                            {/* Checkbox: Izin Absen Lapangan / Bebas Lokasi */}
+                            <div style={{
+                                background: 'rgba(59,130,246,0.08)',
+                                border: '1px solid rgba(59,130,246,0.25)',
+                                borderRadius: '0.5rem',
+                                padding: '0.75rem',
+                                marginBottom: '1.25rem'
+                            }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.8125rem', color: '#93c5fd', fontWeight: 700 }}>
                                     <input
-                                        type="text"
-                                        placeholder="16 Digit NIK"
-                                        value={formData.nik}
-                                        onChange={(e) => setFormData({ ...formData, nik: e.target.value })}
-                                        style={{ width: '100%', padding: '0.5rem 0.75rem', background: '#0a0907', border: '1px solid #333', borderRadius: '0.5rem', color: 'white', boxSizing: 'border-box' }}
+                                        type="checkbox"
+                                        checked={formData.canFieldAttendance}
+                                        onChange={(e) => setFormData({ ...formData, canFieldAttendance: e.target.checked })}
+                                        style={{ width: '16px', height: '16px', accentColor: '#3b82f6', cursor: 'pointer' }}
                                     />
-                                </div>
-
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#ccc', marginBottom: '0.375rem' }}>
-                                        Kode Afiliasi (Opsional):
-                                    </label>
-                                    <input
-                                        type="text"
-                                        placeholder="Otomatis dibuatkan"
-                                        value={formData.affiliateCode}
-                                        onChange={(e) => setFormData({ ...formData, affiliateCode: e.target.value })}
-                                        style={{ width: '100%', padding: '0.5rem 0.75rem', background: '#0a0907', border: '1px solid #333', borderRadius: '0.5rem', color: 'white', boxSizing: 'border-box' }}
-                                    />
-                                </div>
+                                    Izinkan Absen Lapangan / Bebas Lokasi di Mana Saja
+                                </label>
+                                <p style={{ margin: '0.25rem 0 0 1.5rem', fontSize: '0.6875rem', color: '#888' }}>
+                                    Jika dicentang, pengguna dapat absen masuk & pulang dari mana saja tanpa dibatasi geofence kantor (koordinat GPS tetap dicatat).
+                                </p>
                             </div>
 
                             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
