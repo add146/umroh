@@ -37,7 +37,7 @@ export class WhatsAppService {
             headers: { 'apikey': apiKey.trim() }
         });
         if (!connectRes.ok) {
-            const err = await connectRes.json().catch(() => ({}));
+            const err = await connectRes.json().catch(() => ({})) as any;
             throw new Error(err.message || 'Gagal mendapatkan QR code');
         }
         const data = await connectRes.json();
@@ -60,7 +60,7 @@ export class WhatsAppService {
             headers: { 'apikey': apiKey.trim() }
         });
         if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
+            const err = await res.json().catch(() => ({})) as any;
             throw new Error(err.message || 'Gagal logout dari WhatsApp');
         }
         return res.json();
@@ -89,7 +89,7 @@ export class WhatsAppService {
             });
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
+                const errorData = await response.json().catch(() => ({})) as any;
                 console.error('Evolution API Error:', errorData);
                 return { success: false, error: errorData.message || JSON.stringify(errorData) };
             }

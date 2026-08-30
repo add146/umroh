@@ -11,6 +11,7 @@ const menuGroups = [
         label: 'Main',
         items: [
             { name: 'Dashboard', path: '/dashboard', icon: 'dashboard', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'teknisi'] },
+            { name: 'Absensi Saya', path: '/attendance', icon: 'how_to_reg', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'teknisi'] },
         ]
     },
     {
@@ -26,6 +27,8 @@ const menuGroups = [
         label: 'Operasional Jamaah',
         items: [
             { name: 'Data Jamaah', path: '/admin/bookings', icon: 'group', roles: ['pusat'] },
+            { name: 'Manifest & Roomlist', path: '/admin/manifest', icon: 'assignment', roles: ['pusat'] },
+            { name: 'Rooming Board', path: '/admin/rooming', icon: 'hotel', roles: ['pusat'] },
             { name: 'Pembayaran', path: '/admin/invoices', icon: 'payments', badge: true, roles: ['pusat'] },
         ]
     },
@@ -53,6 +56,7 @@ const menuGroups = [
     {
         label: 'Monitoring Jaringan',
         items: [
+            { name: 'Monitoring Absensi', path: '/admin/attendance', icon: 'badge', roles: ['pusat', 'cabang'] },
             { name: 'Approval Jamaah', path: '/cabang/approval', icon: 'rule', roles: ['cabang'] },
             { name: 'Data Jamaah Cabang', path: '/cabang/jamaah', icon: 'dns', roles: ['cabang'] },
             { name: 'List Jamaah', path: '/agent/list-jamaah', icon: 'contact_page', roles: ['agen'] },

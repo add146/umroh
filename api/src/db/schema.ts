@@ -258,6 +258,7 @@ export const bookings = sqliteTable('bookings', {
     paymentMode: text('payment_mode', { enum: ['auto', 'manual'] }).default('manual'),
     equipmentDelivered: integer('equipment_delivered', { mode: 'boolean' }).default(false),
     equipmentSetId: text('equipment_set_id').references(() => equipmentSets.id),
+    logisticsNotes: text('logistics_notes'),
     bookedAt: text('booked_at').default(sql`(datetime('now'))`),
 });
 
@@ -691,3 +692,93 @@ export const landingSettings = sqliteTable('landing_settings', {
     value: text('value').notNull(),
     updatedAt: text('updated_at').default(sql`(datetime('now'))`),
 });
+
+// --- FASE 9: SISTEM ABSENSI & KUNJUNGAN LAPANGAN (SALES) ---
+
+export const attendanceLocations = sqliteTable('attendance_locations', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    name: text('name').notNull(), // e.g. "Kantor Pusat Jakarta", "Cabang Surabaya"
+    latitude: real('latitude').notNull(),
+    longitude: real('longitude').notNull(),
+    radiusMeters: integer('radius_meters').notNull().default(150),
+    address: text('address'),
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    createdAt: text('created_at').default(sql`(datetime('now'))`),
+});
+
+export const attendances = sqliteTable('attendances', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text('user_id').notNull().references(() => users.id),
+    locationId: text('location_id').references(() => attendanceLocations.id),
+    type: text('type', { enum: ['office', 'field', 'remote'] }).notNull().default('office'),
+    date: text('date').notNull(), // YYYY-MM-DD
+    
+    // Check In
+    checkInAt: text('check_in_at').notNull(),
+    checkInLat: real('check_in_lat'),
+    checkInLng: real('check_in_lng'),
+    checkInAddress: text('check_in_address'),
+    checkInPhotoUrl: text('check_in_photo_url'),
+    checkInNotes: text('check_in_notes'),
+    isOnTime: integer('is_on_time', { mode: 'boolean' }).default(true),
+
+    // Check Out
+    checkOutAt: text('check_out_at'),
+    checkOutLat: real('check_out_lat'),
+    checkOutLng: real('check_out_lng'),
+    checkOutAddress: text('check_out_address'),
+    checkOutNotes: text('check_out_notes'),
+    durationMinutes: integer('duration_minutes').default(0),
+
+    status: text('status', { enum: ['present', 'late', 'permit', 'sick', 'leave'] }).default('present'),
+    createdAt: text('created_at').default(sql`(datetime('now'))`),
+    updatedAt: text('updated_at').default(sql`(datetime('now'))`),
+});
+
+export const salesFieldVisits = sqliteTable('sales_field_visits', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    attendanceId: text('attendance_id').references(() => attendances.id),
+    userId: text('user_id').notNull().references(() => users.id),
+    prospectId: text('prospect_id').references(() => prospects.id),
+    clientName: text('client_name').notNull(),
+    latitude: real('latitude').notNull(),
+    longitude: real('longitude').notNull(),
+    address: text('address'),
+    purpose: text('purpose').notNull(), // e.g. "Presentasi Paket", "Follow Up DP", "Closing"
+    notes: text('notes'),
+    photoUrl: text('photo_url'),
+    visitedAt: text('visited_at').default(sql`(datetime('now'))`),
+    createdAt: text('created_at').default(sql`(datetime('now'))`),
+});
+
+export const attendanceLocationsRelations = relations(attendanceLocations, ({ many }) => ({
+    attendances: many(attendances),
+}));
+
+export const attendancesRelations = relations(attendances, ({ one, many }) => ({
+    user: one(users, {
+        fields: [attendances.userId],
+        references: [users.id],
+    }),
+    location: one(attendanceLocations, {
+        fields: [attendances.locationId],
+        references: [attendanceLocations.id],
+    }),
+    fieldVisits: many(salesFieldVisits),
+}));
+
+export const salesFieldVisitsRelations = relations(salesFieldVisits, ({ one }) => ({
+    attendance: one(attendances, {
+        fields: [salesFieldVisits.attendanceId],
+        references: [attendances.id],
+    }),
+    user: one(users, {
+        fields: [salesFieldVisits.userId],
+        references: [users.id],
+    }),
+    prospect: one(prospects, {
+        fields: [salesFieldVisits.prospectId],
+        references: [prospects.id],
+    }),
+}));
+

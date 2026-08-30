@@ -24,9 +24,12 @@ import RegistrationStatus from './pages/RegistrationStatus';
 import AffiliateDashboard from './pages/AffiliateDashboard';
 import CommissionManage from './pages/admin/CommissionManage';
 import RoomingBoard from './pages/admin/RoomingBoard';
+import ManifestRoomlist from './pages/admin/ManifestRoomlist';
 import LogisticsChecklist from './pages/admin/LogisticsChecklist';
 import EquipmentMaster from './pages/admin/EquipmentMaster';
 import DocumentScanner from './pages/admin/DocumentScanner';
+import AttendancePage from './pages/AttendancePage';
+import AttendanceRecap from './pages/admin/AttendanceRecap';
 import { MasterDataPage } from './pages/admin/masters/MasterDataPage';
 import { MasterDataPackageTypes } from './pages/admin/MasterDataPackageTypes';
 import EquipmentSetManage from './pages/admin/EquipmentSetManage';
@@ -210,6 +213,14 @@ function App() {
             </ProtectedRoute>
           } />
 
+          <Route path="/admin/manifest" element={
+            <ProtectedRoute allowedRoles={['pusat']}>
+              <DashboardLayout>
+                <ManifestRoomlist />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+
           <Route path="/admin/documents" element={
             <ProtectedRoute allowedRoles={['pusat']}>
               <DashboardLayout>
@@ -263,6 +274,23 @@ function App() {
             <ProtectedRoute allowedRoles={['pusat']}>
               <DashboardLayout>
                 <EquipmentSetManage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          {/* Attendance Routes */}
+          <Route path="/attendance" element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <AttendancePage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/attendance" element={
+            <ProtectedRoute allowedRoles={['pusat', 'cabang']}>
+              <DashboardLayout>
+                <AttendanceRecap />
               </DashboardLayout>
             </ProtectedRoute>
           } />

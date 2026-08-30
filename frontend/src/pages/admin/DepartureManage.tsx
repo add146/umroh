@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { apiFetch } from '../../lib/api';
 import { Link } from 'react-router-dom';
+import { useAuthStore } from '../../stores/authStore';
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://umroh-api.khibroh.workers.dev';
 
 const cardStyle: React.CSSProperties = {
     background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', padding: '1.5rem',
@@ -208,24 +211,79 @@ const DepartureManage: React.FC = () => {
                                 )}
 
                                 {/* Footer Actions */}
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '1rem' }}>
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                        <button onClick={() => alert('Modul Export Siskopatuh belum aktif.')} style={{
-                                            padding: '0.375rem 0.75rem', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em',
-                                            background: 'transparent', border: '1px solid #333', borderRadius: '0.5rem', color: '#888', cursor: 'pointer',
-                                            display: 'flex', alignItems: 'center', gap: '0.375rem',
-                                        }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    const { accessToken } = useAuthStore.getState();
+                                                    const res = await fetch(`${API_URL}/api/export/siskopatuh/${dep.id}`, {
+                                                        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
+                                                    });
+                                                    if (!res.ok) throw new Error('Gagal mengunduh file');
+                                                    const blob = await res.blob();
+                                                    const url = window.URL.createObjectURL(blob);
+                                                    const a = document.createElement('a');
+                                                    a.href = url;
+                                                    a.download = `siskopatuh_${dep.departureDate}.csv`;
+                                                    document.body.appendChild(a);
+                                                    a.click();
+                                                    a.remove();
+                                                    window.URL.revokeObjectURL(url);
+                                                } catch (err: any) {
+                                                    alert(err.message || 'Gagal mengunduh SISKOPATUH');
+                                                }
+                                            }}
+                                            style={{
+                                                padding: '0.375rem 0.75rem', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em',
+                                                background: 'transparent', border: '1px solid #eab308', borderRadius: '0.5rem', color: '#facc15', cursor: 'pointer',
+                                                display: 'flex', alignItems: 'center', gap: '0.375rem',
+                                            }}
+                                        >
                                             <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>bar_chart</span>
                                             SISKO
                                         </button>
-                                        <button onClick={() => alert('Modul Export Manifest belum aktif.')} style={{
-                                            padding: '0.375rem 0.75rem', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em',
-                                            background: 'transparent', border: '1px solid #333', borderRadius: '0.5rem', color: '#888', cursor: 'pointer',
-                                            display: 'flex', alignItems: 'center', gap: '0.375rem',
-                                        }}>
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    const { accessToken } = useAuthStore.getState();
+                                                    const res = await fetch(`${API_URL}/api/export/manifest-excel/${dep.id}`, {
+                                                        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
+                                                    });
+                                                    if (!res.ok) throw new Error('Gagal mengunduh file');
+                                                    const blob = await res.blob();
+                                                    const url = window.URL.createObjectURL(blob);
+                                                    const a = document.createElement('a');
+                                                    a.href = url;
+                                                    a.download = `Manifest_${dep.departureDate}.xlsx`;
+                                                    document.body.appendChild(a);
+                                                    a.click();
+                                                    a.remove();
+                                                    window.URL.revokeObjectURL(url);
+                                                } catch (err: any) {
+                                                    alert(err.message || 'Gagal mengunduh Manifest');
+                                                }
+                                            }}
+                                            style={{
+                                                padding: '0.375rem 0.75rem', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em',
+                                                background: 'transparent', border: '1px solid #10b981', borderRadius: '0.5rem', color: '#34d399', cursor: 'pointer',
+                                                display: 'flex', alignItems: 'center', gap: '0.375rem',
+                                            }}
+                                        >
                                             <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>group</span>
-                                            Manifest
+                                            Manifest Excel
                                         </button>
+                                        <Link
+                                            to={`/admin/manifest?departureId=${dep.id}`}
+                                            style={{
+                                                padding: '0.375rem 0.75rem', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em',
+                                                background: 'rgba(200,168,81,0.1)', border: '1px solid var(--color-primary)', borderRadius: '0.5rem', color: 'var(--color-primary)',
+                                                textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.375rem',
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>hotel</span>
+                                            Roomlist & Board
+                                        </Link>
                                     </div>
                                     <Link to={`/admin/packages/${dep.packageId}`} style={{
                                         padding: '0.5rem 1rem', fontSize: '0.8125rem', fontWeight: 700,

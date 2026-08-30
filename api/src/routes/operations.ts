@@ -240,7 +240,8 @@ api.get('/jamaah-overview/:departureId', authMiddleware, requireRole('teknisi', 
             allAssigned: totalItems > 0 && receivedItems >= totalItems,
             allReceived: totalItems > 0 && receivedItems >= totalItems,
             equipmentDelivered: b.equipmentDelivered,
-            equipmentSetName: b.equipmentSet?.name || 'Default'
+            equipmentSetName: b.equipmentSet?.name || 'Default',
+            logisticsNotes: b.logisticsNotes || null
         };
     });
 
@@ -365,6 +366,32 @@ api.delete('/equipment/custom/:id', authMiddleware, async (c) => {
     const db = getDb(c.env.DB);
     await db.delete(bookingCustomEquipment).where(eq(bookingCustomEquipment.id, id));
     return c.json({ success: true });
+});
+
+// --- LOGISTICS / RECIPIENT FOOTER NOTES ---
+
+api.patch('/logistics-notes/:bookingId', authMiddleware, requireRole('teknisi', 'pusat'), zValidator('json', z.object({
+    notes: z.string().nullable().optional()
+})), async (c) => {
+    const bookingId = c.req.param('bookingId');
+    const { notes } = c.req.valid('json');
+    const user = c.get('user');
+    const db = getDb(c.env.DB);
+
+    const booking = await db.query.bookings.findFirst({
+        where: eq(bookings.id, bookingId),
+        with: { pilgrim: true }
+    });
+
+    if (!booking) return c.json({ error: 'Booking not found' }, 404);
+
+    await db.update(bookings).set({ logisticsNotes: notes || null }).where(eq(bookings.id, bookingId));
+    await logAction(c.env.DB, user.id, 'update_logistics_notes', 'booking', bookingId, { 
+        pilgrimId: booking.pilgrimId, 
+        notes: notes || null 
+    });
+
+    return c.json({ success: true, bookingId, logisticsNotes: notes || null });
 });
 
 export default api;

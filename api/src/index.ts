@@ -133,6 +133,7 @@ import reportsRoutes from './routes/reports.js';
 import testimonialsRoutes from './routes/testimonials.js';
 import uploadRoutes from './routes/upload.js';
 import landingSettingsRoutes from './routes/landing-settings.js';
+import attendanceRoutes from './routes/attendance.js';
 
 app.route('/api/auth', authRoutes);
 app.route('/api/users', userRoutes);
@@ -162,6 +163,7 @@ app.route('/api/reports', reportsRoutes);
 app.route('/api/testimonials', testimonialsRoutes);
 app.route('/api/upload', uploadRoutes);
 app.route('/api/landing-settings', landingSettingsRoutes);
+app.route('/api/attendance', attendanceRoutes);
 
 app.get('/api/seed-full', async (c) => {
     const { getDb } = await import('./db/index.js');

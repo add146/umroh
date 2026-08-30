@@ -15,9 +15,17 @@ interface BookingLogistics {
     pilgrim?: { name: string; phone: string }; 
     equipment: EquipmentItem[]; 
     equipmentSetName?: string;
+    logisticsNotes?: string | null;
 }
 
 type FilterStatus = 'all' | 'completed' | 'pending';
+
+const NOTE_TEMPLATES = [
+    'Diambil langsung oleh jamaah',
+    'Diambil oleh perwakilan keluarga',
+    'Dikirim via ekspedisi',
+    'Titip di Kantor Cabang',
+];
 
 const LogisticsChecklist: React.FC = () => {
     const [departures, setDepartures] = useState<Departure[]>([]);
@@ -29,6 +37,11 @@ const LogisticsChecklist: React.FC = () => {
     
     // Manual item form states per booking ID
     const [newItemForm, setNewItemForm] = useState<Record<string, { name: string; notes: string; isOpen: boolean }>>({});
+
+    // Catatan kaki states per booking ID
+    const [editingNoteBookingId, setEditingNoteBookingId] = useState<string | null>(null);
+    const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
+    const [savingNoteBookingId, setSavingNoteBookingId] = useState<string | null>(null);
 
     useEffect(() => { fetchDepartures(); }, []);
 
@@ -52,7 +65,8 @@ const LogisticsChecklist: React.FC = () => {
                     id: b.id, 
                     pilgrim: b.pilgrim, 
                     equipment, 
-                    equipmentSetName: b.equipmentSet?.name || 'Default' 
+                    equipmentSetName: b.equipmentSet?.name || 'Default',
+                    logisticsNotes: b.logisticsNotes || null
                 };
             }));
             setLogisticsData(fullData);
@@ -138,6 +152,30 @@ const LogisticsChecklist: React.FC = () => {
         }
     };
 
+    const handleOpenNoteEditor = (bookingId: string, currentNote?: string | null) => {
+        setEditingNoteBookingId(bookingId);
+        setNoteDrafts(prev => ({ ...prev, [bookingId]: currentNote || '' }));
+    };
+
+    const handleSaveNote = async (bookingId: string) => {
+        const text = noteDrafts[bookingId] ?? '';
+        setSavingNoteBookingId(bookingId);
+        try {
+            await apiFetch(`/api/operations/logistics-notes/${bookingId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ notes: text.trim() ? text : null })
+            });
+            setLogisticsData(prev => prev.map(b =>
+                b.id === bookingId ? { ...b, logisticsNotes: text.trim() ? text : null } : b
+            ));
+            setEditingNoteBookingId(null);
+        } catch (err: any) {
+            alert('Gagal menyimpan catatan: ' + (err.message || 'Error'));
+        } finally {
+            setSavingNoteBookingId(null);
+        }
+    };
+
     const filteredLogisticsData = useMemo(() => {
         return logisticsData.filter(booking => {
             if (filterStatus === 'all') return true;
@@ -171,12 +209,12 @@ const LogisticsChecklist: React.FC = () => {
 
     return (
         <div className="animate-in fade-in duration-700">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }} className="logistics-header">
                 <div>
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Logistik & Perlengkapan</h1>
-                    <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Pantau distribusi perlengkapan jamaah</p>
+                    <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Pantau distribusi & catatan keterangan penerima</p>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                     <div style={{ background: '#1a1917', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Keberangkatan</span>
                         <select value={selectedDepartureId} onChange={(e) => setSelectedDepartureId(e.target.value)}
@@ -184,13 +222,13 @@ const LogisticsChecklist: React.FC = () => {
                             {departures.map(d => <option key={d.id} value={d.id}>{d.departureDate} - {d.package?.name}</option>)}
                         </select>
                     </div>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem' }} className="filter-btns">
                         <button
                             onClick={() => setFilterStatus('all')}
                             style={{
                                 padding: '0.5rem 1rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)',
                                 background: filterStatus === 'all' ? 'var(--color-primary)' : '#1a1917',
-                                color: filterStatus === 'all' ? 'white' : 'var(--color-text-muted)',
+                                color: filterStatus === 'all' ? 'black' : 'var(--color-text-muted)',
                                 cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, transition: 'all 0.2s'
                             }}
                         >
@@ -201,7 +239,7 @@ const LogisticsChecklist: React.FC = () => {
                             style={{
                                 padding: '0.5rem 1rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)',
                                 background: filterStatus === 'completed' ? 'var(--color-primary)' : '#1a1917',
-                                color: filterStatus === 'completed' ? 'white' : 'var(--color-text-muted)',
+                                color: filterStatus === 'completed' ? 'black' : 'var(--color-text-muted)',
                                 cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, transition: 'all 0.2s'
                             }}
                         >
@@ -212,7 +250,7 @@ const LogisticsChecklist: React.FC = () => {
                             style={{
                                 padding: '0.5rem 1rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)',
                                 background: filterStatus === 'pending' ? 'var(--color-primary)' : '#1a1917',
-                                color: filterStatus === 'pending' ? 'white' : 'var(--color-text-muted)',
+                                color: filterStatus === 'pending' ? 'black' : 'var(--color-text-muted)',
                                 cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, transition: 'all 0.2s'
                             }}
                         >
@@ -225,210 +263,343 @@ const LogisticsChecklist: React.FC = () => {
             {loading ? (
                 <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Sinkronisasi data logistik...</div>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
                     {filteredLogisticsData.length === 0 && (
                         <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '4rem', color: 'var(--color-text-muted)' }}>
                             Tidak ada data logistik untuk filter ini.
                         </div>
                     )}
                     {filteredLogisticsData.map((data) => (
-                        <div key={data.id} style={{ background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', padding: '1.25rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
-                                <div>
-                                    <h3 style={{ fontWeight: 700, color: 'white', margin: '0 0 0.125rem 0' }}>{data.pilgrim?.name}</h3>
-                                    <p style={{ fontSize: '0.75rem', color: '#888', margin: 0 }}>{data.pilgrim?.phone}</p>
-                                    <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.25rem' }}>
+                        <div key={data.id} style={{ background: '#1a1917', border: '1px solid var(--color-border)', borderRadius: '1rem', padding: '1.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                            <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
+                                    <div>
+                                        <h3 style={{ fontWeight: 700, color: 'white', margin: '0 0 0.125rem 0' }}>{data.pilgrim?.name}</h3>
+                                        <p style={{ fontSize: '0.75rem', color: '#888', margin: 0 }}>{data.pilgrim?.phone}</p>
+                                        <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.25rem' }}>
+                                            <span style={{
+                                                fontSize: '0.625rem',
+                                                fontWeight: 700,
+                                                background: data.equipmentSetName?.toLowerCase().includes('gold') ? 'rgba(234,179,8,0.15)' : 'rgba(255,255,255,0.05)',
+                                                color: data.equipmentSetName?.toLowerCase().includes('gold') ? '#eab308' : '#aaa',
+                                                padding: '0.125rem 0.375rem',
+                                                borderRadius: '4px',
+                                                textTransform: 'uppercase'
+                                            }}>
+                                                🏷️ {data.equipmentSetName}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem' }}>
+                                        <span style={{ fontFamily: 'monospace', fontSize: '0.6875rem', color: '#888', background: 'rgba(255,255,255,0.05)', padding: '0.125rem 0.5rem', borderRadius: '0.25rem' }}>
+                                            #{data.id.substring(0, 6)}
+                                        </span>
                                         <span style={{
-                                            fontSize: '0.625rem',
-                                            fontWeight: 700,
-                                            background: data.equipmentSetName?.toLowerCase().includes('gold') ? 'rgba(234,179,8,0.15)' : 'rgba(255,255,255,0.05)',
-                                            color: data.equipmentSetName?.toLowerCase().includes('gold') ? '#eab308' : '#aaa',
-                                            padding: '0.125rem 0.375rem',
-                                            borderRadius: '4px',
-                                            textTransform: 'uppercase'
+                                            fontSize: '0.75rem', fontWeight: 600,
+                                            color: getStatusColor(data),
+                                            background: `${getStatusColor(data)}20`,
+                                            padding: '0.125rem 0.5rem', borderRadius: '0.25rem'
                                         }}>
-                                            🏷️ {data.equipmentSetName}
+                                            {getStatusLabel(data)} ({getCompletionPercentage(data)}%)
                                         </span>
                                     </div>
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem' }}>
-                                    <span style={{ fontFamily: 'monospace', fontSize: '0.6875rem', color: '#888', background: 'rgba(255,255,255,0.05)', padding: '0.125rem 0.5rem', borderRadius: '0.25rem' }}>
-                                        #{data.id.substring(0, 6)}
-                                    </span>
-                                    <span style={{
-                                        fontSize: '0.75rem', fontWeight: 600,
-                                        color: getStatusColor(data),
-                                        background: `${getStatusColor(data)}20`,
-                                        padding: '0.125rem 0.5rem', borderRadius: '0.25rem'
-                                    }}>
-                                        {getStatusLabel(data)} ({getCompletionPercentage(data)}%)
-                                    </span>
-                                </div>
-                            </div>
 
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                {data.equipment.map((item) => (
-                                    <div key={item.id} onClick={() => toggleStatus(data.id, item.id, item.status, !!item.isCustom)} style={{
-                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', borderRadius: '0.5rem', cursor: 'pointer', transition: 'all 0.2s',
-                                        background: item.status === 'received' 
-                                            ? (item.isCustom ? 'rgba(59,130,246,0.15)' : 'rgba(34,197,94,0.15)') 
-                                            : (item.isCustom ? 'rgba(59,130,246,0.05)' : '#0a0907'),
-                                        border: item.status === 'received' 
-                                            ? (item.isCustom ? '1px solid rgba(59,130,246,0.3)' : '1px solid rgba(34,197,94,0.3)') 
-                                            : (item.isCustom ? '1px solid rgba(59,130,246,0.2)' : '1px solid #333'),
-                                        color: item.status === 'received' 
-                                            ? (item.isCustom ? '#60a5fa' : '#22c55e') 
-                                            : (item.isCustom ? '#93c5fd' : '#ccc'),
-                                    }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-                                            {updating === `${data.id}-${item.id}` ? (
-                                                <span style={{ fontSize: '0.75rem', color: 'var(--color-primary)' }}>...</span>
-                                            ) : (
-                                                <div style={{
-                                                    width: '20px', height: '20px', borderRadius: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    background: item.status === 'received' 
-                                                        ? (item.isCustom ? '#3b82f6' : '#22c55e') 
-                                                        : 'transparent',
-                                                    border: item.status === 'received' 
-                                                        ? (item.isCustom ? '2px solid #3b82f6' : '2px solid #22c55e') 
-                                                        : '2px solid #555',
-                                                }}>
-                                                    {item.status === 'received' && <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'white' }}>check</span>}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    {data.equipment.map((item) => (
+                                        <div key={item.id} onClick={() => toggleStatus(data.id, item.id, item.status, !!item.isCustom)} style={{
+                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', borderRadius: '0.5rem', cursor: 'pointer', transition: 'all 0.2s',
+                                            background: item.status === 'received' 
+                                                ? (item.isCustom ? 'rgba(59,130,246,0.15)' : 'rgba(34,197,94,0.15)') 
+                                                : (item.isCustom ? 'rgba(59,130,246,0.05)' : '#0a0907'),
+                                            border: item.status === 'received' 
+                                                ? (item.isCustom ? '1px solid rgba(59,130,246,0.3)' : '1px solid rgba(34,197,94,0.3)') 
+                                                : (item.isCustom ? '1px solid rgba(59,130,246,0.2)' : '1px solid #333'),
+                                            color: item.status === 'received' 
+                                                ? (item.isCustom ? '#60a5fa' : '#22c55e') 
+                                                : (item.isCustom ? '#93c5fd' : '#ccc'),
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                                                {updating === `${data.id}-${item.id}` ? (
+                                                    <span style={{ fontSize: '0.75rem', color: 'var(--color-primary)' }}>...</span>
+                                                ) : (
+                                                    <div style={{
+                                                        width: '20px', height: '20px', borderRadius: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                        background: item.status === 'received' 
+                                                            ? (item.isCustom ? '#3b82f6' : '#22c55e') 
+                                                            : 'transparent',
+                                                        border: item.status === 'received' 
+                                                            ? (item.isCustom ? '2px solid #3b82f6' : '2px solid #22c55e') 
+                                                            : '2px solid #555',
+                                                    }}>
+                                                        {item.status === 'received' && <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'white' }}>check</span>}
+                                                    </div>
+                                                )}
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{item.name}</span>
+                                                    {item.isCustom && item.description && (
+                                                        <span style={{ fontSize: '0.7rem', color: '#93c5fd', opacity: 0.8 }}>Note: {item.description}</span>
+                                                    )}
                                                 </div>
-                                            )}
-                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{item.name}</span>
-                                                {item.isCustom && item.description && (
-                                                    <span style={{ fontSize: '0.7rem', color: '#93c5fd', opacity: 0.8 }}>Note: {item.description}</span>
+                                            </div>
+                                            
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                {item.isCustom && (
+                                                    <span style={{ fontSize: '0.625rem', fontWeight: 700, padding: '0.125rem 0.375rem', borderRadius: '4px', background: 'rgba(59,130,246,0.2)', color: '#60a5fa', textTransform: 'uppercase' }}>Manual</span>
+                                                )}
+                                                {item.status === 'received' && !item.isCustom && <span style={{ fontSize: '0.6875rem', opacity: 0.7 }}>Ada</span>}
+                                                {item.isCustom && (
+                                                    <button 
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDeleteCustomItem(data.id, item.id);
+                                                        }} 
+                                                        style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '0.25rem' }}
+                                                    >
+                                                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
+                                                    </button>
                                                 )}
                                             </div>
                                         </div>
-                                        
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            {item.isCustom && (
-                                                <span style={{ fontSize: '0.625rem', fontWeight: 700, padding: '0.125rem 0.375rem', borderRadius: '4px', background: 'rgba(59,130,246,0.2)', color: '#60a5fa', textTransform: 'uppercase' }}>Manual</span>
-                                            )}
-                                            {item.status === 'received' && !item.isCustom && <span style={{ fontSize: '0.6875rem', opacity: 0.7 }}>Ada</span>}
-                                            {item.isCustom && (
-                                                <button 
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDeleteCustomItem(data.id, item.id);
-                                                    }} 
-                                                    style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '0.25rem' }}
-                                                >
-                                                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                                {data.equipment.length === 0 && (
-                                    <p style={{ textAlign: 'center', padding: '1rem', fontSize: '0.8125rem', color: '#888', fontStyle: 'italic' }}>Belum ada item perlengkapan.</p>
-                                )}
+                                    ))}
+                                    {data.equipment.length === 0 && (
+                                        <p style={{ textAlign: 'center', padding: '1rem', fontSize: '0.8125rem', color: '#888', fontStyle: 'italic' }}>Belum ada item perlengkapan.</p>
+                                    )}
 
-                                {/* Inline form to add manual items */}
-                                {(!newItemForm[data.id] || !newItemForm[data.id].isOpen) ? (
-                                    <button 
-                                        onClick={() => setNewItemForm(prev => ({
-                                            ...prev,
-                                            [data.id]: { name: '', notes: '', isOpen: true }
-                                        }))}
-                                        style={{
+                                    {/* Inline form to add manual items */}
+                                    {(!newItemForm[data.id] || !newItemForm[data.id].isOpen) ? (
+                                        <button 
+                                            onClick={() => setNewItemForm(prev => ({
+                                                ...prev,
+                                                [data.id]: { name: '', notes: '', isOpen: true }
+                                            }))}
+                                            style={{
+                                                marginTop: '0.5rem',
+                                                padding: '0.5rem',
+                                                border: '1px dashed rgba(255,255,255,0.15)',
+                                                borderRadius: '0.5rem',
+                                                background: 'transparent',
+                                                color: 'var(--color-primary)',
+                                                fontWeight: 600,
+                                                fontSize: '0.8125rem',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '0.25rem',
+                                                transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
+                                            Tambah Item Manual
+                                        </button>
+                                    ) : (
+                                        <div style={{
                                             marginTop: '0.5rem',
-                                            padding: '0.5rem',
-                                            border: '1px dashed rgba(255,255,255,0.15)',
+                                            padding: '0.75rem',
+                                            border: '1px solid rgba(255,255,255,0.08)',
                                             borderRadius: '0.5rem',
-                                            background: 'transparent',
-                                            color: 'var(--color-primary)',
-                                            fontWeight: 600,
-                                            fontSize: '0.8125rem',
-                                            cursor: 'pointer',
+                                            background: 'rgba(0,0,0,0.2)',
                                             display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: '0.25rem',
-                                            transition: 'all 0.2s'
-                                        }}
-                                    >
-                                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
-                                        Tambah Item Manual
-                                    </button>
-                                ) : (
+                                            flexDirection: 'column',
+                                            gap: '0.5rem'
+                                        }}>
+                                            <input
+                                                type="text"
+                                                placeholder="Nama item (contoh: Kursi Roda)"
+                                                value={newItemForm[data.id].name}
+                                                onChange={e => setNewItemForm(prev => ({
+                                                    ...prev,
+                                                    [data.id]: { ...prev[data.id], name: e.target.value }
+                                                }))}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '0.375rem 0.5rem',
+                                                    background: '#0a0907',
+                                                    border: '1px solid #333',
+                                                    color: 'white',
+                                                    borderRadius: '0.375rem',
+                                                    fontSize: '0.8125rem',
+                                                    outline: 'none'
+                                                }}
+                                            />
+                                            <input
+                                                type="text"
+                                                placeholder="Catatan (opsional)"
+                                                value={newItemForm[data.id].notes}
+                                                onChange={e => setNewItemForm(prev => ({
+                                                    ...prev,
+                                                    [data.id]: { ...prev[data.id], notes: e.target.value }
+                                                }))}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '0.375rem 0.5rem',
+                                                    background: '#0a0907',
+                                                    border: '1px solid #333',
+                                                    color: 'white',
+                                                    borderRadius: '0.375rem',
+                                                    fontSize: '0.8125rem',
+                                                    outline: 'none'
+                                                }}
+                                            />
+                                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                                <button 
+                                                    onClick={() => setNewItemForm(prev => ({
+                                                        ...prev,
+                                                        [data.id]: { name: '', notes: '', isOpen: false }
+                                                    }))}
+                                                    style={{ background: 'none', border: 'none', color: '#888', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
+                                                >
+                                                    Batal
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleAddCustomItem(data.id)}
+                                                    style={{
+                                                        background: 'var(--color-primary)',
+                                                        border: 'none',
+                                                        color: 'black',
+                                                        padding: '0.25rem 0.75rem',
+                                                        borderRadius: '0.25rem',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: 700,
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    Simpan
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Catatan Kaki Penerima Logistik Section */}
+                            <div style={{
+                                marginTop: '1rem',
+                                paddingTop: '0.75rem',
+                                borderTop: '1px solid rgba(255,255,255,0.06)'
+                            }}>
+                                {editingNoteBookingId === data.id ? (
                                     <div style={{
-                                        marginTop: '0.5rem',
-                                        padding: '0.75rem',
-                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        background: 'rgba(0,0,0,0.3)',
+                                        border: '1px solid var(--color-border-gold)',
                                         borderRadius: '0.5rem',
-                                        background: 'rgba(0,0,0,0.2)',
+                                        padding: '0.75rem',
                                         display: 'flex',
                                         flexDirection: 'column',
                                         gap: '0.5rem'
                                     }}>
-                                        <input
-                                            type="text"
-                                            placeholder="Nama item (contoh: Kursi Roda)"
-                                            value={newItemForm[data.id].name}
-                                            onChange={e => setNewItemForm(prev => ({
-                                                ...prev,
-                                                [data.id]: { ...prev[data.id], name: e.target.value }
-                                            }))}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--color-primary)' }}>edit_note</span>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)' }}>Catatan Kaki Penerima</span>
+                                        </div>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                                            {NOTE_TEMPLATES.map((tmpl) => (
+                                                <button
+                                                    key={tmpl}
+                                                    type="button"
+                                                    onClick={() => setNoteDrafts(prev => ({
+                                                        ...prev,
+                                                        [data.id]: prev[data.id] ? `${prev[data.id]} | ${tmpl}` : tmpl
+                                                    }))}
+                                                    style={{
+                                                        background: 'rgba(255,255,255,0.05)',
+                                                        border: '1px solid rgba(255,255,255,0.1)',
+                                                        borderRadius: '4px',
+                                                        padding: '0.15rem 0.4rem',
+                                                        color: '#ccc',
+                                                        fontSize: '0.65rem',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    + {tmpl}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <textarea
+                                            rows={2}
+                                            placeholder="Contoh: Diambil oleh anak (Bpk. Dani), koper 24 inch..."
+                                            value={noteDrafts[data.id] ?? ''}
+                                            onChange={e => setNoteDrafts(prev => ({ ...prev, [data.id]: e.target.value }))}
                                             style={{
                                                 width: '100%',
-                                                padding: '0.375rem 0.5rem',
                                                 background: '#0a0907',
                                                 border: '1px solid #333',
                                                 color: 'white',
                                                 borderRadius: '0.375rem',
-                                                fontSize: '0.8125rem',
-                                                outline: 'none'
+                                                fontSize: '0.775rem',
+                                                padding: '0.4rem',
+                                                outline: 'none',
+                                                boxSizing: 'border-box'
                                             }}
                                         />
-                                        <input
-                                            type="text"
-                                            placeholder="Catatan (opsional)"
-                                            value={newItemForm[data.id].notes}
-                                            onChange={e => setNewItemForm(prev => ({
-                                                ...prev,
-                                                [data.id]: { ...prev[data.id], notes: e.target.value }
-                                            }))}
-                                            style={{
-                                                width: '100%',
-                                                padding: '0.375rem 0.5rem',
-                                                background: '#0a0907',
-                                                border: '1px solid #333',
-                                                color: 'white',
-                                                borderRadius: '0.375rem',
-                                                fontSize: '0.8125rem',
-                                                outline: 'none'
-                                            }}
-                                        />
-                                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                                            <button 
-                                                onClick={() => setNewItemForm(prev => ({
-                                                    ...prev,
-                                                    [data.id]: { name: '', notes: '', isOpen: false }
-                                                }))}
-                                                style={{ background: 'none', border: 'none', color: '#888', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditingNoteBookingId(null)}
+                                                style={{ background: 'none', border: 'none', color: '#888', fontSize: '0.725rem', cursor: 'pointer' }}
                                             >
                                                 Batal
                                             </button>
-                                            <button 
-                                                onClick={() => handleAddCustomItem(data.id)}
+                                            <button
+                                                type="button"
+                                                disabled={savingNoteBookingId === data.id}
+                                                onClick={() => handleSaveNote(data.id)}
                                                 style={{
                                                     background: 'var(--color-primary)',
                                                     border: 'none',
                                                     color: 'black',
                                                     padding: '0.25rem 0.75rem',
                                                     borderRadius: '0.25rem',
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.725rem',
                                                     fontWeight: 700,
-                                                    cursor: 'pointer'
+                                                    cursor: savingNoteBookingId === data.id ? 'wait' : 'pointer'
                                                 }}
                                             >
-                                                Simpan
+                                                {savingNoteBookingId === data.id ? 'Menyimpan...' : 'Simpan'}
                                             </button>
                                         </div>
+                                    </div>
+                                ) : (
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'flex-start',
+                                        background: data.logisticsNotes ? 'rgba(200,168,81,0.06)' : 'rgba(255,255,255,0.02)',
+                                        border: data.logisticsNotes ? '1px dashed var(--color-border-gold)' : '1px dashed rgba(255,255,255,0.08)',
+                                        borderRadius: '0.5rem',
+                                        padding: '0.5rem 0.65rem',
+                                        gap: '0.5rem'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.35rem', minWidth: 0, flex: 1 }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '15px', color: data.logisticsNotes ? 'var(--color-primary)' : '#666', marginTop: '2px', flexShrink: 0 }}>sticky_note_2</span>
+                                            <div style={{ minWidth: 0 }}>
+                                                <span style={{ fontSize: '0.675rem', fontWeight: 600, color: data.logisticsNotes ? 'var(--color-primary)' : '#888', display: 'block' }}>Catatan Kaki Penerima:</span>
+                                                <p style={{ fontSize: '0.75rem', color: data.logisticsNotes ? '#e5e7eb' : '#666', margin: '0.1rem 0 0 0', lineHeight: 1.3, fontStyle: data.logisticsNotes ? 'normal' : 'italic' }}>
+                                                    {data.logisticsNotes || 'Belum ada catatan tambahan.'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleOpenNoteEditor(data.id, data.logisticsNotes)}
+                                            style={{
+                                                background: 'transparent',
+                                                border: 'none',
+                                                color: 'var(--color-primary)',
+                                                fontSize: '0.725rem',
+                                                fontWeight: 600,
+                                                cursor: 'pointer',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '0.2rem',
+                                                flexShrink: 0,
+                                                padding: '0.2rem'
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>edit</span>
+                                            {data.logisticsNotes ? 'Ubah' : 'Tambah'}
+                                        </button>
                                     </div>
                                 )}
                             </div>
