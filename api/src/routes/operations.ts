@@ -21,23 +21,90 @@ api.get('/equipment', authMiddleware, async (c) => {
     return c.json(data);
 });
 
-// 2. CREATE Master Equipment (Admin Pusat & PIC Logistik)
-api.post('/equipment', authMiddleware, requireRole('pusat', 'pic_logistik'), zValidator('json', z.object({
-    name: z.string(),
+// 2. CREATE Master Equipment (Admin Pusat, PIC Logistik, Teknisi)
+api.post('/equipment', authMiddleware, requireRole('pusat', 'pic_logistik', 'teknisi'), zValidator('json', z.object({
+    name: z.string().min(1, 'Nama item wajib diisi'),
     description: z.string().optional()
 })), async (c) => {
-    const body = c.req.valid('json');
-    const db = getDb(c.env.DB);
-    const [item] = await db.insert(equipmentItems).values(body).returning();
-    return c.json(item);
+    try {
+        const body = c.req.valid('json');
+        const db = getDb(c.env.DB);
+        const [item] = await db.insert(equipmentItems).values(body).returning();
+        return c.json(item);
+    } catch (err: any) {
+        return c.json({ error: err.message || 'Gagal menambahkan item' }, 500);
+    }
 });
 
-// 2b. DELETE Master Equipment (Admin Pusat & PIC Logistik)
-api.delete('/equipment/:id', authMiddleware, requireRole('pusat', 'pic_logistik'), async (c) => {
+// 2b. UPDATE Master Equipment (Admin Pusat, PIC Logistik, Teknisi)
+api.put('/equipment/:id', authMiddleware, requireRole('pusat', 'pic_logistik', 'teknisi'), zValidator('json', z.object({
+    name: z.string().min(1, 'Nama item wajib diisi'),
+    description: z.string().optional().nullable()
+})), async (c) => {
+    try {
+        const id = c.req.param('id');
+        const body = c.req.valid('json');
+        const db = getDb(c.env.DB);
+        const [updated] = await db.update(equipmentItems)
+            .set({ name: body.name, description: body.description ?? null })
+            .where(eq(equipmentItems.id, id))
+            .returning();
+        if (!updated) {
+            return c.json({ error: 'Item tidak ditemukan' }, 404);
+        }
+        return c.json(updated);
+    } catch (err: any) {
+        return c.json({ error: err.message || 'Gagal mengubah item' }, 500);
+    }
+});
+
+// 2c. DELETE Master Equipment (Admin Pusat, PIC Logistik, Teknisi)
+api.delete('/equipment/:id', authMiddleware, requireRole('pusat', 'pic_logistik', 'teknisi'), async (c) => {
     const id = c.req.param('id');
     const db = getDb(c.env.DB);
-    await db.delete(equipmentItems).where(eq(equipmentItems.id, id));
-    return c.json({ success: true });
+    try {
+        // 1. Delete associated checklists to prevent foreign key constraint error
+        await db.delete(equipmentChecklist).where(eq(equipmentChecklist.equipmentItemId, id));
+
+        // 2. Clean up references in equipment_sets
+        const allSets = await db.select().from(equipmentSets);
+        for (const set of allSets) {
+            if (set.equipmentItemIds) {
+                try {
+                    const ids = JSON.parse(set.equipmentItemIds);
+                    if (Array.isArray(ids) && ids.includes(id)) {
+                        const filtered = ids.filter((x: string) => x !== id);
+                        await db.update(equipmentSets)
+                            .set({ equipmentItemIds: JSON.stringify(filtered) })
+                            .where(eq(equipmentSets.id, set.id));
+                    }
+                } catch { }
+            }
+        }
+
+        // 3. Clean up references in packages
+        const allPkgs = await db.select().from(packages);
+        for (const pkg of allPkgs) {
+            if (pkg.equipmentIds) {
+                try {
+                    const ids = JSON.parse(pkg.equipmentIds);
+                    if (Array.isArray(ids) && ids.includes(id)) {
+                        const filtered = ids.filter((x: string) => x !== id);
+                        await db.update(packages)
+                            .set({ equipmentIds: JSON.stringify(filtered) })
+                            .where(eq(packages.id, pkg.id));
+                    }
+                } catch { }
+            }
+        }
+
+        // 4. Finally delete the equipment item itself
+        await db.delete(equipmentItems).where(eq(equipmentItems.id, id));
+        return c.json({ success: true, message: 'Item berhasil dihapus' });
+    } catch (err: any) {
+        console.error('Delete equipment error:', err);
+        return c.json({ error: err.message || 'Gagal menghapus item perlengkapan' }, 500);
+    }
 });
 
 // 3. GET Checklist for a Booking (filtered by set or package equipment, plus custom items)

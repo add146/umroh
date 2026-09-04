@@ -13,8 +13,10 @@ const EquipmentMaster: React.FC = () => {
     const [items, setItems] = useState<EquipmentItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingItem, setEditingItem] = useState<EquipmentItem | null>(null);
     const [formData, setFormData] = useState({ name: '', description: '' });
     const [saving, setSaving] = useState(false);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     useEffect(() => { fetchItems(); }, []);
 
@@ -22,31 +24,67 @@ const EquipmentMaster: React.FC = () => {
         try {
             const data = await apiFetch<EquipmentItem[]>('/api/operations/equipment');
             setItems(data || []);
-        } catch { toast.error('Gagal memuat data'); }
-        finally { setLoading(false); }
+        } catch (err: any) {
+            toast.error(err.message || 'Gagal memuat data');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleCreate = async (e: React.FormEvent) => {
+    const handleOpenCreate = () => {
+        setEditingItem(null);
+        setFormData({ name: '', description: '' });
+        setIsModalOpen(true);
+    };
+
+    const handleOpenEdit = (item: EquipmentItem) => {
+        setEditingItem(item);
+        setFormData({ name: item.name, description: item.description || '' });
+        setIsModalOpen(true);
+    };
+
+    const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.name.trim()) return;
         setSaving(true);
         try {
-            await apiFetch('/api/operations/equipment', { method: 'POST', body: JSON.stringify(formData) });
-            toast.success('Item perlengkapan berhasil ditambahkan');
+            if (editingItem) {
+                await apiFetch(`/api/operations/equipment/${editingItem.id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(formData)
+                });
+                toast.success('Item perlengkapan berhasil diperbarui');
+            } else {
+                await apiFetch('/api/operations/equipment', {
+                    method: 'POST',
+                    body: JSON.stringify(formData)
+                });
+                toast.success('Item perlengkapan berhasil ditambahkan');
+            }
             setFormData({ name: '', description: '' });
             setIsModalOpen(false);
+            setEditingItem(null);
             fetchItems();
-        } catch { toast.error('Gagal menambahkan item'); }
-        finally { setSaving(false); }
+        } catch (err: any) {
+            toast.error(err.message || 'Gagal menyimpan item');
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleDelete = async (id: string, name: string) => {
-        if (!confirm(`Hapus item "${name}"?`)) return;
+        if (!confirm(`Hapus item "${name}"?\n\nPerhatian: Item ini juga akan dibersihkan dari checklist jamaah & paket perlengkapan terkait.`)) return;
+        setDeletingId(id);
         try {
-            await apiFetch(`/api/operations/equipment/${id}`, { method: 'DELETE' });
-            toast.success('Item dihapus');
+            const res = await apiFetch(`/api/operations/equipment/${id}`, { method: 'DELETE' });
+            toast.success(res.message || 'Item perlengkapan berhasil dihapus');
             fetchItems();
-        } catch { toast.error('Gagal menghapus item'); }
+        } catch (err: any) {
+            console.error('Failed to delete equipment item', err);
+            toast.error(err.message || 'Gagal menghapus item');
+        } finally {
+            setDeletingId(null);
+        }
     };
 
     const defaultItems = [
@@ -75,7 +113,7 @@ const EquipmentMaster: React.FC = () => {
 
     return (
         <div className="animate-in fade-in duration-700">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Master Perlengkapan</h1>
                     <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Kelola daftar item perlengkapan yang akan diserahkan ke jamaah.</p>
@@ -87,8 +125,8 @@ const EquipmentMaster: React.FC = () => {
                             Isi Default
                         </button>
                     )}
-                    <button onClick={() => setIsModalOpen(true)} style={{ padding: '0.75rem 1.25rem', borderRadius: '0.5rem', fontWeight: 600, background: 'var(--color-primary)', color: 'black', border: 'none', cursor: 'pointer', fontSize: '0.875rem' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px', marginRight: '0.5rem', verticalAlign: 'middle' }}>add</span>
+                    <button onClick={handleOpenCreate} style={{ padding: '0.75rem 1.25rem', borderRadius: '0.5rem', fontWeight: 600, background: 'var(--color-primary)', color: 'black', border: 'none', cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
                         Tambah Item
                     </button>
                 </div>
@@ -125,9 +163,39 @@ const EquipmentMaster: React.FC = () => {
                                 <td style={{ padding: '1rem 1.5rem', color: 'var(--color-text-light)', fontSize: '0.8125rem' }}>{item.description || '-'}</td>
                                 <td style={{ padding: '1rem 1.5rem', color: '#888', fontSize: '0.8125rem' }}>{item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID') : '-'}</td>
                                 <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
-                                    <button onClick={() => handleDelete(item.id, item.name)} style={{ padding: '0.375rem 0.75rem', background: 'rgba(239,68,68,0.1)', color: '#ef4444', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.75rem' }}>
-                                        Hapus
-                                    </button>
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                                        <button
+                                            onClick={() => handleOpenEdit(item)}
+                                            style={{
+                                                padding: '0.375rem 0.75rem',
+                                                background: 'rgba(200,168,81,0.15)',
+                                                color: 'var(--color-primary)',
+                                                border: '1px solid rgba(200,168,81,0.3)',
+                                                borderRadius: '0.375rem',
+                                                cursor: 'pointer',
+                                                fontWeight: 600,
+                                                fontSize: '0.75rem'
+                                            }}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(item.id, item.name)}
+                                            disabled={deletingId === item.id}
+                                            style={{
+                                                padding: '0.375rem 0.75rem',
+                                                background: deletingId === item.id ? '#333' : 'rgba(239,68,68,0.1)',
+                                                color: deletingId === item.id ? '#888' : '#ef4444',
+                                                borderRadius: '0.375rem',
+                                                border: 'none',
+                                                cursor: deletingId === item.id ? 'not-allowed' : 'pointer',
+                                                fontWeight: 600,
+                                                fontSize: '0.75rem'
+                                            }}
+                                        >
+                                            {deletingId === item.id ? 'Menghapus...' : 'Hapus'}
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -135,18 +203,20 @@ const EquipmentMaster: React.FC = () => {
                 </table>
             </div>
 
-            {/* Add Modal */}
+            {/* Add / Edit Modal */}
             {isModalOpen && (
                 <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
                     <div style={{ backgroundColor: 'rgb(19, 18, 16)', border: '1px solid var(--color-border)', padding: '2rem', borderRadius: '1rem', width: '420px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>Tambah Item Perlengkapan</h3>
-                            <button onClick={() => setIsModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', display: 'flex' }}
+                            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
+                                {editingItem ? 'Edit Item Perlengkapan' : 'Tambah Item Perlengkapan'}
+                            </h3>
+                            <button onClick={() => { setIsModalOpen(false); setEditingItem(null); }} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', display: 'flex' }}
                                 onMouseEnter={e => e.currentTarget.style.color = 'white'} onMouseLeave={e => e.currentTarget.style.color = 'var(--color-text-muted)'}>
                                 <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>close</span>
                             </button>
                         </div>
-                        <form onSubmit={handleCreate}>
+                        <form onSubmit={handleSave}>
                             <div style={{ marginBottom: '1rem' }}>
                                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-light)', marginBottom: '0.375rem' }}>Nama Item *</label>
                                 <input type="text" required placeholder="Contoh: Paspor, Tiket Pesawat, Koper"
@@ -160,8 +230,10 @@ const EquipmentMaster: React.FC = () => {
                                     style={{ width: '100%', padding: '0.75rem', background: '#0a0907', border: '1px solid var(--color-border)', color: 'white', borderRadius: '0.5rem', outline: 'none' }} />
                             </div>
                             <div style={{ display: 'flex', gap: '1rem' }}>
-                                <button type="button" onClick={() => setIsModalOpen(false)} style={{ flex: 1, padding: '0.75rem', background: 'transparent', border: '1px solid var(--color-border)', color: 'white', borderRadius: '0.5rem', fontWeight: 700, cursor: 'pointer' }}>Batal</button>
-                                <button type="submit" disabled={saving} style={{ flex: 1, padding: '0.75rem', background: 'var(--color-primary)', color: 'black', border: 'none', borderRadius: '0.5rem', fontWeight: 700, cursor: 'pointer' }}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
+                                <button type="button" onClick={() => { setIsModalOpen(false); setEditingItem(null); }} style={{ flex: 1, padding: '0.75rem', background: 'transparent', border: '1px solid var(--color-border)', color: 'white', borderRadius: '0.5rem', fontWeight: 700, cursor: 'pointer' }}>Batal</button>
+                                <button type="submit" disabled={saving} style={{ flex: 1, padding: '0.75rem', background: 'var(--color-primary)', color: 'black', border: 'none', borderRadius: '0.5rem', fontWeight: 700, cursor: 'pointer' }}>
+                                    {saving ? 'Menyimpan...' : (editingItem ? 'Perbarui' : 'Simpan')}
+                                </button>
                             </div>
                         </form>
                     </div>
