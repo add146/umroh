@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import { eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
 import { users } from '../db/schema.js';
 import { verifyPassword } from '../lib/password.js';
@@ -37,7 +37,7 @@ auth.post('/login', zValidator('json', loginSchema), async (c) => {
     const user = await db.query.users.findFirst({
         where: isEmail
             ? eq(users.email, identifier)
-            : eq(users.phone, normalizedPhone!)
+            : or(eq(users.phone, normalizedPhone!), eq(users.phone, identifier))
     });
 
     if (!user || !user.isActive) {
