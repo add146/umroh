@@ -312,6 +312,24 @@ export const DashboardPage: React.FC = () => {
                                 <p style={{ margin: 0, color: '#888', fontSize: '0.8125rem' }}>Plotting kamar Quad/Triple/Double</p>
                             </div>
                         </Link>
+                        <Link to="/admin/bookings" style={{ textDecoration: 'none', background: 'linear-gradient(135deg, rgba(200,168,81,0.15) 0%, rgba(200,168,81,0.05) 100%)', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid rgba(200,168,81,0.4)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{ background: 'rgba(200, 168, 81, 0.25)', padding: '0.875rem', borderRadius: '0.5rem', color: 'var(--color-primary)', display: 'flex' }}>
+                                <span className="material-symbols-outlined">bolt</span>
+                            </div>
+                            <div>
+                                <h4 style={{ margin: 0, color: 'var(--color-primary)', fontSize: '1rem', fontWeight: 800 }}>+ Pesankan Paket Jamaah</h4>
+                                <p style={{ margin: 0, color: '#bbb', fontSize: '0.8125rem' }}>Daftarkan jamaah baru (Fitur Sales/Agen)</p>
+                            </div>
+                        </Link>
+                        <Link to="/prospects" style={{ textDecoration: 'none', background: '#1a1917', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{ background: 'rgba(249, 115, 22, 0.15)', padding: '0.875rem', borderRadius: '0.5rem', color: '#fb923c', display: 'flex' }}>
+                                <span className="material-symbols-outlined">contact_mail</span>
+                            </div>
+                            <div>
+                                <h4 style={{ margin: 0, color: 'white', fontSize: '1rem', fontWeight: 700 }}>Prospek & CRM</h4>
+                                <p style={{ margin: 0, color: '#888', fontSize: '0.8125rem' }}>Pipeline prospek calon jamaah</p>
+                            </div>
+                        </Link>
                     </div>
                 </div>
             )}

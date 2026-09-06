@@ -79,9 +79,9 @@ const menuGroups: MenuGroup[] = [
     {
         label: 'Sales & Marketing',
         items: [
-            { name: 'Prospek', path: '/prospects', icon: 'contact_mail', roles: ['agen', 'reseller', 'marketing'] },
-            { name: 'Inbox Lead', path: '/agent/leads', icon: 'call_received', roles: ['agen', 'marketing'] },
-            { name: 'Marketing Kit', path: '/marketing-kit', icon: 'imagesmode', roles: ['pusat', 'mitra', 'agen', 'reseller', 'cabang', 'marketing'] },
+            { name: 'Prospek', path: '/prospects', icon: 'contact_mail', roles: ['agen', 'reseller', 'marketing', 'pic_jamaah'] },
+            { name: 'Inbox Lead', path: '/agent/leads', icon: 'call_received', roles: ['agen', 'marketing', 'pic_jamaah'] },
+            { name: 'Marketing Kit', path: '/marketing-kit', icon: 'imagesmode', roles: ['pusat', 'mitra', 'agen', 'reseller', 'cabang', 'marketing', 'pic_jamaah'] },
             { name: 'Kelola Marketing Kit', path: '/cabang/marketing-kit', icon: 'upload', roles: ['pusat', 'cabang', 'marketing'] },
             { name: 'Assign Lead', path: '/cabang/assign-lead', icon: 'assignment_ind', roles: ['cabang', 'mitra'] },
             { name: 'Kelola Testimoni', path: '/admin/testimonials', icon: 'reviews', roles: ['pusat'] },
@@ -93,8 +93,8 @@ const menuGroups: MenuGroup[] = [
             { name: 'Monitoring Absensi', path: '/admin/attendance', icon: 'badge', roles: ['pusat', 'cabang', 'finance'] },
             { name: 'Approval Jamaah', path: '/cabang/approval', icon: 'rule', roles: ['cabang'] },
             { name: 'Data Jamaah Cabang', path: '/cabang/jamaah', icon: 'dns', roles: ['cabang'] },
-            { name: 'List Jamaah', path: '/agent/list-jamaah', icon: 'contact_page', roles: ['agen', 'marketing'] },
-            { name: 'Data Jamaahku', path: '/agent/jamaah', icon: 'group', roles: ['agen', 'marketing'] },
+            { name: 'List Jamaah', path: '/agent/list-jamaah', icon: 'contact_page', roles: ['agen', 'marketing', 'pic_jamaah'] },
+            { name: 'Data Jamaahku', path: '/agent/jamaah', icon: 'group', roles: ['agen', 'marketing', 'pic_jamaah'] },
             { name: 'Daftar Jamaah', path: '/teknisi/jamaah', icon: 'person_search', roles: ['teknisi', 'pic_logistik'] },
             { name: 'Repeat Customers', path: '/admin/reports/repeat-customers', icon: 'group_add', roles: ['pusat'] },
             { name: 'Performa Cabang', path: '/admin/performance', icon: 'leaderboard', roles: ['pusat'] },
@@ -110,9 +110,9 @@ const menuGroups: MenuGroup[] = [
     {
         label: 'Afiliasi',
         items: [
-            { name: 'Dashboard Affiliasi', path: '/affiliate', icon: 'trending_up', roles: ['cabang', 'mitra', 'agen', 'reseller', 'marketing'] },
-            { name: 'Pencairan Komisi', path: '/affiliate/disbursement', icon: 'account_balance_wallet', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'finance', 'marketing'] },
-            { name: 'Leaderboard', path: '/leaderboard', icon: 'trophy', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'marketing'] },
+            { name: 'Dashboard Affiliasi', path: '/affiliate', icon: 'trending_up', roles: ['cabang', 'mitra', 'agen', 'reseller', 'marketing', 'pic_jamaah'] },
+            { name: 'Pencairan Komisi', path: '/affiliate/disbursement', icon: 'account_balance_wallet', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'finance', 'marketing', 'pic_jamaah'] },
+            { name: 'Leaderboard', path: '/leaderboard', icon: 'trophy', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'marketing', 'pic_jamaah'] },
             { name: 'Data Downline', path: '/downline', icon: 'account_tree', roles: ['pusat', 'cabang', 'mitra', 'agen'] },
         ]
     },

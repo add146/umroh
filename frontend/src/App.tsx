@@ -90,13 +90,13 @@ function App() {
           } />
 
           {/* New Sales & CRM Routes */}
-          <Route path="/prospects" element={<ProtectedRoute allowedRoles={['agen', 'reseller', 'marketing']}><DashboardLayout><ProspectList /></DashboardLayout></ProtectedRoute>} />
-          <Route path="/agent/leads" element={<ProtectedRoute allowedRoles={['agen', 'marketing']}><DashboardLayout><IncomingLeads /></DashboardLayout></ProtectedRoute>} />
-          <Route path="/agent/list-jamaah" element={<ProtectedRoute allowedRoles={['agen', 'marketing']}><DashboardLayout><AgentPilgrimDirectory /></DashboardLayout></ProtectedRoute>} />
-          <Route path="/agent/jamaah" element={<ProtectedRoute allowedRoles={['agen', 'marketing']}><DashboardLayout><AgentJamaahView /></DashboardLayout></ProtectedRoute>} />
-          <Route path="/marketing-kit" element={<ProtectedRoute allowedRoles={['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'marketing']}><DashboardLayout><MarketingKitView /></DashboardLayout></ProtectedRoute>} />
-          <Route path="/leaderboard" element={<ProtectedRoute allowedRoles={['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'marketing']}><DashboardLayout><Leaderboard /></DashboardLayout></ProtectedRoute>} />
-          <Route path="/affiliate/disbursement" element={<ProtectedRoute allowedRoles={['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'finance', 'marketing']}><DashboardLayout><DisbursementRequest /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/prospects" element={<ProtectedRoute allowedRoles={['agen', 'reseller', 'marketing', 'pic_jamaah']}><DashboardLayout><ProspectList /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/agent/leads" element={<ProtectedRoute allowedRoles={['agen', 'marketing', 'pic_jamaah']}><DashboardLayout><IncomingLeads /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/agent/list-jamaah" element={<ProtectedRoute allowedRoles={['agen', 'marketing', 'pic_jamaah']}><DashboardLayout><AgentPilgrimDirectory /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/agent/jamaah" element={<ProtectedRoute allowedRoles={['agen', 'marketing', 'pic_jamaah']}><DashboardLayout><AgentJamaahView /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/marketing-kit" element={<ProtectedRoute allowedRoles={['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'marketing', 'pic_jamaah']}><DashboardLayout><MarketingKitView /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/leaderboard" element={<ProtectedRoute allowedRoles={['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'marketing', 'pic_jamaah']}><DashboardLayout><Leaderboard /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/affiliate/disbursement" element={<ProtectedRoute allowedRoles={['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'finance', 'marketing', 'pic_jamaah']}><DashboardLayout><DisbursementRequest /></DashboardLayout></ProtectedRoute>} />
 
           <Route path="/cabang/approval" element={<ProtectedRoute allowedRoles={['cabang']}><DashboardLayout><CabangApproval /></DashboardLayout></ProtectedRoute>} />
           <Route path="/cabang/jamaah" element={<ProtectedRoute allowedRoles={['cabang']}><DashboardLayout><CabangJamaahView /></DashboardLayout></ProtectedRoute>} />
@@ -185,7 +185,7 @@ function App() {
           <Route path="/status/:id" element={<RegistrationStatus />} />
 
           <Route path="/affiliate" element={
-            <ProtectedRoute allowedRoles={['cabang', 'mitra', 'agen', 'reseller', 'marketing']}>
+            <ProtectedRoute allowedRoles={['cabang', 'mitra', 'agen', 'reseller', 'marketing', 'pic_jamaah']}>
               <DashboardLayout>
                 <AffiliateDashboard />
               </DashboardLayout>

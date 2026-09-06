@@ -3,6 +3,7 @@ import { apiFetch } from '../../lib/api';
 import { useAuthStore } from '../../stores/authStore';
 import { BroadcastModal } from '../../components/BroadcastModal';
 import DocumentChecklist from '../../components/DocumentChecklist';
+import { QuickBookModal } from '../../components/QuickBookModal';
 
 const thStyle: React.CSSProperties = {
     padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.875rem',
@@ -19,6 +20,7 @@ const BookingList: React.FC = () => {
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [showBroadcastModal, setShowBroadcastModal] = useState(false);
+    const [isQuickBookOpen, setIsQuickBookOpen] = useState(false);
     const [equipmentSets, setEquipmentSets] = useState<any[]>([]);
 
     useEffect(() => {
@@ -27,20 +29,21 @@ const BookingList: React.FC = () => {
             .catch(console.error);
     }, []);
 
+    const fetchData = async () => {
+        try {
+            const [bRes, sRes] = await Promise.all([
+                apiFetch<{ bookings: any[] }>('/api/bookings'),
+                (user?.role !== 'pusat' && user?.role !== 'reseller')
+                    ? apiFetch<{ stats: any[] }>('/api/bookings/stats/downline')
+                    : Promise.resolve({ stats: [] })
+            ]);
+            setBookings(bRes.bookings || []);
+            setStats(sRes.stats || []);
+        } catch (error) { console.error(error); }
+        finally { setLoading(false); }
+    };
+
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [bRes, sRes] = await Promise.all([
-                    apiFetch<{ bookings: any[] }>('/api/bookings'),
-                    (user?.role !== 'pusat' && user?.role !== 'reseller')
-                        ? apiFetch<{ stats: any[] }>('/api/bookings/stats/downline')
-                        : Promise.resolve({ stats: [] })
-                ]);
-                setBookings(bRes.bookings || []);
-                setStats(sRes.stats || []);
-            } catch (error) { console.error(error); }
-            finally { setLoading(false); }
-        };
         fetchData();
     }, [user?.role]);
 
@@ -73,9 +76,54 @@ const BookingList: React.FC = () => {
 
     return (
         <div className="animate-in fade-in duration-700">
-            <div style={{ marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Daftar Booking Jama'ah</h1>
-                <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Kelola dan pantau seluruh pendaftaran paket umroh beserta statusnya.</p>
+            <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>Daftar Booking Jama'ah</h1>
+                    <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.875rem' }}>Kelola dan pantau seluruh pendaftaran paket umroh beserta statusnya.</p>
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button
+                        onClick={() => setIsQuickBookOpen(true)}
+                        style={{
+                            padding: '0.625rem 1.25rem',
+                            borderRadius: '0.5rem',
+                            background: 'linear-gradient(135deg, #c8a851 0%, #a88934 100%)',
+                            color: '#000',
+                            fontWeight: 800,
+                            fontSize: '0.875rem',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            boxShadow: '0 4px 15px rgba(200,168,81,0.25)'
+                        }}
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>bolt</span>
+                        + Pesan Paket Cepat
+                    </button>
+                    <a
+                        href={`/register${user?.affiliateCode ? `?ref=${user.affiliateCode}` : ''}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                            padding: '0.625rem 1rem',
+                            borderRadius: '0.5rem',
+                            background: '#1a1917',
+                            border: '1px solid var(--color-border)',
+                            color: 'white',
+                            fontWeight: 600,
+                            fontSize: '0.875rem',
+                            textDecoration: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                        }}
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>how_to_reg</span>
+                        Form Pendaftaran Lengkap
+                    </a>
+                </div>
             </div>
 
             {user?.role !== 'pusat' && user?.role !== 'reseller' && (
@@ -414,6 +462,17 @@ const BookingList: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            {/* Quick Book Modal */}
+            <QuickBookModal
+                isOpen={isQuickBookOpen}
+                onClose={() => setIsQuickBookOpen(false)}
+                onSuccess={() => {
+                    alert('Pendaftaran jamaah berhasil disimpan!');
+                    setIsQuickBookOpen(false);
+                    fetchData();
+                }}
+            />
 
             {/* Broadcast Modal */}
             <BroadcastModal

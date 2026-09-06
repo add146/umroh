@@ -54,8 +54,8 @@ api.post('/assign', authMiddleware, requireRole('cabang', 'mitra'), zValidator('
     }
 });
 
-// 2. Agen / Marketing lihat lead masuk
-api.get('/incoming', authMiddleware, requireRole('agen', 'marketing'), async (c) => {
+// 2. Agen / Marketing / PIC Jamaah lihat lead masuk
+api.get('/incoming', authMiddleware, requireRole('agen', 'marketing', 'pic_jamaah'), async (c) => {
     const user = c.get('user');
     const db = getDb(c.env.DB);
 
