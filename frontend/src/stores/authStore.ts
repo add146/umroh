@@ -5,7 +5,7 @@ export type User = {
     id: string;
     email: string;
     name: string;
-    role: 'pusat' | 'cabang' | 'mitra' | 'agen' | 'reseller' | 'teknisi' | 'pic_produk' | 'pic_logistik' | 'pic_jamaah' | 'finance';
+    role: 'pusat' | 'cabang' | 'mitra' | 'agen' | 'reseller' | 'teknisi' | 'pic_produk' | 'pic_logistik' | 'pic_jamaah' | 'finance' | 'marketing' | 'staff';
     phone?: string;
     affiliateCode?: string;
 };

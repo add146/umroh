@@ -24,6 +24,8 @@ export const DashboardPage: React.FC = () => {
             case 'pic_logistik': return 'PIC Logistik & Inventory Perlengkapan';
             case 'pic_jamaah': return 'PIC Data Jamaah, Manifest & Roomlist';
             case 'finance': return 'Staff Keuangan & Finance';
+            case 'marketing': return 'Staff Sales & Marketing';
+            case 'staff': return 'Staff Umum / Absensi';
             case 'cabang': return 'Kantor Cabang';
             case 'mitra': return 'Mitra Usaha';
             case 'agen': return 'Agen Sales';
@@ -104,6 +106,25 @@ export const DashboardPage: React.FC = () => {
                 } catch (e) {
                     console.error(e);
                 }
+            } else if (user?.role === 'marketing') {
+                try {
+                    const res = await apiFetch('/api/leads/prospects');
+                    const prospectsData = res.ok ? await res.json() : { prospects: [] };
+                    const plist = prospectsData.prospects || [];
+                    setStats([
+                        { label: 'Total Prospek Saya', value: plist.length.toString() },
+                        { label: 'Prospek Tertarik (Hot/Warm)', value: plist.filter((p: any) => ['hot', 'warm', 'closing', 'interested'].includes(p.status?.toLowerCase())).length.toString() },
+                        { label: 'Status Marketing', value: 'Aktif Bergerak' },
+                    ]);
+                } catch (e) {
+                    console.error(e);
+                }
+            } else if (user?.role === 'staff') {
+                setStats([
+                    { label: 'Status Kehadiran', value: 'Aktif' },
+                    { label: 'Presensi Harian', value: 'Tersedia' },
+                    { label: 'Portal', value: 'Staff Karyawan' },
+                ]);
             } else {
                 // Original logic for Cabang/Mitra or Pusat viewing specific Cabang
                 let url = '/api/bookings';
@@ -336,6 +357,82 @@ export const DashboardPage: React.FC = () => {
                             <div>
                                 <h4 style={{ margin: 0, color: 'white', fontSize: '1rem', fontWeight: 700 }}>Monitoring Absensi</h4>
                                 <p style={{ margin: 0, color: '#888', fontSize: '0.8125rem' }}>Rekap kehadiran staf</p>
+                            </div>
+                        </Link>
+                    </div>
+                </div>
+            )}
+
+            {user?.role === 'marketing' && (
+                <div style={{ marginBottom: '2rem' }}>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'white', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span className="material-symbols-outlined" style={{ color: '#fb923c' }}>campaign</span>
+                        Menu Utama Staff Sales & Marketing
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+                        <Link to="/prospects" style={{ textDecoration: 'none', background: '#1a1917', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{ background: 'rgba(249, 115, 22, 0.15)', padding: '0.875rem', borderRadius: '0.5rem', color: '#fb923c', display: 'flex' }}>
+                                <span className="material-symbols-outlined">contact_mail</span>
+                            </div>
+                            <div>
+                                <h4 style={{ margin: 0, color: 'white', fontSize: '1rem', fontWeight: 700 }}>Prospek Jamaah</h4>
+                                <p style={{ margin: 0, color: '#888', fontSize: '0.8125rem' }}>Pipeline prospek closing</p>
+                            </div>
+                        </Link>
+                        <Link to="/agent/leads" style={{ textDecoration: 'none', background: '#1a1917', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{ background: 'rgba(249, 115, 22, 0.15)', padding: '0.875rem', borderRadius: '0.5rem', color: '#fb923c', display: 'flex' }}>
+                                <span className="material-symbols-outlined">call_received</span>
+                            </div>
+                            <div>
+                                <h4 style={{ margin: 0, color: 'white', fontSize: '1rem', fontWeight: 700 }}>Inbox Lead</h4>
+                                <p style={{ margin: 0, color: '#888', fontSize: '0.8125rem' }}>Tindak lanjuti lead masuk</p>
+                            </div>
+                        </Link>
+                        <Link to="/marketing-kit" style={{ textDecoration: 'none', background: '#1a1917', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{ background: 'rgba(249, 115, 22, 0.15)', padding: '0.875rem', borderRadius: '0.5rem', color: '#fb923c', display: 'flex' }}>
+                                <span className="material-symbols-outlined">imagesmode</span>
+                            </div>
+                            <div>
+                                <h4 style={{ margin: 0, color: 'white', fontSize: '1rem', fontWeight: 700 }}>Marketing Kit</h4>
+                                <p style={{ margin: 0, color: '#888', fontSize: '0.8125rem' }}>Brosur & materi promosi</p>
+                            </div>
+                        </Link>
+                        <Link to="/attendance" style={{ textDecoration: 'none', background: '#1a1917', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{ background: 'rgba(249, 115, 22, 0.15)', padding: '0.875rem', borderRadius: '0.5rem', color: '#fb923c', display: 'flex' }}>
+                                <span className="material-symbols-outlined">how_to_reg</span>
+                            </div>
+                            <div>
+                                <h4 style={{ margin: 0, color: 'white', fontSize: '1rem', fontWeight: 700 }}>Absensi Lapangan</h4>
+                                <p style={{ margin: 0, color: '#888', fontSize: '0.8125rem' }}>Presensi GPS bebas lokasi</p>
+                            </div>
+                        </Link>
+                    </div>
+                </div>
+            )}
+
+            {user?.role === 'staff' && (
+                <div style={{ marginBottom: '2rem' }}>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'white', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span className="material-symbols-outlined" style={{ color: '#cbd5e1' }}>badge</span>
+                        Menu Utama Staff Karyawan
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+                        <Link to="/attendance" style={{ textDecoration: 'none', background: '#1a1917', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{ background: 'rgba(148, 163, 184, 0.15)', padding: '0.875rem', borderRadius: '0.5rem', color: '#cbd5e1', display: 'flex' }}>
+                                <span className="material-symbols-outlined">how_to_reg</span>
+                            </div>
+                            <div>
+                                <h4 style={{ margin: 0, color: 'white', fontSize: '1rem', fontWeight: 700 }}>Absensi Saya</h4>
+                                <p style={{ margin: 0, color: '#888', fontSize: '0.8125rem' }}>Presensi masuk & pulang</p>
+                            </div>
+                        </Link>
+                        <Link to="/profile" style={{ textDecoration: 'none', background: '#1a1917', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{ background: 'rgba(148, 163, 184, 0.15)', padding: '0.875rem', borderRadius: '0.5rem', color: '#cbd5e1', display: 'flex' }}>
+                                <span className="material-symbols-outlined">manage_accounts</span>
+                            </div>
+                            <div>
+                                <h4 style={{ margin: 0, color: 'white', fontSize: '1rem', fontWeight: 700 }}>Pengaturan Akun</h4>
+                                <p style={{ margin: 0, color: '#888', fontSize: '0.8125rem' }}>Ubah password & kontak</p>
                             </div>
                         </Link>
                     </div>

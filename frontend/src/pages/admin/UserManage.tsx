@@ -7,7 +7,7 @@ interface UserItem {
     email?: string | null;
     phone?: string | null;
     nik?: string | null;
-    role: 'pusat' | 'cabang' | 'mitra' | 'agen' | 'reseller' | 'teknisi' | 'pic_produk' | 'pic_logistik' | 'pic_jamaah' | 'finance';
+    role: 'pusat' | 'cabang' | 'mitra' | 'agen' | 'reseller' | 'teknisi' | 'pic_produk' | 'pic_logistik' | 'pic_jamaah' | 'finance' | 'marketing' | 'staff';
     affiliateCode?: string | null;
     isActive: boolean;
     canFieldAttendance?: boolean;
@@ -85,7 +85,7 @@ export const UserManage: React.FC = () => {
             nik: user.nik || '',
             affiliateCode: user.affiliateCode || '',
             isActive: user.isActive,
-            canFieldAttendance: user.canFieldAttendance || ['agen', 'reseller', 'mitra'].includes(user.role)
+            canFieldAttendance: user.canFieldAttendance || ['agen', 'reseller', 'mitra', 'marketing'].includes(user.role)
         });
         setShowModal(true);
     };
@@ -215,6 +215,10 @@ export const UserManage: React.FC = () => {
                 return { bg: 'rgba(99,102,241,0.18)', border: 'rgba(99,102,241,0.4)', text: '#818cf8', label: 'PIC Data Jamaah' };
             case 'finance':
                 return { bg: 'rgba(6,182,212,0.18)', border: 'rgba(6,182,212,0.4)', text: '#22d3ee', label: 'Finance' };
+            case 'marketing':
+                return { bg: 'rgba(249,115,22,0.18)', border: 'rgba(249,115,22,0.4)', text: '#fb923c', label: 'Marketing' };
+            case 'staff':
+                return { bg: 'rgba(148,163,184,0.18)', border: 'rgba(148,163,184,0.4)', text: '#cbd5e1', label: 'Staff' };
             case 'cabang':
                 return { bg: 'rgba(139,92,246,0.18)', border: 'rgba(139,92,246,0.4)', text: '#c4b5fd', label: 'Cabang' };
             case 'teknisi':
@@ -363,7 +367,9 @@ export const UserManage: React.FC = () => {
                         <option value="pic_produk">PIC Paket & Jadwal (Mbak Laras)</option>
                         <option value="pic_logistik">PIC Logistik (Mas Ega)</option>
                         <option value="pic_jamaah">PIC Data Jamaah (Mbak Adin & Mas Edrea)</option>
-                        <option value="finance">Finance & Keuangan</option>
+                        <option value="finance">Finance & Keuangan (Mbak Acha)</option>
+                        <option value="marketing">Marketing (Mas Paijo)</option>
+                        <option value="staff">Staff Umum / Absen (Pak Panca)</option>
                         <option value="cabang">Cabang</option>
                         <option value="teknisi">Teknisi</option>
                         <option value="mitra">Mitra</option>
@@ -612,7 +618,9 @@ export const UserManage: React.FC = () => {
                                         <option value="pic_produk">PIC Paket & Jadwal (Mbak Laras)</option>
                                         <option value="pic_logistik">PIC Logistik & Inventory (Mas Ega)</option>
                                         <option value="pic_jamaah">PIC Data Jamaah & Manifest (Mbak Adin & Mas Edrea)</option>
-                                        <option value="finance">Finance & Keuangan</option>
+                                        <option value="finance">Finance & Keuangan (Mbak Acha)</option>
+                                        <option value="marketing">Staff Sales & Marketing (Mas Paijo)</option>
+                                        <option value="staff">Staff Umum / Karyawan (Pak Panca)</option>
                                         <option value="cabang">Kantor Cabang</option>
                                         <option value="teknisi">Teknisi Lapangan</option>
                                         <option value="mitra">Mitra</option>

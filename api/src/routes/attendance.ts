@@ -200,7 +200,7 @@ attendanceRouter.post('/check-in', async (c) => {
     const userProfile = await db.query.users.findFirst({
         where: eq(s.users.id, authUser.id)
     });
-    const canField = !!userProfile?.canFieldAttendance || ['agen', 'reseller', 'mitra'].includes(authUser.role);
+    const canField = !!userProfile?.canFieldAttendance || ['agen', 'reseller', 'mitra', 'marketing'].includes(authUser.role);
 
     let isWithinRange = false;
     let assignedLocationId: string | null = null;

@@ -20,7 +20,7 @@ interface MenuGroup {
     items: MenuItem[];
 }
 
-const ALL_ROLES = ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'teknisi', 'pic_produk', 'pic_logistik', 'pic_jamaah', 'finance'];
+const ALL_ROLES = ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'teknisi', 'pic_produk', 'pic_logistik', 'pic_jamaah', 'finance', 'marketing', 'staff'];
 
 const formatRoleLabel = (role?: string) => {
     switch (role) {
@@ -29,6 +29,8 @@ const formatRoleLabel = (role?: string) => {
         case 'pic_logistik': return 'PIC Logistik';
         case 'pic_jamaah': return 'PIC Data Jamaah';
         case 'finance': return 'Finance';
+        case 'marketing': return 'Marketing';
+        case 'staff': return 'Staff';
         case 'cabang': return 'Cabang';
         case 'mitra': return 'Mitra';
         case 'agen': return 'Agen';
@@ -77,10 +79,10 @@ const menuGroups: MenuGroup[] = [
     {
         label: 'Sales & Marketing',
         items: [
-            { name: 'Prospek', path: '/prospects', icon: 'contact_mail', roles: ['agen', 'reseller'] },
-            { name: 'Inbox Lead', path: '/agent/leads', icon: 'call_received', roles: ['agen'] },
-            { name: 'Marketing Kit', path: '/marketing-kit', icon: 'imagesmode', roles: ['pusat', 'mitra', 'agen', 'reseller', 'cabang'] },
-            { name: 'Kelola Marketing Kit', path: '/cabang/marketing-kit', icon: 'upload', roles: ['pusat', 'cabang'] },
+            { name: 'Prospek', path: '/prospects', icon: 'contact_mail', roles: ['agen', 'reseller', 'marketing'] },
+            { name: 'Inbox Lead', path: '/agent/leads', icon: 'call_received', roles: ['agen', 'marketing'] },
+            { name: 'Marketing Kit', path: '/marketing-kit', icon: 'imagesmode', roles: ['pusat', 'mitra', 'agen', 'reseller', 'cabang', 'marketing'] },
+            { name: 'Kelola Marketing Kit', path: '/cabang/marketing-kit', icon: 'upload', roles: ['pusat', 'cabang', 'marketing'] },
             { name: 'Assign Lead', path: '/cabang/assign-lead', icon: 'assignment_ind', roles: ['cabang', 'mitra'] },
             { name: 'Kelola Testimoni', path: '/admin/testimonials', icon: 'reviews', roles: ['pusat'] },
         ]
@@ -91,8 +93,8 @@ const menuGroups: MenuGroup[] = [
             { name: 'Monitoring Absensi', path: '/admin/attendance', icon: 'badge', roles: ['pusat', 'cabang', 'finance'] },
             { name: 'Approval Jamaah', path: '/cabang/approval', icon: 'rule', roles: ['cabang'] },
             { name: 'Data Jamaah Cabang', path: '/cabang/jamaah', icon: 'dns', roles: ['cabang'] },
-            { name: 'List Jamaah', path: '/agent/list-jamaah', icon: 'contact_page', roles: ['agen'] },
-            { name: 'Data Jamaahku', path: '/agent/jamaah', icon: 'group', roles: ['agen'] },
+            { name: 'List Jamaah', path: '/agent/list-jamaah', icon: 'contact_page', roles: ['agen', 'marketing'] },
+            { name: 'Data Jamaahku', path: '/agent/jamaah', icon: 'group', roles: ['agen', 'marketing'] },
             { name: 'Daftar Jamaah', path: '/teknisi/jamaah', icon: 'person_search', roles: ['teknisi', 'pic_logistik'] },
             { name: 'Repeat Customers', path: '/admin/reports/repeat-customers', icon: 'group_add', roles: ['pusat'] },
             { name: 'Performa Cabang', path: '/admin/performance', icon: 'leaderboard', roles: ['pusat'] },
@@ -108,9 +110,9 @@ const menuGroups: MenuGroup[] = [
     {
         label: 'Afiliasi',
         items: [
-            { name: 'Dashboard Affiliasi', path: '/affiliate', icon: 'trending_up', roles: ['cabang', 'mitra', 'agen', 'reseller'] },
-            { name: 'Pencairan Komisi', path: '/affiliate/disbursement', icon: 'account_balance_wallet', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'finance'] },
-            { name: 'Leaderboard', path: '/leaderboard', icon: 'trophy', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller'] },
+            { name: 'Dashboard Affiliasi', path: '/affiliate', icon: 'trending_up', roles: ['cabang', 'mitra', 'agen', 'reseller', 'marketing'] },
+            { name: 'Pencairan Komisi', path: '/affiliate/disbursement', icon: 'account_balance_wallet', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'finance', 'marketing'] },
+            { name: 'Leaderboard', path: '/leaderboard', icon: 'trophy', roles: ['pusat', 'cabang', 'mitra', 'agen', 'reseller', 'marketing'] },
             { name: 'Data Downline', path: '/downline', icon: 'account_tree', roles: ['pusat', 'cabang', 'mitra', 'agen'] },
         ]
     },
